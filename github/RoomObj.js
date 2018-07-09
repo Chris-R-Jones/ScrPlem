@@ -81,6 +81,8 @@ function RoomObj ( room, rmem ) {
         delete this.m_wounded;
     if(this.m_dropped)
         delete this.m_dropped;
+    if(this.m_tombs)
+        delete this.m_tombs;
         
     if(this.m_harvestPositions)
         delete this.m_harvestPositions;
@@ -647,6 +649,15 @@ RoomObj.prototype.getDroppedResources = function()
     if(this.m_dropped)
         return this.m_dropped;
     return (this.m_dropped = this.m_room.find(FIND_DROPPED_RESOURCES));
+}
+
+// getTombstones, return all tombstones in room
+// Does a find only on demand but saves result.
+RoomObj.prototype.getTombstones = function()
+{
+    if(this.m_tombs)
+        return this.m_tombs;
+    return (this.m_tombs = this.m_room.find(FIND_TOMBSTONES));
 }
 
 // getHostiles, return all creeps not owned by me.

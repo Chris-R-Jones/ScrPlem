@@ -13,7 +13,7 @@ class Role_BootMover extends Creep
     {
         super(creep, crmem);
     };
-     
+
     static spawn( spawn, hrObj, hostRoomName, targetRoomName, maxCreeps ) {
         let hRoom        = spawn.room;
         let tRoom        = Game.rooms[targetRoomName];
@@ -34,7 +34,7 @@ class Role_BootMover extends Creep
         let spStorage = hrObj.getSpawnStorage();
         if(!spStorage)
             return false;
-            
+
         // Make sure target room has a container to store into.
         // If not, we'll have to wait for bootstrappers to build from
         // harvested energy.
@@ -44,104 +44,104 @@ class Role_BootMover extends Creep
         if(!trContainers || trContainers.length < 1){
             return false;
         }
-            
+
         // Body will be equal parts CARRY MOVE
         let nUnit = Math.floor(hRoom.energyAvailable / 100);
         let body = [];
         let ni;
-        
+
         if(nUnit > 25)
             nUnit = 25;
-            
+
         for(ni=0; ni<nUnit; ni++)
             body.push(CARRY);
-        
+
         for(ni=0; ni<nUnit; ni++)
             body.push(MOVE);
-        
+
         // Wait for it, if not yet available.
         if(hRoom.energyAvailable < hRoom.energyCapacityAvailable)
             return true;
-        
+
         // Find a free name and spawn the bot.
         // We need one instance per source, so this is pretty easy.  Do
         // enable alts.
         // TBD For alt time, this is basically 50.  Probably want to revisit that
         // for remote haresters, and add at least an additional 50 given they
-        // will be lower in spawn order and have longer to travel... 
+        // will be lower in spawn order and have longer to travel...
         let altTime = 300;
         let crname = Creep.spawnCommon(spawn, 'bootmove', body, maxCreeps, altTime, "", targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         crmem.tRoomName = targetRoomName;
         crmem.state     = 'moveHome';
 
         delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
-	runLogic()
-	{
-	    let crmem = this.m_crmem;
-	    let creep = this.m_creep;
-	    let hRoom  = Game.rooms[crmem.homeName];
-	    let hrObj  = RoomHolder.get(hRoom.name);
-	    let tRoom  = Game.rooms[crmem.tRoomName];
-	    let trObj  = RoomHolder.get(crmem.tRoomName);
-	    let rObj   = RoomHolder.get(creep.room.name);
-	    let containers;
-	    let container;
-	    let rc;
-	    let maxLoop = 5;
-	    let exceed;
-	    let si;
-	    let debug="";
+    runLogic()
+    {
+        let crmem = this.m_crmem;
+        let creep = this.m_creep;
+        let hRoom  = Game.rooms[crmem.homeName];
+        let hrObj  = RoomHolder.get(hRoom.name);
+        let tRoom  = Game.rooms[crmem.tRoomName];
+        let trObj  = RoomHolder.get(crmem.tRoomName);
+        let rObj   = RoomHolder.get(creep.room.name);
+        let containers;
+        let container;
+        let rc;
+        let maxLoop = 5;
+        let exceed;
+        let si;
+        let debug="";
 
 
-	    // Defence.. tbd to move into common logic
-	    if( rObj.m_rmem.hostileCt > 0 || trObj.m_rmem.hostileCt > 0 ){
-	        // Remote bootstrap defence is a little different than most.
-	        // In most cases we happened upon a hostile sector.  Something
-	        // routing probably should have avoided, but it's better to 
-	        // run through than to keep bouncing back toward home (possibly very far away)
-	        // and the hostile sector we'll just get routed to again.
-	        if (rObj.m_room.name == crmem.tRoomName){
-	            // If we are at target, it's hostile, so we actually do want to
-	            // retreat home here.
-	            this.actionMoveToRoomRouted(crmem.homeName);
+        // Defence.. tbd to move into common logic
+        if( rObj.m_rmem.hostileCt > 0 || trObj.m_rmem.hostileCt > 0 ){
+            // Remote bootstrap defence is a little different than most.
+            // In most cases we happened upon a hostile sector.  Something
+            // routing probably should have avoided, but it's better to
+            // run through than to keep bouncing back toward home (possibly very far away)
+            // and the hostile sector we'll just get routed to again.
+            if (rObj.m_room.name == crmem.tRoomName){
+                // If we are at target, it's hostile, so we actually do want to
+                // retreat home here.
+                this.actionMoveToRoomRouted(crmem.homeName);
                 if(crmem.state != 'moveTgtRoom'){
-        	        this.clearTarget();
-        	        crmem.state = 'moveTgtRoom';
+                    this.clearTarget();
+                    crmem.state = 'moveTgtRoom';
                 }
-	        }
-	        else {
-	            // We aren't to target yet and are in a hostile room, or
-	            // we are headed to a hostile target.  Either way, keep on 
-	            // truckin.
+            }
+            else {
+                // We aren't to target yet and are in a hostile room, or
+                // we are headed to a hostile target.  Either way, keep on
+                // truckin.
                 this.actionMoveToRoomRouted(crmem.tRoomName);
                 if(crmem.state != 'moveTgtRoom'){
-        	        this.clearTarget();
-        	        crmem.state = 'moveTgtRoom';
+                    this.clearTarget();
+                    crmem.state = 'moveTgtRoom';
                 }
                 return;
-	        }
-	
-	        return;
-	    }
-	    
-	    for(exceed=0; exceed<maxLoop; exceed++){
+            }
+
+            return;
+        }
+
+        for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
-    	    //if(creep.name == 'bootmove_W11N22_W14N21_2')
-    	    //    console.log(Game.time+': '+creep.name+' loop='+exceed+' state='+crmem.state);
+            //if(creep.name == 'bootmove_W11N22_W14N21_2')
+            //    console.log(Game.time+': '+creep.name+' loop='+exceed+' state='+crmem.state);
             switch(crmem.state){
 
             case 'moveHome':
@@ -150,12 +150,12 @@ class Role_BootMover extends Creep
                     crmem.state = 'pickEnergy'
                     break;
                 }
-                return;                
+                return;
 
             case 'pickEnergy':
                 this.setTarget(hRoom.storage);
                 crmem.state = 'withdrawStruct';
-                break;    
+                break;
 
             case 'withdrawStruct':
                 rc=this.withdrawStruct(RESOURCE_ENERGY);
@@ -174,7 +174,7 @@ class Role_BootMover extends Creep
                     }
                     return;
                 }
-                crmem.state = 'pickEnergy';                
+                crmem.state = 'pickEnergy';
                 return;
 
             case 'moveTgtRoom':
@@ -190,18 +190,18 @@ class Role_BootMover extends Creep
                     crmem.state = 'moveTgtRoom';
                     break;
                 }
-                
+
                 // Once we've build storage, we want to fill/sacrifice only.
                 let spStorage = trObj.getSpawnStorage();
                 if(!spStorage)
                     return;
-                    
+
                 if(spStorage.structureType == STRUCTURE_STORAGE && spStorage.my){
                     this.setTarget(spStorage);
                     crmem.state = 'fillStructure';
                     break;
                 }
-                
+
                 // Otherwise, fill controller container -- if it exists
                 // we're pretty controller upgrade focused.
                 container = trObj.getControllerContainer();
@@ -242,7 +242,7 @@ class Role_BootMover extends Creep
                     if(tgt && tgt.carry && _.sum(tgt.carry) >= (tgt.carryCapacity-15)){
                         this.clearTarget();
                         crmem.state = 'pickFill';
-                    }      
+                    }
                     return;
                 }
                 if(rc == ERR_NOT_ENOUGH_RESOURCES){
@@ -274,6 +274,23 @@ class Role_BootMover extends Creep
                     return;
                 break;
 
+            case 'getTomb':
+                // Only get energy.  We're booting a room, and there's a good chance we
+                // don't have a place to put resources yet.  We certainly don't need to
+                // optimize resource preservation.  Further, we often offload to creeps and
+                // don't want to give them minerals.
+                rc=this.pickupTomb(RESOURCE_ENERGY);
+                if(rc == ERR_FULL){
+                    crmem.state = 'pickFill';
+                    break;
+                }
+                if(rc == OK)
+                    return;
+                crmem.state = 'longHaulRecycle';
+                if(rc == ERR_NOT_ENOUGH_RESOURCES || rc == ERR_NO_PATH)
+                    return;
+                break;
+
             case 'longHaulRecycle':
                 if(_.sum(creep.carry) > 0){
                     crmem.state = 'pickFill';
@@ -286,7 +303,7 @@ class Role_BootMover extends Creep
                     let drop;
                     for(di=0; di<dropped.length; di++){
                         drop = dropped[di];
-                        if(creep.pos.getRangeTo(drop.pos) <= 10 
+                        if(creep.pos.getRangeTo(drop.pos) <= 10
                            && drop.resourceType == RESOURCE_ENERGY){
                             this.setTarget(drop);
                             crmem.state = 'getDropped';
@@ -296,6 +313,28 @@ class Role_BootMover extends Creep
                     if(di != dropped.length)
                         break;
                 }
+
+                let tombs = hrObj.getTombstones();
+                if(tombs && tombs.length > 0){
+                    let ti;
+                    for(ti=0; ti<tombs.length; ti++){
+                        let tomb = tombs[ti];
+
+                        // Deal only with tombs storing energy.  We tend to distribute
+                        // to control containers and early on may not have mineral storage.
+                        // So don't deal with minerals.
+                        // Go after it if we get more out of it than about 10
+                        // energy per turn
+                        if(tomb.energy >= 10*creep.pos.getRangeTo(tomb.pos)){
+                            this.setTarget(tomb);
+                            crmem.state = 'getTomb';
+                            break;
+                        }
+                    }
+                    if(ti != tombs.length)
+                        break;
+                }
+
 
                 container = trObj.getSpawnStorage();
                 if(container){
@@ -308,7 +347,7 @@ class Role_BootMover extends Creep
                     crmem.state = 'longHaulRecycleMove';
                 }
                 break;
-                
+
             case 'longHaulRecycleMove':
                 let target = Game.getObjectById(crmem.targetId);
                 let spawn = trObj.findTopLeftSpawn();
@@ -341,7 +380,7 @@ class Role_BootMover extends Creep
                     this.actMoveTo(target.pos);
                     return;
                 }
-                
+
                 if(target.store.energy >= 300){
                     if(trObj.getControllerContainer()){
                         // If we can't reccyel without overfilling, move some of the energy to
@@ -360,10 +399,10 @@ class Role_BootMover extends Creep
                 crmem.state = 'moveHome';
                 break;
             }
-	    }
-	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
-	}
+        }
+        if(exceed == maxLoop)
+            console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
+    }
 }
 
 module.exports = Role_BootMover;

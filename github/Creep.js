@@ -485,6 +485,72 @@ Creep.prototype.pickupDropped = function( resource )
     return err;
 }
 
+// Moves to tombstone to pickup
+// Returns:
+//   OK          - if in progress
+//   ERR_FULL    - if creep was already at carry capacity.
+//   ERR_INVALID - if target not set
+//   ERR_NOT_ENOUGH_RESOURCES - target is out of energy.
+//   ERR_NO_PATH - if no path from creep to target.
+Creep.prototype.pickupTomb = function( resource, amount )
+{
+    let crmem = this.m_crmem;
+    let creep = this.m_creep;
+    let target;
+    let err = OK;
+    let rc;
+
+    if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
+        err=ERR_INVALID_TARGET;
+
+    if(!err && resource == null){
+        // Withdraw anything, so find what there is to withdraw.
+        for( let rsc in target.store ){
+            if(!target.store[rsc] || target.store[rsc] == 0)
+                continue;
+            else
+                resource = rsc;
+            break;
+        }
+        if(!resource)
+            err = ERR_NOT_ENOUGH_RESOURCES;
+    }
+    else if( !err 
+             && ( (resource == RESOURCE_ENERGY && target.energy && target.energy == 0) 
+                  || (target.store && target.store[resource] == 0)
+                )
+           ){
+        err = ERR_NOT_ENOUGH_RESOURCES;
+    }
+
+    if(!err){
+        if(_.sum(creep.carry) == creep.carryCapacity)
+            err=ERR_FULL;
+        else if(target.pos.getRangeTo(creep) >= 2){
+            err=this.actionMoveToPos(target.pos);
+            if(err != ERR_NO_PATH)
+                return OK;
+        }
+        else {
+            if(amount)
+                err=creep.withdraw(target, resource, amount);
+            else
+                err=creep.withdraw(target, resource);
+            if(!err) {
+                if(target.store && target.store.energy <= 10)
+                    err = ERR_NOT_ENOUGH_RESOURCES;
+                else
+                    return OK;
+            }
+        }
+    }
+
+    if(crmem.targetId)
+        delete crmem.targetId;
+    if(crmem.targetPath)
+        delete crmem.targetPath;
+    return err;
+}
 
 // Moves to and upgrades controller
 // Returns:
