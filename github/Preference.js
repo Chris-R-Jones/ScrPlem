@@ -67,7 +67,7 @@ var PlemPref = {
     testR4: 'W2N42', //W2N42
 
     // Sign/banner we'll use to sign controllers in each room.
-    signText: "[Ypsilon Pact] ”Computers help us make mistakes faster than anything short of handguns and tequila.”",
+    signText: "[Ypsilon Pact] Computers help us make mistakes faster than anything short of handguns and tequila.",
     areaSignText: "[Ypsilon Pact] Reserved for YP",
 
     // Generalissimo attack orders.
