@@ -48,8 +48,7 @@ module.exports.loop = function () {
     Grafana.logMajorCPU('spawnLoop');
 
     // Observer logic
-    //RoomObj.observerLoop();
-    RoomObj.oLoopNew();
+    RoomObj.observerLoop();
     Grafana.logMajorCPU('observerLoop');
 
     // Run tower logic

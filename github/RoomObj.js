@@ -350,20 +350,14 @@ RoomObj.prototype.refreshObj = function(room, rmem){
     }
 
     if(room && room.controller && room.controller.level < 8) {
-    	let progress = Math.floor(room.controller.progress / room.controller.progressTotal * 1000000)/10000;
-    	room.visual.text(
-    		String.fromCodePoint(0x2699) + ' ' + progress + '% to level ' + (room.controller.level + 1),
-    		room.controller.pos.x + 1,
-    		room.controller.pos.y + 0.2,
-	    	{align: 'left', size: 0.7}
-	    	);
+        let progress = Math.floor(room.controller.progress / room.controller.progressTotal * 1000000)/10000;
+        room.visual.text(
+            String.fromCodePoint(0x2699) + ' ' + progress + '% to level ' + (room.controller.level + 1),
+            room.controller.pos.x + 1,
+            room.controller.pos.y + 0.2,
+            {align: 'left', size: 0.7}
+            );
     }
-
-
-    /*
-    if( (Game.time%50) == 1){
-        console.log('T='+Game.time+' room='+room.name+' Repair min='+this.m_minRepairPercent+' avg='+avgRepairSum/avgRepairCount+' wavg='+weighAvgRepairSumHits/weighAvgRepairSumHitsMax);
-    }*/
 
     // Cleanup cost matrix if stale.
     if(rmem.costMatrix && (Game.time - rmem.costMatrixTime ) > 100){
@@ -1170,67 +1164,9 @@ RoomObj.plannerLoop = function()
     }
 }
 
+
 // Invoked once per tick to run room observer logic.
 RoomObj.observerLoop = function()
-{
-    //oLoopNewShould be covering this now.  ?
-    return;
-
-    let mobs = Memory.observer;
-    let version = 3;
-    if(!mobs || mobs.version != version){
-        mobs=Memory.observer = { }
-        mobs.bndTL = 'E0S0';
-        mobs.version = version;
-        mobs.bndBR = 'E10S20';
-        mobs.nextRm = 'E0S0';
-        mobs.observPerTick = 1;
-    }
-
-    // Check we really have visibility on last selected room
-    let rObj = RoomHolder.get(mobs.nextRm);
-    //if(!rObj || !rObj.m_room)
-    //    console.log('warn - next room not observed'+mobs.nextRm);
-
-    // Only move observers once per designated frequency for now.
-    // At the moment this is mostly for general discovery and occasional
-    // update so we don't need to tweak too often.
-    // Later we will probably want some more focused hostility analysis.
-    if( (Game.time % mobs.observPerTick) != 0 )
-        return;
-
-    let nxtC = new RoomCoord(mobs.nextRm);
-    let brC = new RoomCoord(mobs.bndBR);
-    let tlC = new RoomCoord(mobs.bndTL);
-
-    if(nxtC.isWestOf(brC))
-        mobs.nextRm = nxtC.getNeighbor(1,0);
-    else if(nxtC.isNorthOf(brC))
-        mobs.nextRm = nxtC.getNeighbor(-(tlC.xDist(brC)),1);
-    else
-        mobs.nextRm = tlC.getName();
-
-    mySpawnRooms = RoomHolder.getMySpawnRooms();
-
-    for(let rName in mySpawnRooms){
-        let roomObj = mySpawnRooms[rName];
-
-        if(!roomObj.m_room)
-            continue;
-
-        let obs = roomObj.getObserver();
-        if(obs){
-            let rc = obs.observeRoom(mobs.nextRm);
-            //console.log('... Observ '+mobs.nextRm+' from '+roomObj.m_room.name+' rc='+rc);
-            if(rc == 0)
-                break;
-        }
-    }
-}
-
-
-// Invoked once per tick to run room observer logic.
-RoomObj.oLoopNew = function()
 {
     // TBD - the one downside of this new logic is that every room observes
     // every turn.  That probably increases the number of rooms to parse
@@ -1246,10 +1182,6 @@ RoomObj.oLoopNew = function()
         if(!obs)
             continue;
 
-        // Temporary for debug
-        //if(roomObj.m_room.name != 'E3N42')
-        //    continue;
-
         let lastRoom = roomObj.m_rmem.obsLastRoom;
         if(!lastRoom)
             lastRoom = roomObj.m_rmem.obsLastRoom = roomObj.m_room.name;
@@ -1260,10 +1192,6 @@ RoomObj.oLoopNew = function()
         // Get coordinate (trying to advance one to right)
         let nextDx       = (lastCo.x - roomCo.x) + 1;
         let nextDy       = (lastCo.y - roomCo.y);
-
-        //console.log('... roomCo = '+roomObj.m_room.name+'('+roomCo.x+','+roomCo.y+')');
-        //console.log('... lastCo = '+lastRoom+'('+lastCo.x+','+lastCo.y+')');
-        //console.log('... dist=('+nextDx+','+nextDy+')');
 
         // Keep within range 10 of observer's room.
         if(nextDx > 10){
@@ -1278,8 +1206,6 @@ RoomObj.oLoopNew = function()
 
         let rc = obs.observeRoom(nextRoom);
         roomObj.m_rmem.obsLastRoom = nextRoom;
-
-        //console.log('T='+Game.time+' Observer '+roomObj.m_room.name+' -> '+nextRoom+' ('+nextDx+','+nextDy+')  rc='+rc);
     }
 }
 
@@ -1493,17 +1419,12 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     if(Generalissimo.doSpawn(spawn, roomObj))
         return;
 
-    // Leave this test around to probe new rooms til you have a better way
-    //if(roomObj.m_room.name == 'E7S12' && Role_Test.spawn ( spawn, roomObj ))
-    //   return;
-
     // Spawn controller upgraders and their energy feeders.
     // I'm doing this before room feeds and bootstrapping and think it should
     // stay here, because, don't forget that these bots do moderate themselves.
     // The problem is they tend to starve bootstrapping... until we get to L7
     // spawns.  Which won't be a problem once we do.   Unfortunately I don't have
     // a great solution to that rather than just moving this logic around.
-
     if(Role_CtrlUpgrade.spawn( spawn, roomObj))
         return;
     if(Role_CtrlMover.spawn( spawn, roomObj))
@@ -1645,11 +1566,10 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     //--------------------------------------------------
 
     // Spawn wall repair
-    // TBD, this is generally low priority.  However, if attacked we
-    // should spawn higher.  TBD.
+    // This is generally low priority.  However, if attacked we
+    // should perhaps consider spawning higher.
     if(Role_Mason.spawn ( spawn, roomObj ))
         return;
-
 
     // Source keeper neighbor handling.  Do this last, as it's fairly
     // intensive in spawn pressure.

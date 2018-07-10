@@ -275,8 +275,6 @@ class CreepMon {
 	        creepObj.runLogic();
 	    }
 	}
-
-
 };
 
 
