@@ -235,12 +235,6 @@ class LabGroup
                 console.log('.. lev='+bestLev);
                 console.log('.. deficit='+bestDeficit);
 
-                /* Save history of last 40 production orders */
-                if(!Memory.chemHistory)
-                    Memory.chemHistory = [];
-                Memory.chemHistory.push(bestProduct);
-                if(Memory.chemHistory.length > 40)
-                    Memory.chemHistory.shift();
             }
             else
                 console.log('Found nothing to produce');
@@ -249,6 +243,13 @@ class LabGroup
         g_product = bestProduct;
         g_reagents[0] = bestR1;
         g_reagents[1] = bestR2;
+
+        /* Save history of last 40 production orders */
+        if(!Memory.chemHistory)
+            Memory.chemHistory = [];
+        Memory.chemHistory.push(bestProduct ? bestProduct : "skip");
+        if(Memory.chemHistory.length > 40)
+            Memory.chemHistory.shift();
 
         Memory.chemistry.lastSwitchT = Game.time;
     }
