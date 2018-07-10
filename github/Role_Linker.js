@@ -207,17 +207,16 @@ class Role_Linker extends Creep
 
                     let diff;
                     if(rsc == RESOURCE_ENERGY || !Preference.storageExodus) {
-                        // We always want to keep at least 1000 units in terminal
-                        // to encourage reactions. Beyond that, we try to keep
-                        // a ratio of 3/1.
+                        // We always want to keep at least 500 units in terminal
+                        // for exchanges & balancing. Beyond that, we try to keep a ratio of 3/1.
                         if( (trmU+stoU) < 4000 ) {
-                            if(trmU < 1000){
-                                diff = (1000-trmU);
+                            if(trmU < 500){
+                                diff = (500-trmU);
                                 if(diff > stoU)
                                     diff = stoU;
                             }
-                            else if(trmU > 1000){
-                                diff = -(trmU-1000);
+                            else if(trmU > 500){
+                                diff = -(trmU-500);
                             }
                             else
                                 diff = 0;
