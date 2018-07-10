@@ -78,6 +78,7 @@ class Role_Chemist extends Creep
 	    let labGroup = hrObj.getLabGroup();
 	    let trm      = hrObj.getTerminal();
 	    let sto      = hrObj.getSpawnStorage();
+        let noTerminalOrder = false;
 
 	    if(!labGroup || !trm){
 	        if(crmem.state != 'recycleCreep') {
@@ -111,6 +112,7 @@ class Role_Chemist extends Creep
                 debug=debug+' ... order='+JSON.stringify(order)+'\n';
 
                 if(!order){
+                    noTerminalOrder = true;
                     crmem.state = 'getLabOrder';
                     break;
                 }
@@ -220,9 +222,30 @@ class Role_Chemist extends Creep
                             break;
                         }
                     }
-                    crmem.state = 'getTerminalOrder';
-                    if(exceed <= 2)
+                    if(!noTerminalOrder){
+                        crmem.state = 'getTerminalOrder';
                         break;
+                    }
+
+                    // The chemist often has a lot of down time, little time pressure, and decent carry.
+                    // So it serves a pretty good mortician.  Go after any corpses.
+                    let tombs = hrObj.getTombstones();
+                    if(tombs && tombs.length > 0){
+                        let ti;
+                        for(ti=0; ti<tombs.length; ti++){
+                            let tomb = tombs[ti];
+
+                            // Don't bother unless there's enough to make it worth the roundtrip
+                            if(_.sum(tomb.store) >= 10*creep.pos.getRangeTo(tomb.pos)){
+                                this.setTarget(tomb);
+                                console.log(creep.name+' DEBUG going after tomb '+creep.pos);
+                                crmem.state = 'getTomb';
+                                break;
+                            }
+                        }
+                        if(ti != tombs.length)
+                            break;
+                    }
 
                     // If we don't get a lab order for 100 turns, and there is no active production - recycle.
                     if(!crmem.lastOrderT)
@@ -270,6 +293,23 @@ class Role_Chemist extends Creep
                 this.setTarget(trm);
                 crmem.state = 'fillTerminal';
                 break;
+
+            case 'getTomb':
+                rc=this.pickupTomb(null);
+                if(rc == ERR_FULL){
+                    this.setTarget(trm);
+                    crmem.state = 'fillTerminal';
+                    break;
+                }
+                if(rc == OK)
+                    return;
+                if(_.sum(creep.carry) > 0){
+                    this.setTarget(trm);
+                    crmem.state = 'fillTerminal';
+                }
+                else
+                    crmem.state = 'getTerminalOrder';
+                return;
 
             case 'fillTerminal':
                 rc=this.fillTarget(null);
