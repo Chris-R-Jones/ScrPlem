@@ -15,7 +15,7 @@ class Role_Chemist extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj ) {
         let room        = spawn.room;
         let controller  = room.controller;
@@ -23,7 +23,7 @@ class Role_Chemist extends Creep
         let cost;
         let max;
         let altTime;
-        
+
         // We only need chemists if we have active lab groups and orders
         let labGroup = hrObj.getLabGroup();
         if(!labGroup || labGroup.getChemistOrder() == null){
@@ -36,7 +36,7 @@ class Role_Chemist extends Creep
         cost = 600;
         max  = 1;
         altTime = (body.length*3)+10;
-        
+
         // Wait for it, if not yet available
         if(room.energyAvailable < cost)
             return true;
@@ -45,21 +45,21 @@ class Role_Chemist extends Creep
         // For first room we'll boot a gazillion of them, so no
         // need for alt names or such.
         let crname = Creep.spawnCommon(spawn, 'chemist', body, max, altTime);
-        
+
         // If null, max creeps are already spawned.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         // Initialze memory for the role
         crmem.state = 'init';
         delete crmem.instance;
-        
+
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -71,45 +71,45 @@ class Role_Chemist extends Creep
 	    let rc;
 	    let maxLoop = 6;
 	    let exceed;
-	    let si; 
+	    let si;
 	    let debug="";
 	    let order;
-	    
+	
 	    let labGroup = hrObj.getLabGroup();
 	    let trm      = hrObj.getTerminal();
 	    let sto      = hrObj.getSpawnStorage();
-	    
+	
 	    if(!labGroup || !trm){
 	        if(crmem.state != 'recycleCreep') {
                 console.log(creep.name+'Chemist room '+creep.pos.roomName+' has no lab group or terminal, recycling');
                 crmem.state = 'recycleCreep';
             }
 	    }
-	    
+	
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //if(creep.name == 'chemist_E4N47_0')
             //    console.log(creep.name+' loop='+exceed+' state='+crmem.state+' pos='+creep.pos);
-                        
+
             switch(crmem.state){
-            
+
             case 'init':
                 crmem.state = 'getTerminalOrder';
                 break;
 
             case 'getTerminalOrder':
                 if(creep.ticksToLive < 50 && _.sum(creep.carry == 0)){
-                    crmem.state = 'recycleCreep';   
+                    crmem.state = 'recycleCreep';
                     break;
                 }
-                
+
                 // Get order to move goods terminal -> lab
                 order = labGroup.getChemistOrderTerminalToLab();
                 //if(creep.name == 'chemist_E4N47_0')
                 //    console.log('...order='+JSON.stringify(order));
                 debug=debug+' ... order='+JSON.stringify(order)+'\n';
-                
+
                 if(!order){
                     crmem.state = 'getLabOrder';
                     break;
@@ -118,7 +118,7 @@ class Role_Chemist extends Creep
                 crmem.order = order;
                 if(order.src != 'terminal')
                     console.log(creep.name+'BUG! order source not terminal:'+order.src);
-                
+
                 let reg = crmem.order.good;
                 if(!trm.store[reg] || trm.store[reg] < sto.store[reg]/3)
                     this.setTarget(sto);
@@ -129,12 +129,12 @@ class Role_Chemist extends Creep
 
             case 'withdrawTerminal':
                 rc=this.withdrawStruct(crmem.order.good);
-                
+
                 if(rc == ERR_NO_PATH){
                     crmem.state = 'getTerminalOrder';   // because targeId will be invalidated.
                     return;
                 }
-                    
+
                 debug=debug+'\t ..rc='+rc+' tgt='+crmem.order.tgt+' good='+crmem.order.good+' \n';
                 if(rc == ERR_FULL){
                     let target = Game.getObjectById(crmem.order.tgt);
@@ -159,7 +159,7 @@ class Role_Chemist extends Creep
                     }
                     else {
                         this.setTarget(trm);
-                        crmem.state = 'fillTerminal';                        
+                        crmem.state = 'fillTerminal';
                     }
                 }
                 else if(rc == ERR_NO_PATH){
@@ -198,12 +198,12 @@ class Role_Chemist extends Creep
                 return;
 
             case 'getLabOrder':
-                
+
                 if(creep.ticksToLive < 50 && _.sum(creep.carry == 0)){
-                    crmem.state = 'recycleCreep';   
+                    crmem.state = 'recycleCreep';
                     break;
                 }
-                    
+
                 // Get order to move goods lab -> terminal
                 order = labGroup.getChemistOrderLabToTerminal();
                 if(!order){
@@ -223,35 +223,35 @@ class Role_Chemist extends Creep
                     crmem.state = 'getTerminalOrder';
                     if(exceed <= 2)
                         break;
-                    
+
                     // If we don't get a lab order for 100 turns, and there is no active production - recycle.
                     if(!crmem.lastOrderT)
                         crmem.lastOrderT = Game.time;
-                                        
+
                     let tgtProduct = LabGroup.getTargetProduct();
                     if( (Game.time - crmem.lastOrderT) > 100 && !tgtProduct){
                         console.log(creep.name+' Recycling creep at '+creep.ticksToLive+' no orders product='+tgtProduct);
                         crmem.state = 'recycleCreep';
                         break;
                     }
-                    
+
                     // Move toward labs to stay out of way of storage
                     if(!labGroup.getChemistOrderTerminalToLab())
                         this.actMoveTo(labGroup.m_labs[0]);
                     return;
                 }
                 delete crmem.lastOrderT;
-                
+
                 crmem.order = order;
                 if(order.src == 'terminal')
                     console.log(creep.name+'BUG! not lab');
-                
+
                 let src = Game.getObjectById(crmem.order.src);
                 if(!src)
                     console.log('BUG! invalid source id out of getChemistOrderLabToTerminal'+crmem.orer.src);
                 this.setTarget(src);
                 crmem.state = 'withdrawLab';
-                break;                
+                break;
 
             case 'withdrawLab':
                 debug=debug+'.. good='+crmem.order.good+' lab='+crmem.targetId+'\n';
@@ -278,7 +278,7 @@ class Role_Chemist extends Creep
                     return;
                 if(rc == ERR_FULL){
                     this.setTarget(trm);
-                    return; 
+                    return;
                 }
                 else if(_.sum(creep.carry)==0){
                     if(creep.ticksToLive < 50 || !labGroup)
@@ -312,7 +312,7 @@ class Role_Chemist extends Creep
                     }
                 }
                 break;
-                
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'init';
@@ -320,7 +320,7 @@ class Role_Chemist extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

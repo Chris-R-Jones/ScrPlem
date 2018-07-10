@@ -71,11 +71,11 @@ class TerminalController
                     trmTotals[good] += trmAmt;
                     allTotals[good] += (trmAmt + stoAmt);
 
-                    /* Choosing 600 as the threshold here, because we will start lab transactions
-                     * if the room average is 1000.  That leaves a pretty big gap if a room is below
-                     * 600 (terminals should be balanced
+                    /* Choosing 300 as the threshold here, because we will start lab transactions
+                     * if the room average is >= 500.  That leaves a pretty big gap if a room is below
+                     * 500 (terminals should be balanced
                      */
-                    if(trmAmt + stoAmt < 600)
+                    if(trmAmt + stoAmt < 300)
                         starvedRooms[good] += 1;
                 }
             }

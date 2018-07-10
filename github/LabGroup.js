@@ -26,7 +26,7 @@ class LabGroup
         else if(good.length == 2)
             return 2;
         else if(good.length == 4)
-            return 5; 
+            return 5;
         else if(good.length == 5)
             return 6;
         else if(good != RESOURCE_ENERGY){
@@ -52,7 +52,7 @@ class LabGroup
 
     static turnReset()
     {
-        // If we're in war prep mode, we don't do much here. There's not really 
+        // If we're in war prep mode, we don't do much here. There's not really
         // much to plan that isn't straightforward in the move order routines.
         // They just need to load boosts if avail.
         if(Preference.warPrep)
@@ -66,7 +66,7 @@ class LabGroup
         // Avoid switching production too often.  Once we've chosen a best
         // product stick with it at least 1000 turns to avoid a lot of chem
         // swapping as levels increase/decrease.  Also to save CPU in the search
-        if(Memory.chemistry 
+        if(Memory.chemistry
            && (Game.time - Memory.chemistry.lastSwitchT)<1000)
         {
             g_product = Memory.chemistry.product;
@@ -75,7 +75,7 @@ class LabGroup
             return;
         }
 
-        // Figure out what, globally, we should be producing, based on 
+        // Figure out what, globally, we should be producing, based on
         // aggregate terminal storage levels.
         let totals = TerminalController.getAllTotals();
         let starvedRooms = TerminalController.getStarvedRooms();
@@ -115,7 +115,7 @@ class LabGroup
                 levTot[level] += totals[good];
             levNG[level]++;
 
-            if(!totals[good] || (totals[good]/nTerminals) < 1000){
+            if(!totals[good] || (totals[good]/nTerminals) < 500){
                 for(let li=level; li<7; li++){
                     missing[li] = good;
                     fullCapacity[li] = false;
@@ -147,7 +147,7 @@ class LabGroup
                 console.log('Consider r1='+r1+'... skip - level not at full capacity, missing'+missing[r1Lev]);
                 continue;
             }
-            if(!totals[r1] || (totals[r1]/nTerminals) < 1000){
+            if(!totals[r1] || (totals[r1]/nTerminals) < 500){
                 if(totals[r1] && totals[r1] != 0)
                     console.log('Consider r1='+r1+'... skip - totals='+totals[r1]/nTerminals);
                 else
@@ -162,7 +162,7 @@ class LabGroup
                     continue;
                 }
 
-                if(!totals[r2] || (totals[r2]/nTerminals) < 1000){
+                if(!totals[r2] || (totals[r2]/nTerminals) < 500){
                     if(totals[r2] && totals[r2] != 0)
                         console.log('Consider r1='+r1+', r2='+r2+'... skip - r2 totals='+totals[r2]/nTerminals);
                     else
@@ -178,11 +178,11 @@ class LabGroup
 
                 let lev = this.productLevel(prod);
                 let deficit;
-                let tgtAvg = levAvg[lev]+1000;
+                let tgtAvg = levAvg[lev]+500;
 
-                if(lev != 6 && (totals[prod]/nTerminals)>1000){
-                    console.log('Consider r1='+r1+', r2='+r2+'... skip, product < final and over 1000 avg');
-                    continue;    
+                if(lev != 6 && (totals[prod]/nTerminals)>500){
+                    console.log('Consider r1='+r1+', r2='+r2+'... skip, product < final and over 500 avg');
+                    continue;
                 }
 
                 /* Intentionally putting these starvation checks here rather than earlier - because
@@ -205,7 +205,7 @@ class LabGroup
 
                 console.log('Consider r1='+r1+', r2='+r2+' product = '+prod+' deficit='+deficit);
 
-                if(    !bestLev 
+                if(    !bestLev
                     || (lev > bestLev && (deficit > 0 || totals[prod] < 5000) )
                     || (lev == bestLev && deficit > bestDeficit)
                     ) {
@@ -268,7 +268,7 @@ class LabGroup
         //    L..L
         //    .RR..
         //    L..L
-        //   
+        //
         // L8 configuration:
         //     LL
         //    L..L
@@ -285,7 +285,7 @@ class LabGroup
         // example only.
 
         // To discover the reagent lab locations to differentiate them
-        // from the others, we use this symmetry and find the ones in the 
+        // from the others, we use this symmetry and find the ones in the
         // middle.
 
         // If anything doesn't quite match up exactly to these configurations,
@@ -353,7 +353,7 @@ class LabGroup
                     this.m_reagentLabs[0]=lab;
                 else if( px == midXhigh && py == midYlow )
                     this.m_reagentLabs[1]=lab;
-                else if ( px < midXlow && px == (midXlow-1) 
+                else if ( px < midXlow && px == (midXlow-1)
                           && (Math.abs(py - midYlow) == 1)
                         )
                     this.m_workerLabs.push(lab);
@@ -381,7 +381,7 @@ class LabGroup
                     this.m_reagentLabs[0]=lab;
                 else if( py == midYhigh && px == midXlow )
                     this.m_reagentLabs[1]=lab;
-                else if ( py < midYlow && py == (midYlow-1) 
+                else if ( py < midYlow && py == (midYlow-1)
                           && (Math.abs(px - midXlow) == 1)
                         )
                     this.m_workerLabs.push(lab);
@@ -396,14 +396,14 @@ class LabGroup
                     this.m_workerLabs.push(lab);
                 else
                     console.log('WARN! Misplaced lab room: '+lab.pos+' minYlo='+midYlow+' midYhi='+midYhigh+' midXlow='+midXlow);
-            } 
+            }
         }
         else {
             console.log('WARN! '+roomObj.m_room.name+' labs fails lab checks on centering');
             return;
         }
 
-        if(    this.m_reagentLabs.length == 2 
+        if(    this.m_reagentLabs.length == 2
             && this.m_workerLabs.length >= 1
           ){
             this.m_valid = true;
@@ -421,7 +421,7 @@ class LabGroup
         let nReactions;
         for(let ri=0; ri<2; ri++){
             let lab = this.m_reagentLabs[ri];
-            if(!lab.mineralType 
+            if(!lab.mineralType
                 || lab.mineralType != g_reagents[ri]
                 || lab.mineralAmount < 5
               ){
@@ -486,10 +486,8 @@ class LabGroup
                 continue;
             if(lab.mineralAmount && lab.mineralAmount > 200)
                 continue;
-            
-            if( (!trm.store[reg] || trm.store[reg] < 300)
-                && (!sto.store[reg] || sto.store[reg] < 300)
-                )
+
+            if( (!trm.store[reg] && !sto.store[reg]) )
                 continue;
 
             return { src: 'terminal', good: reg, tgt: lab.id };
@@ -500,7 +498,7 @@ class LabGroup
         // target reagent.
 
         // Next try to satisfy war load list
-        // walk through each reagent on the 'load' list and make sure 
+        // walk through each reagent on the 'load' list and make sure
         // there is a terminal serving it and see if it needs more of
         // something.
         let loi, lai;
@@ -525,7 +523,7 @@ class LabGroup
                 let lab = this.m_workerLabs[lai];
 
                 if(lab.energy < lab.energyCapacity)
-                    return { src: 'terminal', good: RESOURCE_ENERGY, tgt: lab.id };  
+                    return { src: 'terminal', good: RESOURCE_ENERGY, tgt: lab.id };
 
                 if(lab.mineralType == loadGood){
                     if(    (lab.mineralType == g_product && lab.mineralAmount < (lab.mineralCapacity-600))
@@ -535,7 +533,7 @@ class LabGroup
                         if(loadGood != g_product){
                             // Make sure this is the only one matching -- unless we are producing it
                             // (in which case we'll be pushing into many labs)
-                            // If the only match, fill it, else return no order and let 
+                            // If the only match, fill it, else return no order and let
                             // the chemist drain one
                             for(let laj=0; laj<this.m_workerLabs.length;laj++){
                                 let labj = this.m_workerLabs[laj];
@@ -628,16 +626,16 @@ class LabGroup
                    ||  (!onList && lab.mineralAmount >= 100)
                    )
                     return { src: lab.id, good: lab.mineralType, tgt: 'terminal' };
-                
+
                 // We want to leave one lab full for loading, but also move goods back
                 // from the others.  If this lab isn't the one with the most of the
                 // good, then move content back to storage.
                 if(onList && lab.mineralAmount >= 300){
                     let maxj=0;
-                    
+
                     for(let wj=0; wj<this.m_workerLabs.length; wj++){
                         let labj = this.m_workerLabs[wj];
-                        
+
                         if(labj.mineralType != g_product)
                             continue;
                         if(labj.mineralAmount > maxj)
