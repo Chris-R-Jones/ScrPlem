@@ -297,7 +297,7 @@ class Role_BootMover extends Creep
                     break;
                 }
 
-                let dropped = hrObj.getDroppedResources();
+                let dropped = trObj.getDroppedResources();
                 if(dropped && dropped.length > 0){
                     let di;
                     let drop;
@@ -314,7 +314,7 @@ class Role_BootMover extends Creep
                         break;
                 }
 
-                let tombs = hrObj.getTombstones();
+                let tombs = trObj.getTombstones();
                 if(tombs && tombs.length > 0){
                     let ti;
                     for(ti=0; ti<tombs.length; ti++){
@@ -325,7 +325,7 @@ class Role_BootMover extends Creep
                         // So don't deal with minerals.
                         // Go after it if we get more out of it than about 10
                         // energy per turn
-                        if(tomb.energy >= 10*creep.pos.getRangeTo(tomb.pos)){
+                        if(tomb.store.energy >= 10*creep.pos.getRangeTo(tomb.pos)){
                             this.setTarget(tomb);
                             crmem.state = 'getTomb';
                             break;
