@@ -26,8 +26,8 @@ class Role_Linker extends Creep
     constructor (creep, crmem)
     {
         super(creep, crmem);
-    };  
-    
+    };
+
     static spawn( spawn, hrObj ) {
         let hRoom        = spawn.room;
         let controller   = hRoom.controller;
@@ -37,13 +37,13 @@ class Role_Linker extends Creep
         let terminal = hrObj.getTerminal();
         if(!terminal || !spStorage || spStorage.structureType != STRUCTURE_STORAGE)
             return false;
-        
+
         let body = LINKER_NORM_BODY;
         let cost = LINKER_NORM_BODY_COST;
         let maxCreeps = 1;
         let altTime = 0;
         let carry  = LINKER_NORM_CARRY;
-        
+
         // Calculate how much needs to be moved.  If we're far behind
         // (typically for a new room which we want to get quickly boostrapped)
         // then use a bigger body.
@@ -51,10 +51,10 @@ class Role_Linker extends Creep
         for(let good in spStorage.store){
             let gDef = spStorage.store[good];
             let tDef = terminal.store[good];
-            
+
             if(!tDef)
                 tDef = 0;
-            
+
             // When < 1000 we try to move goods in terminal.  Don't count
             // those (collectively they can add up to quite a bit and don't
             // follow the normal 1/3 ratio)
@@ -71,7 +71,7 @@ class Role_Linker extends Creep
                 continue;
             deficit += (-3*tDef);
         }
-        
+
         if( Math.abs(deficit) > 20000 ){
             body = LINKER_BIG_BODY;
             cost = LINKER_BIG_BODY_COST;
@@ -81,31 +81,31 @@ class Role_Linker extends Creep
         // Wait for it, if not yet available.
         if(cost > hRoom.energyAvailable)
             return true;
-        
+
         // Find a free name and spawn the bot.
         let crname = Creep.spawnCommon(spawn, 'linker', body, maxCreeps, altTime, "");
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         if(carry == LINKER_BIG_CARRY){
             console.log(hRoom.name+' Granted big linker deficit = '+deficit);
-                
+
             deficit=0;
             for(let good in spStorage.store){
                 let gDef = spStorage.store[good];
                 let tDef = terminal.store[good];
-                
+
                 if(!tDef)
                     tDef = 0;
-                
+
                 // When < 1000 we try to move goods in terminal.  Don't count
                 // those (collectively they can add up to quite a bit and don't
                 // follow the normal 1/3 ratio)
                 if(tDef <= 1000 && gDef < 1000)
                     continue;
-                
+
                 deficit += (gDef-(3*tDef));
                 console.log('... good='+good+' gDef='+gDef+' 3*tDef='+(3*tDef)+' deficitNow='+deficit);
             }
@@ -121,15 +121,15 @@ class Role_Linker extends Creep
                 console.log('... good='+good+' gDef=0 3*tDef='+(3*tDef)+' deficitNow='+deficit);
             }
         }
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.state     = 'moveLinkPos';
         crmem.carry     = carry;
         delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -144,10 +144,10 @@ class Role_Linker extends Creep
 	    let debug="";
 	    let sto = hrObj.getSpawnStorage();
 	    let trm = hrObj.getTerminal();
-	    
+
 	    if(!sto || !trm)
 	        return;
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
@@ -164,51 +164,51 @@ class Role_Linker extends Creep
                     break;
                 }
                 return;
-            
+
             case 'chooseGoods':
                 if(creep.pos.x != sto.pos.x+1 || creep.pos.y != sto.pos.y){
                     console.log(creep.name+' BUG! didnt get in position from moveLinkPos');
                     crmem.state = 'moveLnkPos';
                     break;
                 }
-                
+
                 // Don't die red handed.
                 if(creep.ticksToLive < 6)
                     return;
-                
+
                 let trmTotal = _.sum(trm.store);
-                
+
                 let maxRsc;
                 let maxDiff;
                 for( let ri=0; ri<RESOURCES_ALL.length; ri++){
                     let rsc = RESOURCES_ALL[ri];
-                    
+
                     let stoU = sto.store[rsc];
                     let trmU = trm.store[rsc];
                     if(!stoU && !trmU)
                         continue;
-                        
+
                     if(!stoU)
                         stoU = 0;
                     if(!trmU)
                         trmU = 0;
-                    
+
                     // Overcapacity failsafe.  Drop junk and make room for
                     // E.  Careful not to go below 5300, because linker will
                     // withdraw 300 and then deposit back in if < 5000
-                    if((trmTotal >= 290000 || trm.store.energy < 50000) 
-                       && rsc.length == 1 
+                    if((trmTotal >= 290000 || trm.store.energy < 50000)
+                       && rsc.length == 1
                        && rsc != RESOURCE_ENERGY && trmU > 5300
                        && stoU > 15000){
                         maxRsc = rsc;
                         maxDiff = -290000;
                         break;
                     }
-                    
+
                     let diff;
                     if(rsc == RESOURCE_ENERGY || !Preference.storageExodus) {
                         // We always want to keep at least 1000 units in terminal
-                        // to encourage reactions. Beyond that, we try to keep 
+                        // to encourage reactions. Beyond that, we try to keep
                         // a ratio of 3/1.
                         if( (trmU+stoU) < 4000 ) {
                             if(trmU < 1000){
@@ -239,17 +239,17 @@ class Role_Linker extends Creep
                     if(rsc == RESOURCE_ENERGY && Math.abs(diff) < 300){
                         continue;
                     }
-                    
+
                     if(!maxDiff || Math.abs(diff) > Math.abs(maxDiff)){
                         maxRsc = rsc;
                         maxDiff = diff;
-                        
+
                         //if(creep.name == 'linker_W12N26_0'){
                         //    console.log(Game.time+' .. new best rsc='+rsc+' stoU='+stoU+' trmU='+trmU+' diff='+diff);
                         //}
                     }
                 }
-                
+
                 // Don't do less than 10 - might as well save CPU.
                 if(Math.abs(maxDiff)>=10){
                     crmem.withdrawCount = Math.abs(maxDiff);
@@ -268,7 +268,7 @@ class Role_Linker extends Creep
                     break;
                 }
                 return;
-            
+
             case 'withdrawStorage':
                 debug=debug+' ... witdhraw count='+crmem.withdrawCount+' crmemcarry='+crmem.carry+' rc='+rc;
                 if(_.sum(creep.carry)>0){
@@ -295,7 +295,7 @@ class Role_Linker extends Creep
                 if(rc == OK)
                     return;
                 return;
-            
+
             case 'fillStructure':
                 if(_.sum(creep.carry) == 0){
                     crmem.state = 'chooseGoods';
@@ -314,7 +314,7 @@ class Role_Linker extends Creep
                         }
                     }
                 }
-                    
+
                 rc=this.fillTarget( null );
                 if(rc == OK)
                     return;
@@ -331,7 +331,7 @@ class Role_Linker extends Creep
                         this.setTarget(sto);
                 }
                 return;
-                
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'moveLinkPos';
@@ -339,7 +339,7 @@ class Role_Linker extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

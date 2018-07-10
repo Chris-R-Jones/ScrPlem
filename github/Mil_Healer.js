@@ -14,9 +14,9 @@ class Mil_Healer extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, division, max ) {
-        let targetRoomName  = division.m_tgtRoomName;          
+        let targetRoomName  = division.m_tgtRoomName;
         let hRoom           = spawn.room;
         let tRoom           = Game.rooms[targetRoomName];
         let controller      = hRoom.controller;
@@ -32,39 +32,39 @@ class Mil_Healer extends Creep
         let nCore = Math.floor(hRoom.energyCapacityAvailable / coreCost);
         let body = [];
         let ni;
-        
+
         if( hRoom.energyAvailable < (nCore*coreCost))
             return true;
-        
+
         if(nCore*4 > 50)
             nCore = 12;          // Obey 50 part body limit
-        
+
         for(ni=0; ni<nCore; ni++)
             body.push(TOUGH);
-        
+
         for(ni=0; ni<nCore; ni++)
             body.push(HEAL);
 
         for(ni=0; ni<(2*nCore); ni++)
             body.push(MOVE);
-        
+
         // Find a free name and spawn the bot.
         let altTime = 0;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'milHeal', body, max, altTime, multispec, targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.division  = targetRoomName;
         crmem.state     = 'homeRoom';
         delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -83,7 +83,7 @@ class Mil_Healer extends Creep
 	    let squad = this.m_squad;
 	    let division;
         let tRoomName;
-        
+
 	    if(squad)
 	        division = squad.m_division;
         if(!squad){
@@ -110,16 +110,16 @@ class Mil_Healer extends Creep
 	    }
         if(squad && division)
 	        tRoomName = division.m_tgtRoomName;
-	    
+
         // Heal logic is independent of move logic.  We'll just heal
         // whatever is closest.  (Should probably refine that later).
         let friendlies = crObj.getWounded();
         let fCreep = creep.pos.findClosestByRange(friendlies);
         let fRange;
-        
+
         if(fCreep && fCreep.name == creep.name)
             fCreep = null;
-        
+
         if(fCreep)
             fRange = fCreep.pos.getRangeTo(creep.pos);
         if( (!fCreep && creep.hits < creep.hitsMax)
@@ -131,10 +131,10 @@ class Mil_Healer extends Creep
         else if(fCreep && fRange <= 3)
             creep.rangedHeal(fCreep);
 
-        
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
-    
+
             //if(creep.name == 'milHeal_E78S98_E73S97_0')
             //    console.log('T='+Game.time+' '+creep.name+' state='+crmem.state);
 
@@ -154,7 +154,7 @@ class Mil_Healer extends Creep
                       break;
                 }
                 return;
-                
+
             case 'moveHome':
                 if(creep.hits == creep.hitsMax){
                     crmem.state = 'moveTgtRoom';
@@ -184,19 +184,19 @@ class Mil_Healer extends Creep
                 crmem.arrivalT = Game.time;
                 crmem.state = 'lingerTgtRoom';
                 break;
-            
+
             case 'moveStaging':
                 rc = this.actionMoveToRoomRouted(crmem.prevRoom);
                 if(rc == OK)
                     crmem.state = 'stagingRoom';
                 return;
-                
+
             case 'stagingRoom':
                 // If there are wounded, start getting to work.
                 if(fCreep){
                     crmem.state = 'engageTargets';
                     break;
-                }                
+                }
                 //if(creep.hits < .60 * creep.hitsMax){
                 //    crmem.state = 'moveHome';
                 //    break;
@@ -204,33 +204,33 @@ class Mil_Healer extends Creep
                 if(creep.hits == creep.hitsMax)
                     crmem.state = 'moveTgtRoom';
                 return;
-                
+
             case 'lingerTgtRoom':
                 if(creep.room.name != tRoomName){
                     console.log('BUG!! not in target room but lingerTgtRoom');
                     crmem.state = 'moveTgtRoom';
                 }
-                
+
                 // Periodically move to staging to heal retreaters, if still in entry.
                 if(Math.floor((Math.random()*50)) == 0 && creep.hits == creep.hitsMax
                    && (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49)){
                     crmem.state = 'moveStaging';
                     break;
                 }
-                
+
                 // If there are wounded, start getting to work.
                 if(fCreep){
                     crmem.state = 'engageTargets';
                     break;
                 }
-                
+
                 // If not, and we're wounded, move back home where we can
                 // get healing.
                 if(creep.hits < .80 * creep.hitsMax){
                     crmem.state = 'moveStaging';
                     break;
                 }
-                
+
                 // If there's room, move out of  arrivals.
                 if(creep.pos.x==1){
                     switch(Math.floor((Math.random() * 3))){
@@ -238,7 +238,7 @@ class Mil_Healer extends Creep
                     case 1: creep.move(TOP_RIGHT); break;
                     case 2: creep.move(RIGHT); break;
                     }
-                }    
+                }
                 else if(creep.pos.x>47){
                     switch(Math.floor((Math.random() * 3))){
                     case 0: creep.move(BOTTOM_LEFT); break;
@@ -254,9 +254,9 @@ class Mil_Healer extends Creep
                     }
                 }
                 else if(creep.pos.y==48)
-                    creep.move(TOP);                
+                    creep.move(TOP);
                 return;
-            
+
             case 'engageTargets':
                 // Creeps enter this state if room has wounded.   (That
                 // isn't necessarily the case still).
@@ -265,7 +265,7 @@ class Mil_Healer extends Creep
                         crmem.state = 'moveStaging';
                     break;
                 }
-                
+
                 // Check if still wounded.  If not move back to the room state
                 // for room we're in.
                 if(!fCreep){
@@ -274,15 +274,15 @@ class Mil_Healer extends Creep
                         break;
                     }
                     else if(creep.room.name == tRoomName){
-                        crmem.state = 'lingerTgtRoom'; 
+                        crmem.state = 'lingerTgtRoom';
                         break;
-                    } 
+                    }
                     else{
                         crmem.state = 'stagingRoom';
                         break;
                     }
                 }
-                
+
                 // Try to stay out of arrival lane so arriving wounded
                 // creeps don't bounce
                 if(fCreep && creep.pos.getRangeTo(fCreep)>3){
@@ -294,7 +294,7 @@ class Mil_Healer extends Creep
                     case 1: creep.move(TOP_RIGHT); break;
                     case 2: creep.move(RIGHT); break;
                     }
-                }    
+                }
                 else if(creep.pos.x>47){
                     switch(Math.floor((Math.random() * 3))){
                     case 0: creep.move(BOTTOM_LEFT); break;
@@ -314,7 +314,7 @@ class Mil_Healer extends Creep
                 else if(fCreep && creep.pos.getRangeTo(fCreep)>1)
                     this.actMoveTo(fCreep);
                 return;
-            
+
             case 'moveReclaim':
                 // Head back home to reclaim.  But if target room went hostile again,
                 // turn back.
@@ -324,7 +324,7 @@ class Mil_Healer extends Creep
                     break;
                 }
                 rc = this.actionMoveToRoomRouted(crmem.homeName);
-                
+
                 if(rc != OK)
                     return;
                 let spawns = crObj.getSpawns();
@@ -337,7 +337,7 @@ class Mil_Healer extends Creep
                         this.actMoveTo(spawns[0]);
                 }
                 return;
-              
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'moveHome';
@@ -345,7 +345,7 @@ class Mil_Healer extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

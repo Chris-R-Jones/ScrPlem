@@ -16,8 +16,8 @@ class Role_CtrlUpgrade extends Creep
     {
         super(creep, crmem);
     };
- 
-     
+
+
     // Helper to find lab to boost a certain body part for this creep
     findLabForBoost(crObj, part)
     {
@@ -34,14 +34,14 @@ class Role_CtrlUpgrade extends Creep
                )
                return lab;
         }
-        
+
         return null;
     }
-    
+
     static spawn( spawn, hrObj, targetRoomName ) {
         let hRoom        = spawn.room;
         let controller   = hRoom.controller;
-        
+
         // Make sure room has reached L3 and at least 10 extensions.
         if(controller.level < 3)
             return false;
@@ -56,13 +56,13 @@ class Role_CtrlUpgrade extends Creep
         // controller points and steer energy toward the building.
         if(!hrObj.m_rmem.lastPlanT && controller.level <= 4)
             return false;
-            
-        // Get storage or container nearest to spawns, if not built yet 
+
+        // Get storage or container nearest to spawns, if not built yet
         // we're not ready/
         let spStorage = hrObj.getSpawnStorage();
         if(!spStorage)
             return false;
-        
+
         // Get container near controller.
         let ctrlCon = hrObj.getControllerContainer();
         if(!ctrlCon)
@@ -73,7 +73,7 @@ class Role_CtrlUpgrade extends Creep
         let path = hrObj.getStoreControllerPath();
 
         // For every 25000 energy in storage, we spawn 5x of WORK in our
-        // upgraders.  So, 5E per turn. 
+        // upgraders.  So, 5E per turn.
         // Note that the CtrlMover role has similar logic for moving energy
         // to the controller container at similar rate (so consider that in any)
         // tuning done here.
@@ -86,7 +86,7 @@ class Role_CtrlUpgrade extends Creep
             multiplier = 5;
         else
             multiplier = Math.max(1,spStorage.store.energy / 20000);
-        
+
         // Note I've not included carry in the move calc, as we're arriving empty.
         let workNeeded = Math.floor(multiplier*5);
         let carryNeeded = Math.ceil(workNeeded/5);
@@ -105,7 +105,7 @@ class Role_CtrlUpgrade extends Creep
             perCreepWorkNeeded = Math.floor( workNeeded / maxCreeps );
             perCreepCarryNeeded = Math.ceil( perCreepWorkNeeded / 5);
             perCreepMoveNeeded  = Math.ceil( perCreepWorkNeeded / 4);
-        } 
+        }
 
         // At level 8, we're limited to 15 E per turn.  Make that happen.
         let altTime;
@@ -125,7 +125,7 @@ class Role_CtrlUpgrade extends Creep
         if(Preference.bootEnabled && hRoom.name == Preference.hostRoomName){
             maxCreeps = 1;
         }
-        
+
         /*
         console.log('CTRL upgrade');
         console.log(' room='+hRoom.name);
@@ -138,7 +138,7 @@ class Role_CtrlUpgrade extends Creep
         console.log(' perCreepCarryNeeded = '+perCreepCarryNeeded);
         console.log(' perCreepMoveNeeded = '+perCreepMoveNeeded);
         */
-        
+
         let cost = (50*perCreepCarryNeeded + 50*perCreepMoveNeeded+ 100*perCreepWorkNeeded);
         let body  = [];
         for(let bi=0; bi<perCreepWorkNeeded; bi++)
@@ -151,21 +151,21 @@ class Role_CtrlUpgrade extends Creep
         // Wait for it, if not yet available.
         if(hRoom.energyAvailable < cost)
             return true;
-        
+
         // Find a free name and spawn the bot.
         let crname = Creep.spawnCommon(spawn, 'ctrlupg', body, maxCreeps, altTime, null);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.state     = 'init';
         delete crmem.instance;
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -194,13 +194,13 @@ class Role_CtrlUpgrade extends Creep
 	        crmem.state = 'moveHpos';
 	        return;
 	    }
-	   
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //if(creep.name == 'ctrlupg_E78S99_0')
             //    console.log(Game.time+' '+creep.name+ ' state='+crmem.state+' loop='+exceed);
-            
+
             switch(crmem.state){
             case 'init':
                 if(creep.room.controller.level == 8)
@@ -221,7 +221,7 @@ class Role_CtrlUpgrade extends Creep
                     }
                 }
                 crmem.state = 'applyBoosts';
-                
+
                 return;
 
             case 'applyBoosts':
@@ -244,7 +244,7 @@ class Role_CtrlUpgrade extends Creep
                 }
                 crmem.state = 'moveHpos';
                 break;
-                
+
             case 'moveHpos':
                 ctrlCon = hrObj.getControllerContainer();
                 if(!ctrlCon)
@@ -254,8 +254,8 @@ class Role_CtrlUpgrade extends Creep
                     crmem.state = 'pickEnergy';
                     break;
                 }
-                return;     
-                
+                return;
+
             case 'pickEnergy':
 
                 let dropped = rObj.getDroppedResources();
@@ -264,7 +264,7 @@ class Role_CtrlUpgrade extends Creep
                     let drop;
                     for(di=0; di<dropped.length; di++){
                         drop = dropped[di];
-                        if(creep.pos.getRangeTo(drop.pos) <= 4 
+                        if(creep.pos.getRangeTo(drop.pos) <= 4
                            && drop.resourceType == RESOURCE_ENERGY){
                             this.setTarget(drop);
                             crmem.state = 'getDropped';
@@ -280,13 +280,13 @@ class Role_CtrlUpgrade extends Creep
                     return;
                 this.setTarget(ctrlCon);
                 crmem.state = 'withdrawStruct';
-                break;    
+                break;
 
             case 'withdrawStruct':
                 rc=this.withdrawStruct(RESOURCE_ENERGY);
                 if(rc == ERR_FULL){
                     this.setTarget(hRoom.controller);
-                    
+
                     if(!hRoom.controller.sign
                        || hRoom.controller.sign.text != Preference.signText
                        ){
@@ -303,10 +303,10 @@ class Role_CtrlUpgrade extends Creep
                     // upgrade while more arrives.  else
                     // targetId is cleared so we do need to re-pick.
                     if(creep.carry.energy > 0){
-                        this.setTarget(hRoom.controller);                        
+                        this.setTarget(hRoom.controller);
                         crmem.state = 'upgradeController';
                         break;
-                    }                        
+                    }
                     else{
                         crmem.state = 'pickEnergy';
                     }
@@ -316,9 +316,9 @@ class Role_CtrlUpgrade extends Creep
                     crmem.state = 'pickEnergy';
                     return;
                 }
-                crmem.state = 'pickEnergy';                
+                crmem.state = 'pickEnergy';
                 break;
-                
+
             case 'getDropped':
                 rc=this.pickupDropped(RESOURCE_ENERGY);
                 if(rc == ERR_FULL){
@@ -331,7 +331,7 @@ class Role_CtrlUpgrade extends Creep
                     if(!ctrlCon)
                         return;
                     this.setTarget(ctrlCon);
-                    crmem.state = 'withdrawStruct';                  
+                    crmem.state = 'withdrawStruct';
                     break;
                 }
                 if(rc == OK)
@@ -339,8 +339,8 @@ class Role_CtrlUpgrade extends Creep
                 crmem.state = 'pickEnergy';
                 if(rc == ERR_NOT_ENOUGH_RESOURCES || rc == ERR_NO_PATH)
                     return;
-                break; 
-                
+                break;
+
             case 'signController':
                 console.log('ctrlupgrade Signing in '+hRoom.name);
                 if(hRoom.controller.pos.getRangeTo(creep.pos)>1){
@@ -350,7 +350,7 @@ class Role_CtrlUpgrade extends Creep
                 creep.signController(hRoom.controller, Preference.signText);
                 crmem.state = 'upgradeController';
                 return;
-                
+
             case 'upgradeController':
                 rc=this.upgradeController();
                 debug=debug + '\t rc='+rc+'\n';
@@ -370,7 +370,7 @@ class Role_CtrlUpgrade extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

@@ -14,7 +14,7 @@ var RoomHolder      = require('RoomHolder');
 // While they do have ranged and a lot of tough, I think I can just outlast
 // them and keep ranged, healing to recover and move on.
 
-const BODY_M1 = 
+const BODY_M1 =
     [ TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH
     , RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK
     , RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK
@@ -24,7 +24,7 @@ const BODY_M1 =
     , MOVE, MOVE, MOVE, MOVE, MOVE
     , MOVE, MOVE, MOVE, MOVE, MOVE
     ];
-    
+
 const BODY_M1_COST = ( 100    /* 10 x TOUGH (10 each) */
                      + 1500   /* 10 x RANGED (150 each) */
                      + 1250   /*  5 x HEAL   (250 each) */
@@ -34,10 +34,10 @@ const BODY_M1_COST = ( 100    /* 10 x TOUGH (10 each) */
 
 // The above body didn't have a lot of firepower and needed two creeps.
 // I'm going to try using MOVE as tough, get rid of the tough, and double
-// the ranged attack.  I'm hoping that can do away with the creeps with 
+// the ranged attack.  I'm hoping that can do away with the creeps with
 // a single bot, saving CPU, we'll see..
 // (leaving BODY_M1 for posterity or in case i need to go back)
-const BODY_M2 = 
+const BODY_M2 =
     [ MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE
     , MOVE, MOVE, MOVE, MOVE, MOVE
     , MOVE, MOVE, MOVE, MOVE, MOVE
@@ -48,7 +48,7 @@ const BODY_M2 =
     , RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK
     , HEAL, HEAL, HEAL, HEAL, HEAL
     ];
-    
+
 const BODY_M2_COST = ( 3000   /* 20 x RANGED (150 each) */
                      + 1250   /*  5 x HEAL   (250 each) */
                      + 1250   /* 25 x MOVE   (50 each) */
@@ -62,15 +62,15 @@ class Role_SK_Clear extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, trObj, targetRoomName ) {
         let room        = spawn.room;
         let controller  = room.controller;
         let body;
         let cost;
-        
+
         // Only need these creeps if the room is L7.  I've heard it said,
-        // that spawn congestion makes this impractical at earlier levels. 
+        // that spawn congestion makes this impractical at earlier levels.
         // (This probably needs some thought and verification, but for now
         //  it works)
         if(controller.level < 7)
@@ -79,16 +79,16 @@ class Role_SK_Clear extends Creep
         // Only need these creeps in rooms that are marked as SK rooms.
         if(!trObj.m_rmem || !trObj.m_rmem.keeperRoom)
             return false;
-        
+
         if(room.energyCapacityAvailable >= BODY_M2_COST){
             body = BODY_M2;
             cost = BODY_M2_COST;
         }
-        
+
         // Wait for it, if not yet available
         if(room.energyAvailable < cost)
             return true;
-        
+
         // Generally 1 is enough to control the room.  But if we see construction
         // sites, it's probably a sign we've fallen behind, esp if the room is new.
         // So, let's try two in that case.
@@ -96,24 +96,24 @@ class Role_SK_Clear extends Creep
         let sites = trObj.getSites();
         if( (sites && sites.length > 0) || trObj.getHostiles().length >= 3)
             max=2;
-        
+
         // Find a free name and spawn the bot.
         let alttime = 200;
-        
+
         let crname = Creep.spawnCommon(spawn, 'skclear', body, max, alttime, "", targetRoomName);
-        
+
         // This at least should mean we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         crmem.state = 'init';
         crmem.tRoomName = targetRoomName;
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -129,18 +129,18 @@ class Role_SK_Clear extends Creep
         let debug = "";
         let activeParts;
         let target;
-        
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
-            
+
             //if(creep.name == 'skclear_W4N27_W4N26_0_alt')
             //    console.log(Game.time+' '+creep.name+' state='+crmem.state);
-            
+
             switch(crmem.state){
             case 'init':
                 crmem.state = 'moveTargetRoom';
                 break;
-            
+
             case 'moveTargetRoom':
                 rc=this.actionMoveToRoomRouted(crmem.tRoomName);
                 if(rc == OK) {
@@ -157,18 +157,18 @@ class Role_SK_Clear extends Creep
                 target = creep.pos.findClosestByRange(hostiles);
                 let wounded = rObj.getWounded();
                 let wound;
-                
+
                 if(wounded.length > 0){
                     wound = creep.pos.findClosestByRange
                             (wounded
-                            ,   { filter: function (cr) 
+                            ,   { filter: function (cr)
                                     {
                                         return (cr.name != creep.name);
                                     }
                                 }
                             );
                 }
-                
+
                 // If there are friendlies that need healing, we'll
                 // tend to them but only if there isn't a hostile nearby,
                 // in which case we attack hostile first.
@@ -191,7 +191,7 @@ class Role_SK_Clear extends Creep
 
                 // Heal ourselves, but try to move to next position while doing so.
                 if(creep.hits < creep.hitsMax)
-                    creep.heal(creep);         
+                    creep.heal(creep);
 
                 // If no targets, move to lair with lowest time to spawn
                 let lairs = rObj.getLairs();
@@ -215,7 +215,7 @@ class Role_SK_Clear extends Creep
                         this.actMoveTo(prevLair);
                 }
                 return;
-            
+
             case 'attackTarget':
                 target = Game.getObjectById(crmem.targetId);
                 if(!target){
@@ -229,7 +229,7 @@ class Role_SK_Clear extends Creep
                     crmem.safePosX = creep.pos.x;
                     crmem.safePosY = creep.pos.y;
                 }
-                
+
                 // Whenever we have exhausted our TOUGH,
                 // we need to retreat and recoup.
                 if(creep.hits < (creep.hitsMax*.70)){
@@ -237,7 +237,7 @@ class Role_SK_Clear extends Creep
                     crmem.state = 'healTowardHome';
                     break;
                 }
-                
+
                 let range = creep.pos.getRangeTo(target);
                 if(range <= 3)
                     creep.rangedAttack(target);
@@ -247,7 +247,7 @@ class Role_SK_Clear extends Creep
                 else if(range <= 2 )
                     this.actMoveTo(crmem.safePosX, crmem.safePosY);
                 return;
-                
+
             case 'healTowardHome':
                 creep.heal(creep);
                 if(creep.hits == creep.hitsMax){
@@ -259,7 +259,7 @@ class Role_SK_Clear extends Creep
                     return;
                 rc = this.actionMoveToRoomRouted(crmem.homeName);
                 return;
-            
+
             default:
                 console.log(creep.name+' BUG! Unknown state '+crmem.state);
                 crmem.state = 'init';
@@ -267,7 +267,7 @@ class Role_SK_Clear extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

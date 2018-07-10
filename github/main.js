@@ -24,7 +24,7 @@ module.exports.loop = function () {
     CreepMon.newTick();
     RoomObj.newTick();
     Grafana.logMajorCPU('objectAnalysis');
-    
+
     // Run room planner logic
     RoomObj.plannerLoop();
     Grafana.logMajorCPU('roomPlanner');
@@ -38,20 +38,20 @@ module.exports.loop = function () {
     //   Needs to run before creep logic (for chemist creeps to know what to do)
     ChemController.run();
     Grafana.logMajorCPU('chemistryLoop');
-    
+
     // Run military planning by general
     Generalissimo.warRoom();
     Grafana.logMajorCPU('warRoom');
-    
+
     // Run spawn logic
     RoomObj.spawnLoop();
     Grafana.logMajorCPU('spawnLoop');
-    
+
     // Observer logic
     //RoomObj.observerLoop();
     RoomObj.oLoopNew();
     Grafana.logMajorCPU('observerLoop');
-    
+
     // Run tower logic
     RoomObj.towerLoop();
     Grafana.logMajorCPU('towerLoop');
@@ -60,7 +60,7 @@ module.exports.loop = function () {
     CreepMon.econCreepLoop();
     Grafana.logMajorCPU('econCreepLoop');
 
-    // Run test creeps finally after everything else. 
+    // Run test creeps finally after everything else.
     // So, if they bomb, the world goes on.
     CreepMon.testCreepLoop();
     Grafana.logMajorCPU('testCreepLoop');

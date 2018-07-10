@@ -2,7 +2,7 @@
 var Creep           = require('Creep');
 var RoomHolder      = require('RoomHolder');
 
-// A very simple early attack bot for protecting room from hostiles that 
+// A very simple early attack bot for protecting room from hostiles that
 // enter when in safe mode in early room setup before we have turret.
 // (Really shouldn't get used too much)
 const BODY_M1 = [ ATTACK, MOVE ];
@@ -16,13 +16,13 @@ class Role_MiniAttack extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn ) {
         let room        = spawn.room;
         let controller  = room.controller;
         let body;
         let cost;
-        
+
         // Only need these creeps if if spawn is 'Spawn1' and at early control
         // levels.
         if(controller.level >= 4 || spawn.name != 'Spawn1')
@@ -45,33 +45,33 @@ class Role_MiniAttack extends Creep
             body = BODY_M1;
             cost = BODY_M1_COST;
         }
-        
+
         // Wait for it, if not yet available
         if(room.energyAvailable < cost)
             return true;
-        
+
         // Find a free name and spawn the bot.
         // Only 1 needed, there's an assumption of safe mode here.
         let crname = Creep.spawnCommon(spawn, 'miniatk', body, 1, 0);
-        
+
         // This at least should mean we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         // Initialze memory for the role.  Also assign a source position
         // from which to harvest, spreading bootstrappers evenly across the
         // harvest positions, based on their instance number.
         crmem.state = 'defend';
-        
+
         // TBD - we don't need instance number after spawn logic is complete.
         // then again, leave it for now, just in case :)
         // delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -84,14 +84,14 @@ class Role_MiniAttack extends Creep
 	    let exceed;
 	    let si;
         let controller = hrObj.m_room.controller;
-        
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
 
             switch(crmem.state){
             case 'defend':
                 let hostile = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS);
                 if(!hostile){
-                    if ( Math.abs(creep.pos.x - controller.pos.x) >= 2 
+                    if ( Math.abs(creep.pos.x - controller.pos.x) >= 2
                          || Math.abs(creep.pos.y - controller.pos.y) >=2
                        ) {
                           // just to get it out of the way.
@@ -105,7 +105,7 @@ class Role_MiniAttack extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n');   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n');
 	}
 }
 

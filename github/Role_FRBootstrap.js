@@ -5,8 +5,8 @@ var RoomHolder      = require('RoomHolder');
 
 // The "first Room" bootstrap is a very special case creep that bootstraps
 // the 'Spawn1' for brand new game worlds.  This creep just focuses on bringing
-// a room up to controller and extension levels better suited for normal 
-// logic. 
+// a room up to controller and extension levels better suited for normal
+// logic.
 //    It's "first room" because ordinarily other rooms would be bootstrapped by
 // neighbors capable of better tuned, bigger, creeps.
 //   (It's a TBD if I generalize this and share logic, not quite sure yet)
@@ -20,8 +20,8 @@ var RoomHolder      = require('RoomHolder');
 //    Takes 50 turns to upgrade a controller (1 per turn for 50 capacity)
 //    + travel, lets say 40 turns on average.
 // So they generate control points about 50 each 115 turns (.43 E/turn)
-// 
-// BODY_M1 SPAWN RATE 
+//
+// BODY_M1 SPAWN RATE
 // * without spawn filling:
 //   If we don't fill spawn to increase spawn rate, we get 6 creeps live at
 //   any time (spawn regenerates 1 per turn, so 1 creep every 250 turns).
@@ -33,13 +33,13 @@ var RoomHolder      = require('RoomHolder');
 // * with spawn filling:
 //   Each creep would take about 345 turns to generate its 150 energy.
 //   Theat leaves 1150 turns to generate work.
-//   
+//
 //   While that is likely to keep all the source spots busy, it's not
 //   necessarily generating net energy faster.  Lets say we have 4
 //   source harvest spots, constantly busy.  M1 creeps are still only
 //   harvesting 4/turn.  More than 2.6 E per turn if we don't boost.
 //   But... we are wasting much of that on creep spawning.
-//   
+//
 //  I've kept it simple with no spawn filling at L1.
 const BODY_M1 = [ WORK, CARRY, MOVE, MOVE ];
 const BODY_M1_COST = 250;
@@ -55,15 +55,15 @@ const BODY_M1_COST = 250;
 //    Takes 25 turns to upgrade a controller (2 per turn for 50 capacity)
 //    + travel, lets say 40 turns on average.
 // So they generate control points about 100 each 78 turns (1.28 E/turn)
-// 
+//
 // BODY_M2 SPAWN RATE/EFFICIENCY ( no filling )
 //    1500 life / 400 turns = 3.75 creeps
 //    3.75 creeps * 1.28 E/turn = 4.8 E/turn
 //
 // That's clearly up from BODY_M1, but 3.75 creeps aren't going to keep 4 source spots
 // busy.  It's clear that at level 2, we need to start upping the spawn rate.
-// We'll fill spawns/extensions, but set spawn to only spawn if there are free 
-// positions adjacent to sources.  
+// We'll fill spawns/extensions, but set spawn to only spawn if there are free
+// positions adjacent to sources.
 //     math TBD...
 const BODY_M2 = [ WORK, WORK, CARRY, MOVE, MOVE, MOVE];
 const BODY_M2_COST = 400;
@@ -79,7 +79,7 @@ const BODY_M3_COST = 500;
 // BODY_M4
 //   M4 comes online as L3 is reached and extensions are built, giving max
 // capacity = 800 (300 + 10 extensions).
-//   With all of those extensions built, we're ready to shift out of 
+//   With all of those extensions built, we're ready to shift out of
 // bootstrap mode, to normal dedicated harvesters, so this body is only used
 // while building extensions, and beginning to build roads to support level 3.
 const BODY_M4 = [ WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -105,7 +105,7 @@ class Role_FRBootstrap extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn ) {
         let room        = spawn.room;
         let controller  = room.controller;
@@ -114,7 +114,7 @@ class Role_FRBootstrap extends Creep
         let rObj  = RoomHolder.get(room.name);
         let friendlies = rObj.getFriendlies();
         let exten = rObj.getExtensions();
-        
+
         // Only need these creeps if if spawn is 'Spawn1' and at early control
         // levels, or similarly we're being spawned from a host room that is also very early.
         if( spawn.name != 'Spawn1' && !room.memory.selfBooting )
@@ -124,7 +124,7 @@ class Role_FRBootstrap extends Creep
                 return false;
         }
 
-        // Choose the body we want and will wait for energy for. 
+        // Choose the body we want and will wait for energy for.
         if(room.energyCapacityAvailable >= BODY_M4_COST){
             body = BODY_M4;
             cost = BODY_M4_COST;
@@ -152,7 +152,7 @@ class Role_FRBootstrap extends Creep
         if(room.energyAvailable < cost){
             return true;
         }
-        
+
         // Determine max creeps.  Use 2 times the number of source harvest
         // positions for early control levels, but once dediharvs spawn,
         // somewhere around 8.  It clearly makes a big difference how far
@@ -161,25 +161,25 @@ class Role_FRBootstrap extends Creep
 
         let hPos  = rObj.getHarvestPositions();
         let max   = (exten.length >= 8) ?9:hPos.length*2;
-        
+
         if(exten.length == 10){
             if(rObj.getSpawnStorage() != null)
                 max = 2;
             else
                 max = hPos.length;
         }
-        
+
         // Find a free name and spawn the bot.
         // For first room we'll boot a gazillion of them, so no
         // need for alt names or such.
         let crname = Creep.spawnCommon(spawn, 'frboot', body, max, 0);
-        
+
         // This at least should mean we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         // Initialze memory for the role.  Also assign a source position
         // from which to harvest, spreading bootstrappers evenly across the
         // harvest positions, based on their instance number.
@@ -187,14 +187,14 @@ class Role_FRBootstrap extends Creep
         crmem.srcX  = hp.source.pos.x;
         crmem.srcY  = hp.source.pos.y;
         crmem.state = 'pickEnergy';
-        
+
         // TBD - we don't need instance number after spawn logic is complete.
         // then again, leave it for now, just in case :)
         // delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -208,12 +208,12 @@ class Role_FRBootstrap extends Creep
 	    let exceed;
 	    let si;
 	    let debug="";
-	    
+
 	    if(creep.room.name != crmem.homeName){
             this.actionMoveToRoomRouted(crmem.homeName);
             return;
         }
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
@@ -221,7 +221,7 @@ class Role_FRBootstrap extends Creep
             //    console.log(Game.time+' '+creep.name+' state='+crmem.state);
 
             switch(crmem.state){
-                
+
             case 'pickEnergy':
 
                 // If there are containers (which will typically mean that we
@@ -231,13 +231,13 @@ class Role_FRBootstrap extends Creep
                 if(containers.length){
                     let container = this.m_creep.pos.findClosestByRange
                             (containers
-                            ,   { filter: function (st) 
+                            ,   { filter: function (st)
                                     {
                                         return (st.store.energy >= 150);
                                     }
                                 }
                             );
-                    
+
                     if(!container && hRoom.storage && hRoom.storage.store.energy >0){
                         this.setTarget(hRoom.storage);
                         crmem.state = 'withdrawStruct';
@@ -258,14 +258,14 @@ class Role_FRBootstrap extends Creep
                         break;
                     }
                 }
-                
+
                 // Find target source of energy, as designated in spawn logic.
                 let sources  = hrObj.getSources();
                 let best;
-                        
+
                 for(si=0; si<sources.length; si++){
-                    if(sources[si].pos.x == crmem.srcX 
-                       && sources[si].pos.y == crmem.srcY) 
+                    if(sources[si].pos.x == crmem.srcX
+                       && sources[si].pos.y == crmem.srcY)
                     {
                        best = sources[si];
                        break;
@@ -277,8 +277,8 @@ class Role_FRBootstrap extends Creep
                 }
                 this.setTarget(best);
                 crmem.state = 'harvestSource';
-                break;    
-                
+                break;
+
             case 'harvestSource':
                 rc=this.harvestSource(false);
                 if(rc == ERR_FULL){
@@ -317,7 +317,7 @@ class Role_FRBootstrap extends Creep
                     crmem.state = 'pickEnergy';
                     return;
                 }
-                crmem.state = 'pickEnergy';                
+                crmem.state = 'pickEnergy';
                 break;
 
             case 'pickFill':
@@ -329,7 +329,7 @@ class Role_FRBootstrap extends Creep
                     crmem.state = 'upgradeController';
                     break;
                 }
-                
+
                 // Don't fill unless we have enough capacity for L3 or higher creeps.
                 // or available energy is < 280.  Take advantage of the
                 // spawn's own energy generation until we need higher creep counts
@@ -340,7 +340,7 @@ class Role_FRBootstrap extends Creep
                     crmem.state = 'pickBuild';
                     break;
                 }
-                
+
                 // Check if spawn needs a fill
                 // Really we'll only have 1 spawn with bootstrap, so this be overkill,
                 // but just in case someone inherits this code...
@@ -354,25 +354,25 @@ class Role_FRBootstrap extends Creep
                     crmem.state = 'fillStructure';
                     break;
                 }
-                
+
                 // Check if any extensions need a fill
                 let extenList = hrObj.getExtensions();
                 let ei;
                 let exten;
                 exten = creep.pos.findClosestByPath
                         (extenList
-                        ,   { filter: function (st) 
+                        ,   { filter: function (st)
                                 {
                                     return (st.energy < st.energyCapacity);
                                 }
-                            }                      
+                            }
                         );
                 if(exten){
                     this.setTarget(exten);
                     crmem.state = 'fillStructure';
                     break;
                 }
-                
+
                 // Check towers too
                 let towerList = hrObj.getTowers();
                 let ti;
@@ -388,7 +388,7 @@ class Role_FRBootstrap extends Creep
                     crmem.state = 'fillStructure';
                     break;
                 }
-                
+
                 // Otherwise check build.
                 crmem.state = 'pickBuild';
                 break;
@@ -409,7 +409,7 @@ class Role_FRBootstrap extends Creep
                 break;
 
             case 'pickBuild':
-                
+
                 // Check if there are sites to be built, and build.  RoomPlanner
                 // places these and prioritizes for growth. So any site we find.
                 let sites = hrObj.getSites();
@@ -422,7 +422,7 @@ class Role_FRBootstrap extends Creep
                     crmem.state = 'buildSite';
                     break;
                 }
-                
+
                 // Once we begin to build roads (which we need to repair, start
                 // watching for repairables).
                 if(hRoom.controller.level >= 3){
@@ -473,11 +473,11 @@ class Role_FRBootstrap extends Creep
                     crmem.state = 'repairStruct';
                     break;
                 }
-                
+
                 // Otherwise just upgrade controller.
                 this.setTarget(hRoom.controller);
                 crmem.state = 'upgradeController';
-                
+
                 break;
 
             case 'repairStruct':
@@ -488,7 +488,7 @@ class Role_FRBootstrap extends Creep
                     crmem.state = 'pickEnergy';
                 else if(rc == ERR_INVALID_TARGET){
                     let structs = hrObj.getAllStructures();
-                    
+
                     // We still have energy but finished with this repair.
                     // Repair tends to bounce us around, so while we're in the
                     // area, look for structs that aren't fully degraded to
@@ -498,8 +498,8 @@ class Role_FRBootstrap extends Creep
                     // of opportunity in area.
                     let struct =
                     creep.pos.findClosestByRange
-                        (structs, 
-                            { filter: function (st) 
+                        (structs,
+                            { filter: function (st)
                                 {
                                     if(st.structureType == STRUCTURE_WALL || st.structureType == STRUCTURE_RAMPART)
                                         return false;
@@ -514,9 +514,9 @@ class Role_FRBootstrap extends Creep
                     else
                         crmem.state = 'pickEnergy';
                 }
-                
+
                 break;
-  
+
             case 'signController':
                 if(hRoom.controller.sign && hRoom.controller.sign.text == Preference.signText){
                     crmem.state = 'upgradeController';
@@ -530,7 +530,7 @@ class Role_FRBootstrap extends Creep
                 creep.signController(hRoom.controller, Preference.signText);
                 crmem.state = 'upgradeController';
                 return;
-                
+
             case 'upgradeController':
                 if(!hRoom.controller.sign
                    || hRoom.controller.sign.text != Preference.signText
@@ -550,7 +550,7 @@ class Role_FRBootstrap extends Creep
                 else if(rc == OK)
                     return;
                 break;
-           
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'pickEnergy';
@@ -558,7 +558,7 @@ class Role_FRBootstrap extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

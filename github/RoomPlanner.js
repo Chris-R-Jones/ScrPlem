@@ -9,7 +9,7 @@ class RoomPlanner
     {
 
         if(x <=1 || x >= 48 || y <=1 || y >= 48 ){
-            
+
             // Roads are OK next to exit, nothing else.
             if( ! ( structureType == STRUCTURE_ROAD
                      && x <= 49 && x >= 1
@@ -39,7 +39,7 @@ class RoomPlanner
                     continue;
                 if(riE.structure.structureType == STRUCTURE_CONTAINER && structureType == STRUCTURE_ROAD)
                     continue;
-                
+
                 // in other cases where we're placing over a road return false.  There are a few situations
                 // where we might need to manually place roads because of the room structure, or it's possible
                 // we're placing towers outside the inner 'quad' and this is a road to a source or controller.
@@ -49,7 +49,7 @@ class RoomPlanner
                    && structureType != STRUCTURE_SPAWN
                    )
                     return false;
-                
+
                 console.log('Found mismatch structure: '+riE.structure.structureType+' placing '+structureType);
                 console.log('DESTROYING!!! at'+room.name+' x='+x+' y='+y);
                 riE.structure.destroy();
@@ -58,7 +58,7 @@ class RoomPlanner
             if(riE.type == 'constructionSite')
                 return true;
         }
-        
+
         // When placing extensions, make sure there are roads adjacent, or else extension is blocked by terrain.
         // (except before L4, when we haven't necessarily placed roads yet).
         if(structureType == STRUCTURE_EXTENSION && room.controller.level >= 4){
@@ -74,7 +74,7 @@ class RoomPlanner
             if(si == structs.length)
                 return false;
         }
-        
+
         let rc = room.createConstructionSite(x,y,structureType);
         console.log('RoomPlanner: ordered create '
                     +structureType+' at room='+room.name+' x='
@@ -83,18 +83,18 @@ class RoomPlanner
 
         return true;
     }
-    
-        
+
+
     // Helper invoked when considering to place structures, to check if
     // the coordinate is close to ( i.e. within 2 dist of) a source, to leave
     // room for roads/creeps to fill off source.
     static checkNearSource(room, rObj, x,y)
     {
         let sources = rObj.getSources();
-        
+
         for(let si=0; si<sources.length; si++){
             let source = sources[si];
-            
+
             if(Math.abs(source.pos.x - x) <= 2
                && Math.abs(source.pos.y-y) <= 2
                ) {
@@ -111,7 +111,7 @@ class RoomPlanner
     static checkNearController(room, x,y)
     {
         let controller = room.controller;
-        
+
         if(Math.abs(controller.pos.x - x) <= 4
            && Math.abs(controller.pos.y-y) <= 4
            ) {
@@ -119,7 +119,7 @@ class RoomPlanner
         }
         return false;
     }
-    
+
     // Helper to planRoom that routes & places roads from a position
     // (sources, controllers, minerals, etc) toward spawn.
     static placeRoadsToSpawn( rObj, fromPos, tlspawn )
@@ -127,8 +127,8 @@ class RoomPlanner
         // NOTE! Any changes to this routine should also consider
         // placeControllerContainer which uses the same path finding for
         // placement of controller container (and they need to match).
-        
-        
+
+
         let path;
         let pi;
         path = rObj.m_room.findPath
@@ -154,7 +154,7 @@ class RoomPlanner
                 ){
                     continue;
             }
-            
+
             if(pent.x == 0 || pent.x == 49 || pent.y == 0 || pent.y == 49)
                 continue;
             if(this.checkPlaceStructure(rObj.m_room, rObj, pent.x, pent.y, STRUCTURE_ROAD))
@@ -185,9 +185,9 @@ class RoomPlanner
         }
         return true;
     }
-    
+
     static placeControllerContainer( rObj, containerPos, tlspawn )
-    { 
+    {
         // Re-generate the road path from controller to spawn.
         // We want to find a position with optimal space around it
         // near that road, for most upgrade creeps to fit.
@@ -201,10 +201,10 @@ class RoomPlanner
                   , maxRooms: 0
                   }
                 );
-        
-        // Harvesters can upgrade the controller from a distance of 3 away. 
+
+        // Harvesters can upgrade the controller from a distance of 3 away.
         // Ideally we place the controller 2 away so upgraders can cluster around it.
-        // Containers are walkable, so just place it 2 up on the road. 
+        // Containers are walkable, so just place it 2 up on the road.
         // Probably more optimal might be to try to find adjacent squares and optimize
         // free space.  That's a TBD
         let roadX = path[2].x;
@@ -212,14 +212,14 @@ class RoomPlanner
         let res = this.checkPlaceStructure(rObj.m_room, rObj, roadX, roadY, STRUCTURE_CONTAINER);
         return res;
     }
-    
+
     static planRoom(rObj)
     {
         let room       = rObj.m_room;
         let rmem       = rObj.m_rmem;
- 
+
         g_tmpWorkingRobj = rObj;
- 
+
         if((Game.time%100 == 0) && !rmem.lastPlanT && rmem.lastPlanAction){
             console.log(Game.time+'Room planning '+room.name+' still active last='+rmem.lastPlanAction);
         }
@@ -237,8 +237,8 @@ class RoomPlanner
             return;
 
         // And don't plan rooms that don't have a host.
-        if( (!controller || (controller && !controller.my)) 
-            && !rmem.hostRoom 
+        if( (!controller || (controller && !controller.my))
+            && !rmem.hostRoom
           ) {
             delete rmem.lastPlanAction;
             rmem.lastPlanT = Game.time;
@@ -264,9 +264,9 @@ class RoomPlanner
 
         if(sites.length != 0)
             return;
-        
+
         // console.log('Planner T='+Game.time+' room='+room.name+' last='+rmem.lastPlanT);
-        
+
         // A graphic probably explains this algorithm the best.
         //                T............T
         //                ..EEEE..EEEE..
@@ -292,12 +292,12 @@ class RoomPlanner
         // L = linker creep position.
         // T = turrets
         // E = extensions
-        
+
         // The diagram itself shows 72 extensions.  Enough for an
-        // L8 room's limit of 60. 
+        // L8 room's limit of 60.
         // That said, not all rooms will fit this, and those that do probably
         // have very little natural wall protection.
-        // 
+        //
         // TBD to extend the algorithm outside these borders ;-)
         // However, it's likely I'll just take advantage of controller &
         // source roads, and place along them at a distance so not to obstruct
@@ -305,7 +305,7 @@ class RoomPlanner
 
         let extenList  = rObj.getExtensions();
         let tlspawn = rObj.findTopLeftSpawn();
-        
+
         // For rooms that aren't self-booting, clear any structures in the room that exist
         // and aren't ours.  They are likely left from previous owner and don't follow our plan.
         // (Preserve storage and terminals though unless they be empty)
@@ -313,7 +313,7 @@ class RoomPlanner
             let allStruct = rObj.getAllStructures();
             for(let i=0; i<allStruct.length; i++){
                 let st = allStruct[i];
-                if(st.structureType != STRUCTURE_SPAWN 
+                if(st.structureType != STRUCTURE_SPAWN
                    && st.structureType != STRUCTURE_CONTROLLER
                    && (st.structureType != STRUCTURE_STORAGE || _.sum(st.store) == 0)
                    && (st.structureType != STRUCTURE_TERMINAL || _.sum(st.store) == 0)
@@ -327,8 +327,8 @@ class RoomPlanner
         }
         if(rmem.haveCleared && controller && controller.level >= 5)
             delete rmem.haveCleared;
-        
-        
+
+
         if(controller && controller.my && tlspawn){
             rmem.lastPlanAction='Place spawn group items';
             // Place spawn group containers/storage/terminals.
@@ -336,7 +336,7 @@ class RoomPlanner
             if( controller.level < 4 && nRooms > 1 && !rmem.selfBooting
                && this.checkPlaceStructure(room, rObj, tlspawn.pos.x, tlspawn.pos.y+1, STRUCTURE_CONTAINER))
                 return;
-            
+
             if(room.storage && !room.storage.my){
                 if(_.sum(room.storage) == 0){
                     room.storage.destroy();
@@ -350,9 +350,9 @@ class RoomPlanner
                && this.checkPlaceStructure(room, rObj, tlspawn.pos.x+3, tlspawn.pos.y+2, STRUCTURE_TERMINAL))
                return;
         }
-        
+
         // Place extensions if we are below limit for controller.
-        if(controller && controller.my && tlspawn && extenList.length 
+        if(controller && controller.my && tlspawn && extenList.length
            < CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][controller.level]
            ){
 
@@ -360,11 +360,11 @@ class RoomPlanner
 
             // To simplify the logic we do this in quadrants,
             // with x/y multipliers of -1,1.
-            
+
             // The quadrant's corner is where the 'T' is on the diagram.
 
             // Search in outward squares, starting at distance 2 from the
-            // quadrant corners (where extensions begin).  
+            // quadrant corners (where extensions begin).
             for(let dist=2; dist<=4; dist++){
                 // Loop through quadrants
                 for(let xm=1; xm >=-1; xm-=2 ){
@@ -374,15 +374,15 @@ class RoomPlanner
                         let qCornerY = tlspawn.pos.y;
                         qCornerX += (xm > 0) ? 2 : -1;
                         qCornerY += (ym > 0) ? 2 : -1;
-                        
+
                         // Then iterate through positions at distance 'dist'
                         // from the corner.
-                        
+
                         // Place extensions along the X axis of quadrant edge
                         for(let dx=0; dx<dist; dx++){
                             let candidateX = qCornerX+dx*xm;
                             let candidateY = qCornerY+dist*ym;
-                            
+
                             if(this.checkNearSource(room, rObj, candidateX, candidateY))
                                 continue;
                             if(this.checkNearController(room, candidateX, candidateY))
@@ -390,7 +390,7 @@ class RoomPlanner
                             if(this.checkPlaceStructure(room, rObj, candidateX, candidateY, STRUCTURE_EXTENSION))
                                 return;
                         }
-                        
+
                         // And then the Y.
                         for(let dy=0; dy<dist; dy++){
                             let candidateX = qCornerX+dist*xm;
@@ -398,10 +398,10 @@ class RoomPlanner
                             if(this.checkNearSource(room, rObj, candidateX, candidateY))
                                 continue;
                             if(this.checkNearController(room, candidateX, candidateY))
-                                continue;                            
+                                continue;
                             if(this.checkPlaceStructure(room, rObj, candidateX, candidateY, STRUCTURE_EXTENSION))
                                 return;
-                        } 
+                        }
                     }
                 }
             }
@@ -425,7 +425,7 @@ class RoomPlanner
 
             let hrObj = RoomHolder.get(rmem.hostRoom);
             let hrTlspawn = hrObj.findTopLeftSpawn();
-            
+
             // Don't harvest keeper rooms til we have spawn power to support it
             // at L7.
             if(rmem.keeperRoom && hrObj.m_room.controller.level < 7){
@@ -433,23 +433,23 @@ class RoomPlanner
                 rmem.lastPlanT = Game.time;
                 return;
             }
-            
+
             // Neighbor remote harvesting.  Setup source roads back to home.
             let sources = rObj.getSources();
-            
+
             rmem.lastPlanAction='Place harvest roads for '+rObj.m_room.name+' to spawn in '+hrObj.m_room.name;
             for(let si=0; si<sources.length; si++){
                 let hp = rObj.getDediHarvestPosition(hrObj, sources[si]);
                 if(!hp)
                     return;
                 let hpPos = new RoomPosition(hp.x,hp.y,rObj.m_room.name);
-                
+
                 if(this.placeRoadsToSpawn(rObj,hpPos, hrTlspawn))
                     return;
             }
-            
-            
-            
+
+
+
             // Place extractor, mineral mining container and roads back to spawn from mine.
             let mineral;
             if(rObj.getLairs().length > 0 && hrObj.m_room.controller.level >= 7){
@@ -461,7 +461,7 @@ class RoomPlanner
                     return;
                 let container = rObj.getMineralHarvestContainer(hrObj);
                 if(!container){
-                    let mhp = rObj.getMineralHarvestPos(hrObj);    
+                    let mhp = rObj.getMineralHarvestPos(hrObj);
                     if(!mhp){
                         console.log('BARF1 room planner! hrObj='+hrObj.m_room.name);
                         return;
@@ -479,7 +479,7 @@ class RoomPlanner
             return;
         }
         else {
-               
+
             // Place paths to sources
             rmem.lastPlanAction = 'Place roads sources to spawn';
             let sources = rObj.getSources();
@@ -502,7 +502,7 @@ class RoomPlanner
                         return;
                 }
             }
-            
+
             // Place the vertical double roads outward from spawn groups.
             rmem.lastPlanAction = 'Place spawn vertical roads';
             for(let dy=-6; dy<=7; dy++){
@@ -513,42 +513,42 @@ class RoomPlanner
                         return;
                 }
             }
-            
+
             // Place the quadrant roads -- the diagonals outward and the pocket at base of each quadrant.
             // Loop through quadrants
             rmem.lastPlanAction='Place quadrant roads';
             let towers = rObj.getTowers();
             for(let xm=1; xm >=-1; xm-=2 ){
                 for(let ym=1; ym >=-1; ym-=2 ){
-                    
+
                     // Get quadrant corner position.
                     let qCornerX = tlspawn.pos.x;
                     let qCornerY = tlspawn.pos.y;
                     qCornerX += (xm > 0) ? 2 : -1;
                     qCornerY += (ym > 0) ? 2 : -1;
-                    
+
                     // Place diagonals
                     for(let dist=1; dist <= 4; dist++){
                         if(this.checkPlaceStructure(room, rObj, qCornerX+dist*xm, qCornerY+dist*ym, STRUCTURE_ROAD))
                             return;
                     }
-                    
+
                     // And roads in the quadrant corner
                     // TBD.. probably need a hole for terminal?
                     for( let dx=0; dx<=1; dx++){
                         for( let dy=0; dy<=1; dy++){
                             let qcx = qCornerX+dx*xm;
                             let qcy = qCornerY+dy*ym;
-                            
+
                             // Skip road where terminal belongs.
                             if(controller.level >= 6 && qcx == tlspawn.pos.x+3 && qcy == tlspawn.pos.y+2)
                                 continue;
-                             
+
                             if(this.checkPlaceStructure(room, rObj, qcx, qcy, STRUCTURE_ROAD))
                                 return;
                         }
                     }
-                    
+
                     // And turret at end of diagonal, if room level permits.
 
                     if(CONTROLLER_STRUCTURES[STRUCTURE_TOWER][controller.level] > towers.length){
@@ -557,12 +557,12 @@ class RoomPlanner
                     }
                 }
             }
-            
+
             // Place paths to controller.
             rmem.lastPlanAction='Place controller roads';
             if(this.placeRoadsToSpawn(rObj, controller.pos, tlspawn))
                 return;
-            
+
             // Place a container near controller, along road.
             rmem.lastPlanAction='Place controller container';
             if(!rObj.getControllerContainer()
@@ -580,7 +580,7 @@ class RoomPlanner
                     return;
                 let container = rObj.getMineralHarvestContainer();
                 if(!container){
-                    let mhp = rObj.getMineralHarvestPos();    
+                    let mhp = rObj.getMineralHarvestPos();
                     this.checkPlaceStructure(room, rObj, mhp.x, mhp.y, STRUCTURE_CONTAINER);
                     return;
                 }
@@ -589,21 +589,21 @@ class RoomPlanner
             }
 
             rmem.lastPlanAction='Place second spawn';
-            
+
             // At L7 place 2nd spawn, right of first.
             if(controller.level >= 7
                 && this.checkPlaceStructure(room, rObj, tlspawn.pos.x+1, tlspawn.pos.y, STRUCTURE_SPAWN))
                 return;
-            
-            // At L8 place 3nd spawn, below first.  This might replace the original container if it 
+
+            // At L8 place 3nd spawn, below first.  This might replace the original container if it
             // was never removed - so be it.
             if(controller.level >= 8
                 && this.checkPlaceStructure(room, rObj, tlspawn.pos.x, tlspawn.pos.y+1, STRUCTURE_SPAWN))
-                return;                 
-            
+                return;
+
             // TBD... next would be to place outer walkways. But I'm not certain I really want those walkways rather than
             // walls, and I need to consider how I extend this outward if it doesn't all fit.
-            
+
             //console.log('...Plan complete T='+Game.time);
             delete rmem.lastPlanAction;
             rmem.lastPlanT = Game.time;

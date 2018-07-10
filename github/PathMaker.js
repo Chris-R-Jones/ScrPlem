@@ -5,7 +5,7 @@ var RoomHolder          = require('RoomHolder');
 
 class PathMaker
 {
-    static roomnameToCoord( roomName )  
+    static roomnameToCoord( roomName )
     {
         let parsed = /^([WE])([0-9]+)([NS])([0-9]+)$/.exec(roomName);
         let latChar = parsed[1];
@@ -31,7 +31,7 @@ class PathMaker
             // a route that could have gone this way.
             return 500;
         }
-        
+
         // Prefer our own rooms
         if(rmem.owner == 'me'){
             if(debugFlag)
@@ -41,7 +41,7 @@ class PathMaker
         if(rmem.hostRoom){
             let rhObj = RoomHolder.get(rmem.hostRoom);
             if(rhObj && rhObj.m_room ){
-                
+
                 if(rmem.hostileCt == 0 && !rmem.keeperRoom){
                     if(debugFlag)
                         console.log('.. eval '+cbRoomName+' R=2 (hosted)');
@@ -57,20 +57,20 @@ class PathMaker
                 }
                 // If hostile, fall through - it's possible we're overrun.
             }
-        }    
-        
+        }
+
         // Followed by highways.
         let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(cbRoomName);
         let fMod = parsed[1] % 10;
         let sMod = parsed[2] % 10;
         let isHW = (fMod === 0 || sMod === 0);
         let score;
-        
+
         if(isHW)
             score = 3;
         else
             score = 5;
-            
+
         // Avoid hostile rooms, unless it's our origin or destination.
         // Again, if it's our only choice, well.. maybe ok..
         if(rmem.keeperRoom)
@@ -84,10 +84,10 @@ class PathMaker
         if(debugFlag)
             console.log('.. eval '+cbRoomName+' R='+score+'(scored)');
 
-        return score;        
-    
+        return score;
+
     }
- 
+
     // Returns an array of safe room names to travel from source to destination
     // room name.
     static getSafeRoute( fromRoomName, toRoomName, debugFlag )
@@ -100,7 +100,7 @@ class PathMaker
             let rmem = Memory.rooms[cbRoomName];
             let room = Game.rooms[cbRoomName];
             let costs;
-        
+
             // If it's where we are going, pretty much ignore the normal
             // checks.
             if(cbRoomName == toRoomName || cbRoomName == fromRoomName){
@@ -108,44 +108,44 @@ class PathMaker
                     console.log('.. eval '+cbRoomName+' R=1 (dest or source)');
                 return 1;
             }
-            
+
             return m_this.scoreRoom( cbRoomName, debugFlag );
         };
 
         let route;
         let m_this = this;
-        
+
         route = Game.map.findRoute
                 ( fromRoomName
                 , toRoomName
-                , { routeCallback: roomEvalCallback } 
+                , { routeCallback: roomEvalCallback }
                 );
         if(route == ERR_NO_PATH)
             return ERR_NO_PATH;
-    
+
         let safeRoute = [];
         safeRoute.push(fromRoomName);
         for(let ri=0; ri<route.length; ri++)
             safeRoute.push(route[ri].room);
         return safeRoute;
     }
- 
+
     // Returns the cost of the most 'expensive/dangerous' room on a route
     // returned by 'getSafeRoute' -- ignoring starting and final rooms.
     static getSafeRouteDanger( route )
     {
         let max = 0;
         let ri;
-        
+
         for(ri=1; ri<(route.length-1); ri++){
             let score = this.scoreRoom(route[ri]);
             if(score > max)
                 max = score;
         }
         return max;
-        
+
     }
-    
+
 };
 
 module.exports = PathMaker;

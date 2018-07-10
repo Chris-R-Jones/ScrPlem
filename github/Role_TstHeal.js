@@ -31,7 +31,7 @@ class Role_TstHeal extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, targetRoomName, max ) {
         let hRoom           = spawn.room;
         let tRoom           = Game.rooms[targetRoomName];
@@ -41,17 +41,17 @@ class Role_TstHeal extends Creep
         // Wait for full energy.
         if(hRoom.energyAvailable < BODY_M1_COST)
             return true;
-        let body = BODY_M1;        
+        let body = BODY_M1;
 
         // Find a free name and spawn the bot.
         let altTime = 200;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'tstHeal', body, max, altTime, multispec, targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.tRoomName = targetRoomName;
         crmem.state     = 'init';
@@ -59,8 +59,8 @@ class Role_TstHeal extends Creep
         delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Helper to find lab to boost a certain body part for this creep
     findLabForBoost(crObj, part)
     {
@@ -88,10 +88,10 @@ class Role_TstHeal extends Creep
                )
                return lab;
         }
-        
+
         return null;
     }
-    
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -112,12 +112,12 @@ class Role_TstHeal extends Creep
         let friendlies = crObj.getFriendlies();
         let frCr = null;
 	    //tRoomName = division.m_tgtRoomName;
-	    
+
 	    //crmem.tRoomName = 'W1S11';
 	    //crmem.prevRoom = 'W1NS12';
-	    
+
 	    tRoomName = crmem.tRoomName;
-	    
+
         // Heal logic is independent of move logic.  We'll just heal
         // whatever is closest.  (Should probably refine that later).
         let wounded = crObj.getWounded();
@@ -126,10 +126,10 @@ class Role_TstHeal extends Creep
 
         if(fCreep && fCreep.name == creep.name)
             fCreep = null;
-        
+
         if(fCreep)
             fRange = fCreep.pos.getRangeTo(creep.pos);
-        
+
         if( (!fCreep && creep.hits < creep.hitsMax)
             || creep.hits < .80*creep.hitsMax){
             creep.heal(creep);
@@ -142,10 +142,10 @@ class Role_TstHeal extends Creep
             crmem.lastHealTgt = fCreep.id;
             creep.rangedHeal(fCreep);
         }
-        
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
-    
+
             //if(creep.name == 'tstHeal_E6S7_E4S9_0_alt')
             //    console.log('T='+Game.time+' '+creep.name+' state='+crmem.state+' pos='+creep.pos);
 
@@ -167,7 +167,7 @@ class Role_TstHeal extends Creep
                     }
                 }
                 crmem.state = 'applyBoosts';
-                
+
                 return;
 
             case 'applyBoosts':
@@ -202,7 +202,7 @@ class Role_TstHeal extends Creep
                     break;
                 }
                 return;
-                
+
             case 'moveHome':
                 if(creep.hits == creep.hitsMax){
                     crmem.state = 'moveTgtRoom';
@@ -220,13 +220,13 @@ class Role_TstHeal extends Creep
                 // for retreat.
                 if(creep.room.name != tRoomName || !(crmem.prevRoom))
                     crmem.prevRoom = creep.room.name;
-                
+
                 rc = this.actionMoveToRoomRouted(tRoomName);
- 
+
                 if(creep.name == 'tstHeal_E78S91_0'){
                     console.log(' tRoom='+tRoomName+' current='+creep.room.name+' rc='+rc);
                 }
- 
+
                 if(rc == OK) {
                     crmem.state = 'hostileArrival'
                     break;
@@ -238,19 +238,19 @@ class Role_TstHeal extends Creep
                 crmem.arrivalT = Game.time;
                 crmem.state = 'lingerTgtRoom';
                 break;
-            
+
             case 'moveStaging':
                 rc = this.actionMoveToRoomRouted(crmem.prevRoom);
                 if(rc == OK)
                     crmem.state = 'stagingRoom';
                 return;
-                
+
             case 'stagingRoom':
                 // If there are wounded, start getting to work.
                 if(fCreep){
                     crmem.state = 'engageTargets';
                     break;
-                }                
+                }
                 //if(creep.hits < .60 * creep.hitsMax){
                 //    crmem.state = 'moveHome';
                 //    break;
@@ -258,7 +258,7 @@ class Role_TstHeal extends Creep
                 if(creep.hits == creep.hitsMax)
                     crmem.state = 'moveTgtRoom';
                 return;
-                
+
             case 'lingerTgtRoom':
                 if(creep.room.name != tRoomName){
                     console.log('BUG!! not in target room but lingerTgtRoom');
@@ -269,22 +269,22 @@ class Role_TstHeal extends Creep
                     crmem.state = 'engageTargets';
                     break;
                 }
-                
+
                 // If not, and we're wounded, move back home where we can
                 // get healing.
                 if(creep.hits < .80 * creep.hitsMax){
                     crmem.state = 'moveStaging';
                     break;
                 }
-                
-                // Periodically move to staging to heal retreaters.  But only if we're 
+
+                // Periodically move to staging to heal retreaters.  But only if we're
                 // sitting at entry
                 if(true && Math.floor((Math.random()*50)) == 0 && creep.hits == creep.hitsMax
                     && (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49)){
                     crmem.state = 'moveStaging';
                     break;
                 }
-                
+
                 // If there's room, move out of  arrivals.
                 if(creep.pos.x==1){
                     switch(Math.floor((Math.random() * 3))){
@@ -292,7 +292,7 @@ class Role_TstHeal extends Creep
                     case 1: creep.move(TOP_RIGHT); break;
                     case 2: creep.move(RIGHT); break;
                     }
-                }    
+                }
                 else if(creep.pos.x>47){
                     switch(Math.floor((Math.random() * 3))){
                     case 0: creep.move(BOTTOM_LEFT); break;
@@ -308,13 +308,13 @@ class Role_TstHeal extends Creep
                     }
                 }
                 else if(creep.pos.y==48)
-                    creep.move(TOP);   
-                    
+                    creep.move(TOP);
+
                 // We're idling in the room.  If there's a creep in the
                 // room we recently healed, stay near to it.
                 if(crmem.lastHealTgt){
                     let fCreep = Game.getObjectById(crmem.lastHealTgt);
-                    if(fCreep 
+                    if(fCreep
                         && fCreep.pos.roomName == creep.pos.roomName
                         && fCreep.pos.getRangeTo(creep.pos)>1
                         ){
@@ -324,7 +324,7 @@ class Role_TstHeal extends Creep
                         delete crmem.lastHealTgt;
                 }
                 else {
-                    // If we got here, we're just idling, try to find a friendly 
+                    // If we got here, we're just idling, try to find a friendly
                     // tstDecon to guard.
                     friendlies = crObj.getFriendlies();
                     frCr = null;
@@ -342,11 +342,11 @@ class Role_TstHeal extends Creep
                         }
                     }
                     if(frCr)
-                        this.actMoveTo(frCr);                    
-                        
+                        this.actMoveTo(frCr);
+
                 }
                 return;
-            
+
             case 'engageTargets':
                 // Creeps enter this state if room has wounded.   (That
                 // isn't necessarily the case still).
@@ -355,10 +355,10 @@ class Role_TstHeal extends Creep
                         crmem.state = 'moveStaging';
                     //else
                     //    crmem.state = 'moveHome';
-                    
+
                     break;
                 }
-                
+
                 // Check if still wounded.  If not move back to the room state
                 // for room we're in.
                 /*if(!fCreep){
@@ -367,15 +367,15 @@ class Role_TstHeal extends Creep
                         break;
                     }
                     else if(creep.room.name == tRoomName){
-                        crmem.state = 'lingerTgtRoom'; 
+                        crmem.state = 'lingerTgtRoom';
                         break;
-                    } 
+                    }
                     else{
                         crmem.state = 'stagingRoom';
                         break;
                     }
                 }*/
-                
+
                 // Try to stay out of arrival lane so arriving wounded
                 // creeps don't bounce
                 if(fCreep && creep.pos.getRangeTo(fCreep)>3){
@@ -387,7 +387,7 @@ class Role_TstHeal extends Creep
                     case 1: creep.move(TOP_RIGHT); break;
                     case 2: creep.move(RIGHT); break;
                     }
-                }    
+                }
                 else if(creep.pos.x>47){
                     switch(Math.floor((Math.random() * 3))){
                     case 0: creep.move(BOTTOM_LEFT); break;
@@ -406,14 +406,14 @@ class Role_TstHeal extends Creep
                     creep.move(TOP);
                 else if(fCreep && creep.pos.getRangeTo(fCreep)>1)
                     this.actMoveTo(fCreep);
-                    
-                // If we got here, we're just idling, try to find a friendly 
+
+                // If we got here, we're just idling, try to find a friendly
                 // tstGrunt to guard.
                 friendlies = crObj.getFriendlies();
                 frCr = null;
 
                 frCr = creep.pos.findClosestByPath(friendlies
-                            , { filter: function (cr) 
+                            , { filter: function (cr)
                                 {
                                     return ( cr.memory.role == 'tstGrunt'
                                             || cr.memory.role == 'tstDecon'
@@ -422,10 +422,10 @@ class Role_TstHeal extends Creep
                             }
                             );
                 if(frCr)
-                    this.actMoveTo(frCr);    
-                    
+                    this.actMoveTo(frCr);
+
                 return;
-            
+
             case 'moveReclaim':
                 // Head back home to reclaim.  But if target room went hostile again,
                 // turn back.
@@ -435,7 +435,7 @@ class Role_TstHeal extends Creep
                     break;
                 }
                 rc = this.actionMoveToRoomRouted(crmem.homeName);
-                
+
                 if(rc != OK)
                     return;
                 let spawns = crObj.getSpawns();
@@ -448,7 +448,7 @@ class Role_TstHeal extends Creep
                         this.actMoveTo(spawns[0]);
                 }
                 return;
-              
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'init';
@@ -456,7 +456,7 @@ class Role_TstHeal extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

@@ -14,8 +14,8 @@ class Role_Miner extends Creep
     {
         super(creep, crmem);
     };
-    
-    // Note that generally minerals aren't in remote room.  But we might do 
+
+    // Note that generally minerals aren't in remote room.  But we might do
     // remote mining out of central sectors in the future, so leaving the
     // target room movement intact.
     static spawn( spawn, hrObj, targetRoomName ) {
@@ -30,7 +30,7 @@ class Role_Miner extends Creep
         let trObj = RoomHolder.get(targetRoomName);
         if(!trObj.m_room)
             return false;
-        
+
         let trTrm = trObj.getTerminal();
         let trSto = trObj.getSpawnStorage();
         let extract = trObj.getExtractor();
@@ -40,13 +40,13 @@ class Role_Miner extends Creep
             return false;
         let stoVal = trSto.store[mineral.mineralType]?trSto.store[mineral.mineralType]:0;
         let trmVal = trTrm.store[mineral.mineralType]?trTrm.store[mineral.mineralType]:0;
-        if( !mineral.mineralAmount 
+        if( !mineral.mineralAmount
             || mineral.mineralAmount == 0
             || (trmVal+stoVal) >= 20000
             )
             return false;
-        
-        // Size the creep:        
+
+        // Size the creep:
         //  * We get to harvest every 5 turns, and so the more WORK we do each time we
         //    get a harvest opportunity the better.
         //  * In very rare cases we might have to carry the proceeds to the container
@@ -55,19 +55,19 @@ class Role_Miner extends Creep
         //    Generally though, we don't give CARRY and just drop into container.
         cost = 0;
         body = [];
-        
+
         if(cont.pos.getRangeTo(mineral.pos) > 1){
             body = [ CARRY, MOVE ];
             cost = 100;
         }
-        
+
         while( (cost+250) < hRoom.energyCapacityAvailable && body.length <= 47 ){
             body.push(WORK);
             body.push(WORK);
             body.push(MOVE);
             cost += 250;
         }
-        
+
         // Wait for it, if not yet available.
         if(hRoom.energyAvailable < cost)
             return true;
@@ -76,13 +76,13 @@ class Role_Miner extends Creep
         let altTime = 0;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'miner', body, 1, altTime, multispec, targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         crmem.tRoomName = targetRoomName;
         crmem.ctrp      = {}
         crmem.ctrp.x    = cont.pos.x;
@@ -91,8 +91,8 @@ class Role_Miner extends Creep
         delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -110,22 +110,22 @@ class Role_Miner extends Creep
 	    let structs;
 	    let mineral;
 	    let st;
-	    
+
 	    let debug="";
-	    
+
 	    // Defence
 	    if(this.commonDefence(creep, crObj, hrObj, trObj)){
 	        crmem.state = 'moveHpos';
 	        this.clearTarget();
 	        return;
 	    }
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
-        
+
             //if(creep.name == 'miner_E6S11_0')
             //    console.log(Game.time+' '+creep.name+' state='+crmem.state);
-        
+
             switch(crmem.state){
             case 'moveHpos':
                 if(!crmem.ctrp){
@@ -161,10 +161,10 @@ class Role_Miner extends Creep
                 }
                 this.setTarget(mineral);
                 crmem.state = 'harvestMineral';
-                break; 
+                break;
 
             case 'harvestMineral':
-                
+
                 // On rare occassions we have to carry our harvest to the container.
                 // If we've carrying, move to container.
                 if(_.sum(creep.carry)>0){
@@ -172,14 +172,14 @@ class Role_Miner extends Creep
                     crmem.state = 'fillContainer';
                     break;
                 }
-                
+
                 // And if we have to move back do that now.
                 mineral = Game.getObjectById(crmem.targetId);
                 if(creep.pos.getRangeTo(mineral) > 1){
                     this.actMoveTo(mineral);
                     return;
                 }
- 
+
 
                 // Avoid glutting terminal
                 let trTrm = trObj.getTerminal();
@@ -190,7 +190,7 @@ class Role_Miner extends Creep
                     creep.suicide();
                     return;
                 }
- 
+
                 // Otherwise, we never carry our harvest. If we go over, minerals be
                 // dropped.  Which is fine if we're standing on the container.
                 // Not as fine if it is full.
@@ -199,18 +199,18 @@ class Role_Miner extends Creep
                 if( !st || (_.sum(st.store) + 50) > st.storeCapacity )
                 {
                     return;
-                }              
-                
+                }
+
                 // We only get to harvest every 6 turns.  Pace ourselves.
                 if(crmem.lastHaT && (Game.time-crmem.lastHaT)<6){
                     return;
                 }
-                
+
                 rc=this.harvestSource(true);
-                
+
                 if(rc == ERR_FULL || rc == OK){
                     // We generally expect to be and remain full, as minerals will drop into
-                    // container. 
+                    // container.
                     crmem.lastHaT = Game.time;
                     if(rc == OK)
                         return;
@@ -229,7 +229,7 @@ class Role_Miner extends Creep
 
                 crmem.state = 'pickMineral';
                 return;
-            
+
             case 'fillContainer':
                 if(_.sum(creep.carry)==0){
                     crmem.state = 'pickMineral';
@@ -245,13 +245,13 @@ class Role_Miner extends Creep
                 this.clearTarget();
                 crmem.state = 'pickMineral';
                 return;
-            
+
             case 'moveReclaim':
                 // Head back home to reclaim.  But if we got reassigned to a new division,
                 // turn back to new target.
                 rc = this.actionMoveToRoom(crmem.homeName);
                 if(rc != OK)
-                    return; 
+                    return;
                 let spawns = crObj.getSpawns();
                 if(spawns && spawns.length > 0){
                     if(spawns[0].pos.getRangeTo(creep.pos) <= 1){
@@ -262,7 +262,7 @@ class Role_Miner extends Creep
                         this.actMoveTo(spawns[0]);
                 }
                 return;
-                         
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'pickSource';
@@ -270,7 +270,7 @@ class Role_Miner extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

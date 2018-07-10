@@ -22,7 +22,7 @@ class Grafana {
     static logNCreeps(nCreeps, roleCounts)
     {
         Memory.stats["creeps.count"] = nCreeps;
-        
+
         for(let role in roleCounts){
             Memory.stats["creeps.role."+role] = roleCounts[role];
         }
@@ -40,8 +40,8 @@ class Grafana {
 		let section = ('cpu.major.'+caption);
 		Memory.stats[section] = (now-last);
 	}
-	
-	
+
+
 	static logRoomStats(rObj)
 	{
         let room = rObj.m_room;
@@ -51,20 +51,20 @@ class Grafana {
 	        return;
 	    let sto = rObj.getSpawnStorage();
 	    let trm = rObj.getTerminal();
-	    
+
 	    Memory.stats[ (room.name+"."+"energyAvailable") ] = room.energyAvailable;
 	    Memory.stats[ (room.name+'.'+"storage.energy") ] = sto?sto.store.energy:0;
 	    Memory.stats[ (room.name+'.'+"walls.minimum") ] = rObj.m_minRampartsWallsHits;
 	    for (let ri=0; ri<RESOURCES_ALL.length; ri++){
-	        let good = RESOURCES_ALL[ri];    
-	    
+	        let good = RESOURCES_ALL[ri];
+
 	        let roomTot = 0;
-	        
+
 	        if(sto && sto.store[good])
 	            roomTot += sto.store[good];
 	        if(trm && trm.store[good])
 	            roomTot += trm.store[good];
-	       
+
 	        let key = "rsctot."+good;
 	        if(!Memory.stats[key])
 	            Memory.stats[key] = roomTot;

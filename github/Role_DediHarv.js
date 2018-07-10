@@ -48,14 +48,14 @@ class Role_DediHarv extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, targetRoomName, trObj ) {
         let hRoom        = spawn.room;
         let tRoom        = Game.rooms[targetRoomName];
         let controller   = hRoom.controller;
         let body;
         let cost;
-        
+
         // Make sure room has reached L3 and at least 8 extensions.
         if(controller.level < 3)
             return false;
@@ -69,7 +69,7 @@ class Role_DediHarv extends Creep
         let lairCt = 0;
         lairCt = trObj.getLairs().length;
 
-        // Choose the body we want and will wait for energy for. 
+        // Choose the body we want and will wait for energy for.
         if( lairCt == 0 && hRoom.energyCapacityAvailable >= BODY_M1_COST ){
             body = BODY_M1;
             cost = BODY_M1_COST;
@@ -82,38 +82,38 @@ class Role_DediHarv extends Creep
             return true;
         }
 
-        // Get storage or container nearest to spawns, if not built yet 
+        // Get storage or container nearest to spawns, if not built yet
         // we're not ready for remote harvesting.
         let spStorage = hrObj.getSpawnStorage();
         if(!spStorage && targetRoomName != spawn.room.name)
             return false;
-        
+
         // Wait for it, if not yet available.   Arguably we shouldn't
         // return true here until we know the dediharv is needed.
         // On the other hand, 800 energy really isn't that much to ask for
-        // so it's a somewhat reasonable block.  
+        // so it's a somewhat reasonable block.
         // TBD to come back to this and search names in advance...
         // we'll need to do that with mover anyway, I suspect.
         if(hRoom.energyAvailable < cost)
             return true;
-        
+
         // Find a free name and spawn the bot.
         // We need one instance per source, so this is pretty easy.  Do
         // enable alts.
         // TBD For alt time, this is basically 50.  Probably want to revisit that
         // for remote haresters, and add at least an additional 50 given they
-        // will be lower in spawn order and have longer to travel... 
+        // will be lower in spawn order and have longer to travel...
         let sources = trObj.getSources();
         let altTime = (body.length*3)+20;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'dharv', body, sources.length, altTime, multispec, targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         // Initialze memory for the role.  Also assign a source position
         // from which to harvest, spreading bootstrappers evenly across the
         // harvest positions, based on their instance number.
@@ -122,12 +122,12 @@ class Role_DediHarv extends Creep
         // our array to sort... (maybe rooms needs to sort it -- but as it comes
         // from find I'm not sure even room is allowed... TBD TBD).
         let source = sources[crmem.instance % sources.length];
-        
+
         // Find the first harvest position for the assigned source.
         // (Where, we will build a container for holding proceeds).  Choose
         // the closest, and hopefully plains.
         let hp = trObj.getDediHarvestPosition(hrObj, source);
-        
+
         crmem.tRoomName = targetRoomName;
         crmem.srcX      = source.pos.x;
         crmem.srcY      = source.pos.y;
@@ -136,14 +136,14 @@ class Role_DediHarv extends Creep
         crmem.ctrp.y    = hp.y;
         crmem.state     = 'moveHpos';
 
-        
+
         // TBD - we don't need instance number after spawn logic is complete.
         // then again, leave it for now, just in case :)
         // delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -159,9 +159,9 @@ class Role_DediHarv extends Creep
 	    let exceed;
 	    let si;
 	    let structs;
-	    
+
 	    let debug="";
-	    
+
 	    // Defence
 	    if(this.commonDefence(creep, crObj, hrObj, trObj)){
 	        crmem.state = 'moveHpos';
@@ -170,13 +170,13 @@ class Role_DediHarv extends Creep
             //    console.log('T='+Game.time+ creep.name+' common defence');
 	        return;
 	    }
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
-        
+
             //if(creep.name == 'dharv_W13N25_W14N25_2_alt')
             //    console.log('T='+Game.time+' '+creep.name+' state='+crmem.state);
-        
+
             switch(crmem.state){
             case 'moveHpos':
                 if(!crmem.ctrp){
@@ -209,8 +209,8 @@ class Role_DediHarv extends Creep
                 let best;
 
                 for(si=0; si<sources.length; si++){
-                    if(sources[si].pos.x == crmem.srcX 
-                       && sources[si].pos.y == crmem.srcY) 
+                    if(sources[si].pos.x == crmem.srcX
+                       && sources[si].pos.y == crmem.srcY)
                     {
                        best = sources[si];
                        break;
@@ -222,7 +222,7 @@ class Role_DediHarv extends Creep
                 }
                 this.setTarget(best);
                 crmem.state = 'harvestSource';
-                break; 
+                break;
 
             case 'harvestSource':
                 // With 5 WORK we get 10 per turn.  If we go over, energy be
@@ -245,8 +245,8 @@ class Role_DediHarv extends Creep
                         this.clearTarget();
                         break;
                     }
-                }              
-                
+                }
+
                 rc=this.harvestSource(st?true:false);
                 if(rc == ERR_FULL){
                     // We generally expect to be and remain full, as energy will drop into
@@ -289,7 +289,7 @@ class Role_DediHarv extends Creep
                     // Actually, I'm disabling this, and relying on external
                     // repair.  This allows me to tune the dediharv to 5 WORK
                     // and fully harvest the source.  It can't afford the time
-                    // to repair.    But saving the code in case we want to 
+                    // to repair.    But saving the code in case we want to
                     // go back to 6 WORK.
                     /*if(struct.hits < (.90*struct.hitsMax))
                         crmem.state = 'repairStruct';
@@ -297,7 +297,7 @@ class Role_DediHarv extends Creep
                     crmem.state = 'fillStructure';
                     break;
                 }
-            
+
                 // Didn't find it, and so we probably need to build it.
                 // Check if there's a site, else create it.
                 let sites = crObj.getSites();
@@ -317,7 +317,7 @@ class Role_DediHarv extends Creep
                 }
                 crmem.state = 'buildContainer';
                 break;
-                
+
             case 'buildContainer':
                 rc=this.buildSite();
                 if(rc == OK)
@@ -326,7 +326,7 @@ class Role_DediHarv extends Creep
                     crmem.state = 'pickSource';
                     break;
                 }
-                
+
                 crmem.state = 'pickSource';
                 break;
 
@@ -359,7 +359,7 @@ class Role_DediHarv extends Creep
                 crmem.state = 'pickSource';
                 break;
             */
-            
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'pickSource';
@@ -367,7 +367,7 @@ class Role_DediHarv extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

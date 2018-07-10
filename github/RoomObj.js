@@ -15,7 +15,7 @@ var RoomPlanner         = require('RoomPlanner');
 
 var RoomCoord           = require('RoomCoord');
 
-var Role_BootMover      = require('Role_BootMover'); 
+var Role_BootMover      = require('Role_BootMover');
 var Role_Chemist        = require('Role_Chemist');
 var Role_ClaimController = require('Role_ClaimController');
 var Role_CtrlMover      = require('Role_CtrlMover');
@@ -54,21 +54,21 @@ var g_avgRoomMinWall = 0;
 //----------------------------------------------------------------------
 
 
-// Room constructor.  
+// Room constructor.
 // In the constructor we can store any anlysis that will not change, but
 // be careful as these results aren't permanent -- anything that may
 // change at all should be stored by refresh.
 function RoomObj ( room, rmem ) {
     this.m_spawns       = [];
     this.m_extensions   = [];
-    this.m_containers   = []; 
+    this.m_containers   = [];
     this.m_towers       = [];
     this.m_rampartsWalls = [];
     this.m_labs          = [];
     this.m_lairs         = [];
-    
+
     if(this.m_allStruct)
-        delete this.m_allStruct; 
+        delete this.m_allStruct;
     if(this.m_sources)
         delete this.m_sources;
     if(this.m_sites)
@@ -83,7 +83,7 @@ function RoomObj ( room, rmem ) {
         delete this.m_dropped;
     if(this.m_tombs)
         delete this.m_tombs;
-        
+
     if(this.m_harvestPositions)
         delete this.m_harvestPositions;
     if(this.m_dediHarvPositions)
@@ -106,7 +106,7 @@ RoomObj.newTick = function() {
 
     g_avgRoomMinWall = 0;
     g_nRooms = 0;
-    
+
     if(!Memory.rooms)
         Memory.rooms = {}
 
@@ -122,32 +122,32 @@ RoomObj.newTick = function() {
             RoomHolder.set(rName, roomObj);
         }
     }
-    
+
     // Search for rooms that are brand spanking new and didn't have
     // memory (rare).
     for ( let rName in Game.rooms ){
         if(Memory.rooms[rName])
             continue;
         console.log('NEW ROOM VISITED '+rName);
-            
+
         let room    = Game.rooms[rName];
         let rObj    = new RoomObj(room,null);
         RoomHolder.set(rName, rObj);
     }
-    
+
     if(g_nRooms){
         g_avgRoomMinWall /= g_nRooms;
     }
 }
 
-	
+
 // Object refresher
 // Main function invoked once per tick to analyze an active room game
 // object from Game.rooms, and its memory from Memory.creeps, storing analysis.
 RoomObj.prototype.refreshObj = function(room, rmem){
     this.m_room = room;
     this.m_rmem = rmem;
-    
+
     // Clear earlier game object references.
     this.m_sources = null;
     this.m_allStruct = null;
@@ -162,7 +162,7 @@ RoomObj.prototype.refreshObj = function(room, rmem){
     this.m_terminal = null;
     this.m_nuker = null;
     this.m_observer = null;
-    
+
     this.m_spawns.length = 0;
     this.m_extensions.length = 0;
     this.m_towers.length = 0;
@@ -170,7 +170,7 @@ RoomObj.prototype.refreshObj = function(room, rmem){
     this.m_containers.length = 0;
     this.m_rampartsWalls.length = 0;
     this.m_lairs.length = 0;
-    
+
     if(this.m_harvestPositions)
         delete this.m_harvestPositions;
     if(this.m_dediHarvPositions)
@@ -180,10 +180,10 @@ RoomObj.prototype.refreshObj = function(room, rmem){
     // object.
     if(this.m_room == null)
         return;
-    
+
     // Analyze controller & save summary in memory.
     let controller = room.controller;
-    
+
     if(!controller)
         rmem.owner = 'none';
     else if(!controller.owner){
@@ -200,23 +200,23 @@ RoomObj.prototype.refreshObj = function(room, rmem){
         rmem.owner = 'me';
     else
         rmem.owner = controller.owner.username;
-    
+
     if(controller && controller.safeMode)
         rmem.safeMode = controller.safeMode;
     else
         delete rmem.safeMode;
-    
-    
+
+
     let incomingNukes = this.m_allNukes = room.find(FIND_NUKES);
     if(incomingNukes && incomingNukes.length){
         console.log(incomingNukes.length + 'INCOMING NUKE(S) TO '+room.name+'!!!!!!!! Room owner = '+rmem.owner);
     }
-    
+
     // Analyze structures.  If we're in a room, we pretty much need to
     // know about the structures, so we always analyze these each turn
     // and sort by type.
     let allStruct = this.m_allStruct = room.find(FIND_STRUCTURES);
-    
+
     // Sort them into arrays by type.  Make sure we first clear any
     // old values out of earlier arrays (setting length avoids some
     // garbage collection)
@@ -229,13 +229,13 @@ RoomObj.prototype.refreshObj = function(room, rmem){
     let weighAvgRepairSumHits=0;
     let weighAvgRepairSumHitsMax=0;
     let roadCount=0;
-    
+
     this.m_minRampartsWallsHits=Infinity;
-    
+
     let defenceMax;
     if(controller && controller.my)
         this.m_defenceMax = defenceMax = Generalissimo.getDefenceMax(controller);
-    
+
     for(let si=0; si<allStruct.length; si++) {
         let struct = allStruct[si];
         let hitsMax;
@@ -247,17 +247,17 @@ RoomObj.prototype.refreshObj = function(room, rmem){
 
         if(struct.structureType == STRUCTURE_CONTROLLER)
             continue;
-        
+
         // Walls and Ramparts we track differently than the rest, since they have
         // different repair roles.
-        if(struct.structureType == STRUCTURE_WALL 
+        if(struct.structureType == STRUCTURE_WALL
             || struct.structureType == STRUCTURE_RAMPART){
-        
+
             if(struct.hits < this.m_minRampartsWallsHits){
                 this.m_minRampartsWallsHits = struct.hits;
                 this.m_minRampartWallStruct = struct;
             }
-            
+
             if(struct.hits < 500 && struct.structureType == STRUCTURE_RAMPART){
                 minRepair = .0001;
                 minStruct = struct;
@@ -270,7 +270,7 @@ RoomObj.prototype.refreshObj = function(room, rmem){
                 minRepair = repairPct;
                 minStruct = struct;
             }
-    
+
             if( struct.hits != struct.hitsMax ) {
                 avgRepairSum += repairPct;
                 avgRepairCount ++;
@@ -278,7 +278,7 @@ RoomObj.prototype.refreshObj = function(room, rmem){
                 weighAvgRepairSumHitsMax += hitsMax;
             }
         }
-        
+
         switch(struct.structureType){
             case STRUCTURE_ROAD:
                 roadCount++;
@@ -322,14 +322,14 @@ RoomObj.prototype.refreshObj = function(room, rmem){
                 break;
         }
     }
-    
+
     // Log hostile activity in memory
     if( controller && !controller.my && this.m_towers.length )
         rmem.hostileTowerCt = this.m_towers.length;
     else
         delete rmem.hostileTowerCt;
     this.getHostiles();
-        
+
     // Save these results for various repair activities.
     this.m_minRepairStruct  = minStruct;
     this.m_minRepairPercent = minRepair;
@@ -337,7 +337,7 @@ RoomObj.prototype.refreshObj = function(room, rmem){
         rmem.defenceMax = this.m_defenceMax;
         rmem.minWallHits = this.m_minRampartsWallsHits;
         rmem.wallPercent = 100*(this.m_minRampartsWallsHits / this.m_defenceMax);
-        
+
         if(rmem.minWallHits != Infinity && controller.level >= 7){
             g_avgRoomMinWall += rmem.minWallHits;
             g_nRooms ++;
@@ -348,7 +348,7 @@ RoomObj.prototype.refreshObj = function(room, rmem){
         delete rmem.minWallHits;
         delete rmem.wallPercent;
     }
-    
+
     if(room && room.controller && room.controller.level < 8) {
     	let progress = Math.floor(room.controller.progress / room.controller.progressTotal * 1000000)/10000;
     	room.visual.text(
@@ -358,21 +358,21 @@ RoomObj.prototype.refreshObj = function(room, rmem){
 	    	{align: 'left', size: 0.7}
 	    	);
     }
-    
-    
+
+
     /*
     if( (Game.time%50) == 1){
         console.log('T='+Game.time+' room='+room.name+' Repair min='+this.m_minRepairPercent+' avg='+avgRepairSum/avgRepairCount+' wavg='+weighAvgRepairSumHits/weighAvgRepairSumHitsMax);
     }*/
-    
-    // Cleanup cost matrix if stale.  
+
+    // Cleanup cost matrix if stale.
     if(rmem.costMatrix && (Game.time - rmem.costMatrixTime ) > 100){
         delete rmem.costMatrix;
     }
 
     // Update last visit time in memory.
     rmem.lastVisionT = Game.time;
-    
+
     // Add room to processing lists if mine and holds spawns (and so terminal/spawn/tower processing)
     if(controller && controller.my){
         if(this.m_spawns.length)
@@ -397,10 +397,10 @@ RoomObj.prototype.refreshObj = function(room, rmem){
             delete rmem.needSign;
         }
     }
-    
+
     Grafana.logRoomStats(this);
-    
-    
+
+
     //if(Game.time%100 == 0){
     //    if(this.m_room.controller && this.m_room.controller.my){
     //        console.log(this.m_room.name+'Lev='+this.m_room.controller.level
@@ -410,9 +410,9 @@ RoomObj.prototype.refreshObj = function(room, rmem){
     //                   );
     //    }
     //}
-    
+
 };
-	
+
 //----------------------------------------------------------------------
 // Room helper abstractions and methods to get/set room analysis members
 //----------------------------------------------------------------------
@@ -440,12 +440,12 @@ RoomObj.prototype.findTopLeftSpawn = function()
     let minY;
     let maxY;
     let tlSpawn;
-    
+
     if(this.m_topLeftSpawn)
         return this.m_topLeftSpawn;
-    
+
     let spawns = this.getSpawns();
-    
+
     for (let si=0; si<spawns.length; si++){
         let spawn = spawns[si];
         if(!tlSpawn || spawn.pos.x < minX || spawn.pos.y < minY){
@@ -458,7 +458,7 @@ RoomObj.prototype.findTopLeftSpawn = function()
     }
     return (this.m_topLeftSpawn = tlSpawn);
 }
-    
+
 
 // getAllStructures, returns all structures in the room.
 // (generally more efficient are to access the sorted lists, but there
@@ -497,23 +497,23 @@ RoomObj.prototype.getSpawnStorage = function()
 {
     if(this.m_spawnStorage)
         return this.m_spawnStorage;
-    
+
     if(this.m_room.storage)
         return (this.m_spawnStorage = this.m_room.storage);
-    
+
     // This is debatably a room planner thing, but spawn container should be
     // right next to tlspawn
     let tlspawn = this.findTopLeftSpawn();
     if(!tlspawn)
         return null;
-        
+
     let containers = this.getContainers();
     let ci;
     for(ci=0; ci<containers.length; ci++){
         if(   Math.abs(containers[ci].pos.x-tlspawn.pos.x)<=1
            && Math.abs(containers[ci].pos.y-tlspawn.pos.y)<=1
           ){
-            return (this.m_spawnStorage = containers[ci]);  
+            return (this.m_spawnStorage = containers[ci]);
         }
     }
     return null;
@@ -528,21 +528,21 @@ RoomObj.prototype.getSpawnContainer = function()
 {
     if(this.m_spawnContainer)
         return this.m_spawnContainer;
-        
+
     if(!this.m_room.storage || this.m_room.storage.my)
         return this.m_spawnContainer = this.getSpawnStorage();
-    
+
     let tlspawn = this.findTopLeftSpawn();
     if(!tlspawn)
         return null;
-        
+
     let containers = this.getContainers();
     let ci;
     for(ci=0; ci<containers.length; ci++){
         if(   Math.abs(containers[ci].pos.x-tlspawn.pos.x)<=1
            && Math.abs(containers[ci].pos.y-tlspawn.pos.y)<=1
           ){
-            return (this.m_spawnContainer = containers[ci]);  
+            return (this.m_spawnContainer = containers[ci]);
         }
     }
     return null;
@@ -553,7 +553,7 @@ RoomObj.prototype.getControllerContainer = function()
 {
     if(this.m_controllerContainer)
         return this.m_controllerContainer;
-        
+
     // This is debatably a room planner thing, but container should be
     // within dist 3 of controller.
     let controller = this.m_room.controller;
@@ -561,7 +561,7 @@ RoomObj.prototype.getControllerContainer = function()
     let ci;
     for(ci=0; ci<containers.length; ci++){
         if( containers[ci].pos.getRangeTo(controller) <= 3)
-            return (this.m_controllerContainer = containers[ci]);  
+            return (this.m_controllerContainer = containers[ci]);
     }
     return null;
 }
@@ -600,8 +600,8 @@ RoomObj.prototype.getSources = function()
     if(this.m_sources)
         return this.m_sources;
     this.m_sources = this.m_room.find(FIND_SOURCES);
-    this.m_sources.sort(    function(a,b) { 
-                                if (a.pos.x != b.pos.x) 
+    this.m_sources.sort(    function(a,b) {
+                                if (a.pos.x != b.pos.x)
                                     return (b.pos.x-a.pos.x);
                                 if (a.pos.y != b.pos.y)
                                     return (b.pos.y-a.pos.y);
@@ -668,7 +668,7 @@ RoomObj.prototype.getHostiles = function()
         return this.m_hostiles;
     fullHostiles = this.m_room.find
                     (FIND_CREEPS
-                    ,   { filter: function (cr) 
+                    ,   { filter: function (cr)
                             {
                                 return (!cr.my);
                             }
@@ -679,8 +679,8 @@ RoomObj.prototype.getHostiles = function()
     // Rebuild list omitting whitelist members
     for(let hi=0; hi<fullHostiles.length; hi++){
         let hCreep = fullHostiles[hi];
-        if(hCreep.owner.username == 'Zpike' 
-           || hCreep.owner.username == 'xsinx' 
+        if(hCreep.owner.username == 'Zpike'
+           || hCreep.owner.username == 'xsinx'
            || hCreep.owner.username == 'TuN9aN0'
            || hCreep.owner.username == 'JohnShadow'
            || hCreep.owner.username == 'Geir1983'
@@ -690,8 +690,8 @@ RoomObj.prototype.getHostiles = function()
             continue;
         m_hostiles.push(hCreep);
     }
-    
-    // Gather info/counts on the remaining... 
+
+    // Gather info/counts on the remaining...
     // TBD - maybe merge the previous loop with this one so there aren't
     // two passes...
     if(m_hostiles.length){
@@ -702,7 +702,7 @@ RoomObj.prototype.getHostiles = function()
             this.m_rmem.assaultOwner = m_hostiles[0].owner.username;
             this.m_rmem.assaultLastT = Game.time;
         }
-        
+
         let bodCt = {};
         let boostCt = {};
         for(let hi=0; hi<m_hostiles.length; hi++){
@@ -732,15 +732,15 @@ RoomObj.prototype.getHostiles = function()
     }
     else{
         delete this.m_rmem.hostileCt;
-    
+
         //delete this.m_rmem.hostileOwner; -- keep these to decide whether to stand down.. tbd for a limited time.
-        //delete this.m_rmem.hostileLastT; -- 
+        //delete this.m_rmem.hostileLastT; --
         delete this.m_rmem.hostileBodCt;
         delete this.m_rmem.hostileBoostCt;
     }
     return m_hostiles;
 }
-        
+
 // getWounded, return all creeps friendly to me that are in
 // need of healing.
 // Does a find only on demand but saves result.
@@ -750,7 +750,7 @@ RoomObj.prototype.getWounded = function()
         return this.m_wounded;
     m_wounded = this.m_room.find
                     (FIND_CREEPS
-                    ,   { filter: function (cr) 
+                    ,   { filter: function (cr)
                             {
                                 return (cr.my && cr.hits < cr.hitsMax);
                             }
@@ -767,7 +767,7 @@ RoomObj.prototype.getFriendlies = function()
         return this.m_friendlies;
     m_friendlies = this.m_room.find
                     (FIND_CREEPS
-                    ,   { filter: function (cr) 
+                    ,   { filter: function (cr)
                             {
                                 return (cr.my);
                             }
@@ -795,7 +795,7 @@ RoomObj.prototype.getHarvestPositions = function()
     this.m_harvestPositions = [];
     let count=0;
     let sources = this.getSources();
-    
+
     for(let si=0; si<sources.length; si++){
         let source = sources[si];
 
@@ -814,11 +814,11 @@ RoomObj.prototype.getHarvestPositions = function()
             }
         }
     }
-    
+
     // TBD... should really sort this by position (?)
     // Sources seem to come back reliably ordered, but I don't know that
     // we can guarantee that...
-    
+
     return this.m_harvestPositions;
 }
 
@@ -827,17 +827,17 @@ RoomObj.prototype.getHarvestPositions = function()
 RoomObj.prototype.getDediHarvestPositions = function( hostrObj )
 {
     let spawn = hostrObj.findTopLeftSpawn();
-    
+
     if(!spawn)
         return [];
-        
+
     if(this.m_dediHarvPositions)
         return this.m_dediHarvPositions;
 
     let hPos  = this.getHarvestPositions(true);
     let sources = this.getSources();
     let si;
-    
+
     this.m_dediHarvPositions=[];
     for(si=0; si<sources.length; si++){
         let source = sources[si];
@@ -852,7 +852,7 @@ RoomObj.prototype.getDediHarvestPositions = function( hostrObj )
             if(hPos[hi].source.id == source.id){
                 let hpHi = hPos[hi];
                 let hpHiDist = spawn.pos.getRangeTo(hpHi.x, hpHi.y);
-                               
+
                 if(!hp){
                     hp = hPos[hi];
                     hpDist = spawn.pos.getRangeTo(hp.x, hp.y);
@@ -889,7 +889,7 @@ RoomObj.prototype.getDediHarvestPosition = function( hostrObj, source )
         this.getDediHarvestPositions(hostrObj);
     if(!this.m_dediHarvPositions)
         return null;
-    
+
     for(let pi=0; pi<this.m_dediHarvPositions.length; pi++){
         if(this.m_dediHarvPositions[pi].source.id == source.id)
             return this.m_dediHarvPositions[pi];
@@ -902,22 +902,22 @@ RoomObj.prototype.getDediHarvestContainer = function( hostrObj, source )
 {
     if(!this.m_dediHarvPositions)
         this.getDediHarvestPositions(hostrObj);
-    
+
     if(!this.m_dediHarvPositions){
         console.log('WARN no harv pos in room '+this.m_room.name);
         return null;
     }
-    
+
     //if(this.m_room.name == 'E77S98')
     //    console.log('getDediHarvestContainer source='+source.id);
-    
+
     for(let pi=0; pi<this.m_dediHarvPositions.length; pi++){
         let hp = this.m_dediHarvPositions[pi];
         if(hp.source.id == source.id){
             // now source for container at this position
             let containers = this.getContainers();
             for(let ci=0; ci<containers.length; ci++){
-                if(containers[ci].pos.x == hp.x 
+                if(containers[ci].pos.x == hp.x
                    && containers[ci].pos.y == hp.y
                   ){
                     //if(this.room.name == 'E77S98')
@@ -941,20 +941,20 @@ RoomObj.prototype.getDediHarvPath = function( container )
     let storage = this.getSpawnContainer();
     if(!storage)
         return null;
-    
+
     let tObj = this;
     let tRmem = this.m_rmem;
     if(container.pos.roomName != this.m_room.name){
         tObj = RoomHolder.get(container.pos.roomName);
         tRmem = tObj.m_rmem;
     }
-    
+
     if(tRmem.harvPath && tRmem.harvPath[pos]){
         spath = tRmem.harvPath[pos];
         path = Room.deserializePath(spath);
         return path;
-    }    
-    
+    }
+
     let tRoom = tObj.m_room;
     path = tRoom.findPath
             (container.pos, storage.pos
@@ -963,7 +963,7 @@ RoomObj.prototype.getDediHarvPath = function( container )
               , maxRooms: 0
               }
             );
-    
+
     spath = Room.serializePath(path);
     if(!tRmem.harvPath)
         tRmem.harvPath = {};
@@ -981,19 +981,19 @@ RoomObj.prototype.getMineralHarvestPos = function( hrObj )
     if(this.m_mineralHarvPos)
         return this.m_mineralHarvPos;
     let mineral = this.getMineral();
-    
+
     let tlspawn;
     if(hrObj)
         tlspawn = hrObj.findTopLeftSpawn();
     else
         tlspawn = this.findTopLeftSpawn();
-    
+
     if(!mineral || !tlspawn)
         return null;
 
     let bestIdx;
     let bestVal;
-    
+
     // Generally speaking we always want to find a position right next to the
     // mineral (at distance 1).  but in rare cases the only free land might
     // be right next to exit zone, where we can't place structures :(
@@ -1008,20 +1008,20 @@ RoomObj.prototype.getMineralHarvestPos = function( hrObj )
                 ,mineral.pos.y+dist
                 ,mineral.pos.x+dist
                 ,true);
-    
+
         for(let ri=0; ri<res.length; ri++){
             let rel = res[ri];
             let val;
-            
+
             // Skip land next to exit (where we can't place containers grr)
             if(rel.x == 1 || rel.x == 48 || rel.y == 1 || rel.y == 48)
                 continue;
-            
+
             if(!hrObj || hrObj.m_room.name != this.m_room.name)
                 val = 25;
-            else 
+            else
                 val = tlspawn.pos.getRangeTo(rel.x, rel.y);
-    
+
             if(rel.terrain == 'wall')
                 continue;
             if(rel.terrain == 'swamp')
@@ -1048,14 +1048,14 @@ RoomObj.prototype.getMineralHarvestContainer = function(hrObj)
     let hp;
     if(!hrObj)
         hrObj = this;
-    
+
     if(!this.m_mineralHarvPos)
         this.getMineralHarvestPos(hrObj);
     hp = this.m_mineralHarvPos;
-    
+
     if(!hp)
         return null;
-    
+
     let containers = this.getContainers();
     for(let ci=0; ci<containers.length; ci++){
         if(containers[ci].pos.x == hp.x
@@ -1079,12 +1079,12 @@ RoomObj.prototype.getStoreControllerPath = function( )
     let container = this.getControllerContainer();
     if(!container)
         return null;
-    
+
     if(rmem.ctrlPath){
         path = Room.deserializePath(rmem.ctrlPath);
         return path;
-    }    
-    
+    }
+
     let room = this.m_room;
     path = room.findPath
             (container.pos, storage.pos
@@ -1093,7 +1093,7 @@ RoomObj.prototype.getStoreControllerPath = function( )
               , maxRooms: 0
               }
             );
-    
+
     rmem.ctrlPath = Room.serializePath(path);
     return path;
 }
@@ -1138,19 +1138,19 @@ RoomObj.spawnLoop = function ()
         let rObj = mySpawnRooms[sri];
         rObj.spawnLogic(rObj);
     }
-    
+
     /*
     allRooms = RoomHolder.getAllRooms();
-    
+
     for(let rName in allRooms){
         let roomObj = allRooms[rName];
         let room    = roomObj.m_room;
-        
+
         if(!room)
             continue;
         if(!room.controller || !room.controller.my)
             continue;
-        
+
         roomObj.spawnLogic(roomObj);
     }*/
 };
@@ -1159,13 +1159,13 @@ RoomObj.spawnLoop = function ()
 RoomObj.plannerLoop = function()
 {
     allRooms = RoomHolder.getAllRooms();
-    
+
     for(let rName in allRooms){
         let roomObj = allRooms[rName];
-        
+
         if(!roomObj.m_room)
             continue;
-        
+
         RoomPlanner.planRoom(roomObj);
     }
 }
@@ -1175,7 +1175,7 @@ RoomObj.observerLoop = function()
 {
     //oLoopNewShould be covering this now.  ?
     return;
-    
+
     let mobs = Memory.observer;
     let version = 3;
     if(!mobs || mobs.version != version){
@@ -1186,7 +1186,7 @@ RoomObj.observerLoop = function()
         mobs.nextRm = 'E0S0';
         mobs.observPerTick = 1;
     }
-    
+
     // Check we really have visibility on last selected room
     let rObj = RoomHolder.get(mobs.nextRm);
     //if(!rObj || !rObj.m_room)
@@ -1194,7 +1194,7 @@ RoomObj.observerLoop = function()
 
     // Only move observers once per designated frequency for now.
     // At the moment this is mostly for general discovery and occasional
-    // update so we don't need to tweak too often.  
+    // update so we don't need to tweak too often.
     // Later we will probably want some more focused hostility analysis.
     if( (Game.time % mobs.observPerTick) != 0 )
         return;
@@ -1202,7 +1202,7 @@ RoomObj.observerLoop = function()
     let nxtC = new RoomCoord(mobs.nextRm);
     let brC = new RoomCoord(mobs.bndBR);
     let tlC = new RoomCoord(mobs.bndTL);
-    
+
     if(nxtC.isWestOf(brC))
         mobs.nextRm = nxtC.getNeighbor(1,0);
     else if(nxtC.isNorthOf(brC))
@@ -1211,13 +1211,13 @@ RoomObj.observerLoop = function()
         mobs.nextRm = tlC.getName();
 
     mySpawnRooms = RoomHolder.getMySpawnRooms();
-    
+
     for(let rName in mySpawnRooms){
         let roomObj = mySpawnRooms[rName];
-        
+
         if(!roomObj.m_room)
             continue;
-        
+
         let obs = roomObj.getObserver();
         if(obs){
             let rc = obs.observeRoom(mobs.nextRm);
@@ -1234,37 +1234,37 @@ RoomObj.oLoopNew = function()
 {
     // TBD - the one downside of this new logic is that every room observes
     // every turn.  That probably increases the number of rooms to parse
-    // fairly dramatically... Probably should throttle this somewhat to 
+    // fairly dramatically... Probably should throttle this somewhat to
     // at least one per number of sectors owned.
-    
+
     for(let rName in mySpawnRooms){
         let roomObj = mySpawnRooms[rName];
-        
+
         if(!roomObj.m_room)
             continue;
         let obs = roomObj.getObserver();
         if(!obs)
             continue;
-        
+
         // Temporary for debug
         //if(roomObj.m_room.name != 'E3N42')
         //    continue;
-        
+
         let lastRoom = roomObj.m_rmem.obsLastRoom;
         if(!lastRoom)
             lastRoom = roomObj.m_rmem.obsLastRoom = roomObj.m_room.name;
-        
+
         let roomCo   = new RoomCoord(roomObj.m_room.name);
         let lastCo   = new RoomCoord(lastRoom);
-        
+
         // Get coordinate (trying to advance one to right)
         let nextDx       = (lastCo.x - roomCo.x) + 1;
         let nextDy       = (lastCo.y - roomCo.y);
-         
+
         //console.log('... roomCo = '+roomObj.m_room.name+'('+roomCo.x+','+roomCo.y+')');
         //console.log('... lastCo = '+lastRoom+'('+lastCo.x+','+lastCo.y+')');
         //console.log('... dist=('+nextDx+','+nextDy+')');
-        
+
         // Keep within range 10 of observer's room.
         if(nextDx > 10){
             nextDx -= 21;
@@ -1272,13 +1272,13 @@ RoomObj.oLoopNew = function()
             if(nextDy > 10)
                 nextDy -= 21;
         }
-        
+
         // Get new coords based on that dx,dy
         let nextRoom   = roomCo.getNeighbor(nextDx, nextDy);
-        
+
         let rc = obs.observeRoom(nextRoom);
         roomObj.m_rmem.obsLastRoom = nextRoom;
-        
+
         //console.log('T='+Game.time+' Observer '+roomObj.m_room.name+' -> '+nextRoom+' ('+nextDx+','+nextDy+')  rc='+rc);
     }
 }
@@ -1293,21 +1293,21 @@ RoomObj.towerLoop = function ()
         let towers  = roomObj.getTowers();
         let hostiles = roomObj.getHostiles();
         let wounded = roomObj.getWounded();
-         
+
         if(
-            towers && towers.length 
+            towers && towers.length
             &&  (
                     (hostiles && hostiles.length > 0)
                 ||  (wounded && wounded.length > 0)
                 )
-            ){ 
+            ){
             TowerController.towerRun(roomObj, towers, hostiles, wounded);
         }
     }
 
     /*
     allRooms = RoomHolder.getAllRooms();
- 
+
     for(let rName in allRooms){
         let roomObj = allRooms[rName];
 
@@ -1320,9 +1320,9 @@ RoomObj.towerLoop = function ()
         let towers  = roomObj.getTowers();
         let hostiles = roomObj.getHostiles();
         let wounded = roomObj.getWounded();
-        
+
         if(
-            towers && towers.length 
+            towers && towers.length
             &&  (
                     (hostiles && hostiles.length > 0)
                 ||  (wounded && wounded.length > 0)
@@ -1355,7 +1355,7 @@ RoomObj.roomSummaryReport = function ()
         let spawns = roomObj.getSpawns();
         let spawnLimit = CONTROLLER_STRUCTURES[STRUCTURE_SPAWN][ctrlLev];
         let nuker = roomObj.getNuker();
-        
+
         if(exten.length < extenLimit)
             wrn = wrn + " EXTEN_MISSING";
         if(towers.length < towerLimit)
@@ -1370,7 +1370,7 @@ RoomObj.roomSummaryReport = function ()
             let progress = Math.floor(room.controller.progress / room.controller.progressTotal * 1000000)/10000;
             wrn = wrn + " UPGRADING="+progress+"%";
         }
-        
+
         console.log(roomObj.m_room.name +' L'+ctrl.level+' '+wrn);
     }
 
@@ -1382,7 +1382,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     let room       = this.m_room;
     let controller = room.controller;
     let spawns     = this.getSpawns();
-    
+
     // Find if we have an active spawn.  We'll only do one spawn per
     // game loop.
     let si;
@@ -1395,18 +1395,18 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     if(si == spawns.length)
         return;
 
-    
+
     if(roomObj.getHostiles().length > 0){
         if(Role_TowerFill.spawn( spawn, roomObj ))
             return;
     }
-    
+
     //console.log(spawn.room.name+' ECap = '+spawn.room.energyCapacityAvailable);
-    
+
     // We will now invoke multiple spawn routines in a rough priority order
-    // according to the needs of the room.   Each of these routines is 
+    // according to the needs of the room.   Each of these routines is
     // expected to routine "true" if it either successfully spawned a creep,
-    // or also if it needs to spawn, but doesn't have the room energy and 
+    // or also if it needs to spawn, but doesn't have the room energy and
     // needs to wait.  A false return moves on to next creep type.
     //   Generally, the logic to decide if that creep type is needed belongs
     // in the spawn routines, not here.
@@ -1414,7 +1414,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     // First room bootstrappers
     if(Role_FRBootstrap.spawn( spawn, roomObj))
         return;
-        
+
     //if(Role_MiniAttack.spawn( spawn, roomObj))
     //    return;
 
@@ -1443,14 +1443,14 @@ RoomObj.prototype.spawnLogic = function( roomObj )
             return;
         if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
             return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1)) 
-            return; 
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
         if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
             return;
         if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
-            return; 
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2)) 
-            return;   
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
         //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 5))
         //    return;
     }
@@ -1474,8 +1474,8 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     // Spawn storage/terminal/linker.
     if(Role_Linker.spawn( spawn, roomObj))
         return;
-	
-	
+
+
     // TBD.. I've gone back and forth on where to put this.
     // Earlier is better because:
     //    -- related creeps tend to spawn closer together.
@@ -1495,7 +1495,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
 
     // Leave this test around to probe new rooms til you have a better way
     //if(roomObj.m_room.name == 'E7S12' && Role_Test.spawn ( spawn, roomObj ))
-    //   return;    
+    //   return;
 
     // Spawn controller upgraders and their energy feeders.
     // I'm doing this before room feeds and bootstrapping and think it should
@@ -1503,16 +1503,16 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     // The problem is they tend to starve bootstrapping... until we get to L7
     // spawns.  Which won't be a problem once we do.   Unfortunately I don't have
     // a great solution to that rather than just moving this logic around.
-      
+
     if(Role_CtrlUpgrade.spawn( spawn, roomObj))
         return;
     if(Role_CtrlMover.spawn( spawn, roomObj))
         return;
 
-        
+
     if(Role_Miner.spawn( spawn, roomObj, room.name ))
         return;
-   
+
     if(Role_Minecart.spawn( spawn, roomObj, room.name ))
         return;
 
@@ -1537,17 +1537,17 @@ RoomObj.prototype.spawnLogic = function( roomObj )
         // Note we ignore source keeper rooms here, we'll do more on this
         // later at lower priority.
         if( !nObj
-            || nObj.m_rmem.hostileCt 
+            || nObj.m_rmem.hostileCt
             || nObj.m_rmem.keeperRoom
-            || !nObj.m_room 
+            || !nObj.m_room
             || ( nObj.m_rmem.owner != "nouser" && nObj.m_rmem.owner != "me")
             ) {
             continue;
         }
-        
+
         // Skip if own the neighbor room (not just reserved it)
         if(nObj && nObj.m_room && nObj.m_room.controller && nObj.m_room.controller.my){
-            continue;    
+            continue;
         }
 
         // If this room is a newly building room, we'll start spawning
@@ -1564,22 +1564,22 @@ RoomObj.prototype.spawnLogic = function( roomObj )
         if(Preference.bootEnabled && roomObj.m_room.name == Preference.hostRoomName
              && ++nNeigh >= 4 && roomObj.m_room.controller.level < 7)
             continue;
-        
+
         if(Role_Reserve.spawn ( spawn, roomObj, neighRoomName ))
-            return;        
-        
+            return;
+
         if(Role_DediHarv.spawn ( spawn, roomObj, neighRoomName, nObj ))
             return;
-        
+
         if(Role_Repair.spawn ( spawn, roomObj, neighRoomName ))
-            return;   
-            
+            return;
+
         if(Role_OptMover.spawn ( spawn, roomObj, neighRoomName ))
-            return;    
+            return;
     }
 
     //--------------------------------------------------
-    // Boostrapping - 
+    // Boostrapping -
     let hostRoomName = Preference.hostRoomName;
     let bootRoomName = Preference.bootRoomName;
     let bootEnabled  = Preference.bootEnabled;
@@ -1589,20 +1589,20 @@ RoomObj.prototype.spawnLogic = function( roomObj )
 
     if(Role_NewRoomProbe.spawn(spawn, roomObj, hostRoomName, bootRoomName))
         return;
-    
+
     let brObj;
     if(bootEnabled)
         brObj = RoomHolder.get(bootRoomName);
     if(brObj){
         if(Role_ClaimController.spawn(spawn, roomObj, hostRoomName, bootRoomName))
             return;
-    
+
         if(roomObj.m_room.name == hostRoomName){
             if(roomObj.m_room.controller.level <= 6){
                 // Tell the room to self boot with FR bootstraps.  We aren't
                 // at a level to fully support it yet.  We just need enough
                 // to get the spawn up.
-                brObj.m_rmem.selfBooting = true;    
+                brObj.m_rmem.selfBooting = true;
             }
             else {
                 brObj.m_rmem.selfBooting = false;
@@ -1612,11 +1612,11 @@ RoomObj.prototype.spawnLogic = function( roomObj )
         if(spawn.room.name != bootRoomName && brObj.m_room && brObj.m_room.controller.my){
             let brExtenList = brObj.getExtensions();
             let haveAllExtens = (brExtenList.length >= CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][brObj.m_room.controller.level]);
-    
+
             if( !(brObj.getTerminal()) || !haveAllExtens ) {
                 let brSpStorage = brObj.getSpawnStorage();
                 let brIsStorage = (brSpStorage && brSpStorage.structureType == STRUCTURE_STORAGE && brSpStorage.my);
-    
+
                 // Once we've build storage, stop the bootstraps.  At that point room can pretty
                 // reasonably get enough energy in and build its own controller upgraders.
                 // But do boot if not all extensions are built -- we may be recovering a failed
@@ -1624,10 +1624,10 @@ RoomObj.prototype.spawnLogic = function( roomObj )
                 if(!brIsStorage || !haveAllExtens){
                     let src = brObj.getSources();
                     let nSrc=src.length;
-                    if(Role_RemoteBootstrap.spawn( spawn, roomObj, hostRoomName, bootRoomName, 3*nSrc))                
+                    if(Role_RemoteBootstrap.spawn( spawn, roomObj, hostRoomName, bootRoomName, 3*nSrc))
                         return;
                 }
-                
+
                 // We'll keep moving energy until terminal exists -- unless its self booting
                 // (host is too new to afford supporting it)
                 if(!brObj.m_rmem.selfBooting && !(brObj.getTerminal())){
@@ -1640,7 +1640,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
                 }
             }
         }
-    }        
+    }
 
     //--------------------------------------------------
 
@@ -1650,23 +1650,23 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     if(Role_Mason.spawn ( spawn, roomObj ))
         return;
 
-    
+
     // Source keeper neighbor handling.  Do this last, as it's fairly
     // intensive in spawn pressure.
     let trm = roomObj.getTerminal();
     for( dir in exits ){
         let neighRoomName = exits[dir];
         let nObj = RoomHolder.get(neighRoomName);
-        
+
 
         // We need a pretty stable room to support SK rooms.. else we can
         // starve our home upkeep spawning big baddies to support it.
         if(controller.level < 8 || !roomObj.m_rmem.lastPlanT || !trm || trm.store[RESOURCE_ENERGY] < 1000)
-            continue;        
-        
+            continue;
+
         if(!nObj || ! nObj.m_room)
             continue;
-        
+
         if(!nObj.m_rmem.hostRoom)
             nObj.m_rmem.hostRoom = room.name;
         if(nObj.m_rmem.hostRoom != room.name)
@@ -1689,7 +1689,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
             return;
     }
     //if(roomObj.m_room.name == 'E2S13'){
-        // Special case diagonal room for repairing paths only.. 
+        // Special case diagonal room for repairing paths only..
     //    let neighRoomName = 'E3S12';
     //    let nObj = RoomHolder.get(neighRoomName);
     //    if(nObj && nObj.m_room) {
@@ -1697,8 +1697,8 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     //        if(Role_Repair.spawn ( spawn, roomObj, neighRoomName ))
     //           return;
     //    }
-    
-    
+
+
     // Center SK neighbor handling.  This needs some work, very hardcoded so far.
     // Especially in that we need RoomPlanner work.
     if(roomObj.m_room.name == 'W5N33'){
@@ -1711,19 +1711,19 @@ RoomObj.prototype.spawnLogic = function( roomObj )
             if(Role_Miner.spawn( spawn, roomObj, neighRoomName ))
                 return;
             if(Role_Minecart.spawn( spawn, roomObj, neighRoomName ))
-                return;  
+                return;
             if(Role_DediHarv.spawn ( spawn, roomObj, neighRoomName, nObj ))
                 return;
             if(Role_OptMover.spawn( spawn, roomObj, neighRoomName))
                 return;
         }
     }
-    
+
     // Sector probe - doesn't cost much but any room in the sector will satisfy it,
     // and very low priority.
     if(Role_SectorProbe.spawn( spawn, roomObj))
         return;
-    
+
 };
 
 

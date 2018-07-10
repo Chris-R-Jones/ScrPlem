@@ -74,18 +74,18 @@ class Role_Chemist extends Creep
 	    let si;
 	    let debug="";
 	    let order;
-	
+
 	    let labGroup = hrObj.getLabGroup();
 	    let trm      = hrObj.getTerminal();
 	    let sto      = hrObj.getSpawnStorage();
-	
+
 	    if(!labGroup || !trm){
 	        if(crmem.state != 'recycleCreep') {
                 console.log(creep.name+'Chemist room '+creep.pos.roomName+' has no lab group or terminal, recycling');
                 crmem.state = 'recycleCreep';
             }
 	    }
-	
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 

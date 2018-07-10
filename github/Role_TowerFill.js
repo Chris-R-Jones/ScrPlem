@@ -19,7 +19,7 @@ class Role_TowerFill extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj ) {
         let room        = spawn.room;
         let controller  = room.controller;
@@ -27,7 +27,7 @@ class Role_TowerFill extends Creep
         let cost;
         let max;
         let altTime;
-        
+
         // Bootstrappers will take care of protection for early rooms
         if(controller.level < 4)
             return false;
@@ -52,7 +52,7 @@ class Role_TowerFill extends Creep
 
         max  = 4;
         altTime = (body.length*3)+10;
-        
+
         // Wait for it, if not yet available
         if(room.energyAvailable < cost)
             return true;
@@ -61,21 +61,21 @@ class Role_TowerFill extends Creep
         // For first room we'll boot a gazillion of them, so no
         // need for alt names or such.
         let crname = Creep.spawnCommon(spawn, 'tfill', body, max, altTime);
-        
+
         // If null, max creeps are already spawned.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         // Initialze memory for the role
         crmem.state = 'init';
         delete crmem.instance;
-        
+
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -90,34 +90,34 @@ class Role_TowerFill extends Creep
 	    let si;
 	    let debug="";
 	    let dropped;
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //if(creep.name == 'distrib_W2N26_1')
             //    console.log(creep.name+'T='+Game.time+' loop='+exceed+' state='+crmem.state);
-            
+
             switch(crmem.state){
             case 'init':
                 crmem.state = 'pickEnergy';
                 break;
-                
+
             case 'pickEnergy':
-                // Get storage or container nearest to spawns, if not built yet 
+                // Get storage or container nearest to spawns, if not built yet
                 let spStorage = hrObj.getSpawnStorage();
                 if(!spStorage)
                     return false;
-                    
+
                 // If there are dropped resources within range 6 of storage,
                 // then go get it.
-                
+
                 dropped = hrObj.getDroppedResources();
                 if(dropped && dropped.length > 0){
                     let di;
                     let drop;
                     for(di=0; di<dropped.length; di++){
                         drop = dropped[di];
-                        if(creep.pos.getRangeTo(drop.pos) <= 6 
+                        if(creep.pos.getRangeTo(drop.pos) <= 6
                            && drop.resourceType == RESOURCE_ENERGY){
                             this.setTarget(drop);
                             crmem.state = 'getDropped';
@@ -127,12 +127,12 @@ class Role_TowerFill extends Creep
                     if(di != dropped.length)
                         break;
                 }
-                
-                // Else grab from storage.    
+
+                // Else grab from storage.
                 this.setTarget(spStorage);
                 crmem.state = 'withdrawStruct';
                 break;
-                
+
             case 'withdrawStruct':
                 rc=this.withdrawStruct(RESOURCE_ENERGY);
                 if(rc == ERR_FULL){
@@ -192,7 +192,7 @@ class Role_TowerFill extends Creep
             case 'fillStructure':
                 rc=this.fillTarget(RESOURCE_ENERGY);
                 debug=debug + '\t ..rc='+rc+'\n';
-                
+
                 if(rc == OK)
                     return;
                 else if(rc == ERR_NOT_ENOUGH_RESOURCES){
@@ -205,7 +205,7 @@ class Role_TowerFill extends Creep
                 }
                 else
                     console.log(creep.name+' fillTarget rc='+rc+' target='+crmem.targetId);
-        
+
                 if(creep.carry.energy < 50){
                     crmem.state = 'pickEnergy';
                     break;
@@ -220,7 +220,7 @@ class Role_TowerFill extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

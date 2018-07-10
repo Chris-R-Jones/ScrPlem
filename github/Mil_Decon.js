@@ -16,52 +16,52 @@ class Mil_Decon extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, division, max ) {
-        let targetRoomName  = division.m_tgtRoomName;          
+        let targetRoomName  = division.m_tgtRoomName;
         let hRoom           = spawn.room;
         let tRoom           = Game.rooms[targetRoomName];
         let controller      = hRoom.controller;
         let cost;
-        
+
         // Body will be equal TOUGH/WORK/WORK/MOVE/MOVE/MOVE.
         let nUnit = Math.floor(hRoom.energyCapacityAvailable / 360);
         let body = [];
         let ni;
-        
+
         // Wait for biggest creep we can
         if(hRoom.energyAvailable < (nUnit * 360) )
             return true;
-        
+
         if(nUnit*6 > 50)
             nUnit = 8;          // Obey 50 part body limit
-                
+
         for(ni=0; ni<nUnit; ni++)
             body.push(TOUGH);
-        
+
         for(ni=0; ni<2*nUnit; ni++)
             body.push(WORK);
-        
+
         for(ni=0; ni<((3*nUnit)); ni++)
             body.push(MOVE);
-        
+
         // Find a free name and spawn the bot.
         let altTime = 0;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'milDecon', body, max, altTime, multispec, targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.division  = targetRoomName;
         crmem.state     = 'moveTgtRoom';
         delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -81,7 +81,7 @@ class Mil_Decon extends Creep
 	    let squad = this.m_squad;
 	    let division;
         let tRoomName;
-        
+
         // Manual override
         if(false && creep.name == 'milDecon_E9S16_E8S12_0'){
             //RoomHolder.get('E8S12');
@@ -97,7 +97,7 @@ class Mil_Decon extends Creep
             console.log('disman rc='+rc);
             return;
         }
-        
+
 	    if(squad)
 	        division = squad.m_division;
 	    if(!squad){
@@ -125,13 +125,13 @@ class Mil_Decon extends Creep
         if(squad && division)
 	        tRoomName = division.m_tgtRoomName;
 
-	    
+
 	    // Always dismantle any adjacent structure if in target room.
 	    if(creep.room.name == tRoomName){
 	        structs = crObj.getAllStructures();
 	        closest = creep.pos.findClosestByPath
 	                    (structs
-                        ,   { filter: function (st) 
+                        ,   { filter: function (st)
                                 {
                                     return ( ( st.structureType != STRUCTURE_STORAGE || _.sum(st.store) == 0)
                                             && ( st.structureType != STRUCTURE_CONTAINER || _.sum(st.store) == 0)
@@ -151,13 +151,13 @@ class Mil_Decon extends Creep
         if(!didDismantle || (didDismantle && creep.hits <  .80*creep.hitsMax))
             creep.heal(creep);
 
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //if(creep.name == 'milDecon_E75S97_E72S97_0')
             //    console.log(creep.name+' loop'+exceed+' state='+crmem.state);
-            
+
             switch(crmem.state){
 
             case 'moveHome':
@@ -191,14 +191,14 @@ class Mil_Decon extends Creep
                     }
                     else if(creep.pos.y==48)
                         creep.move(TOP);
-                }    
-                
-                
+                }
+
+
                 return;
 
             case 'moveTgtRoom':
                 delete crmem.arrivalT;
-                
+
                 // Ensure we're fully healed, move to target room.
                 if(creep.hits < .80*creep.hitsMax){
                     crmem.state = 'moveStaging';
@@ -222,34 +222,34 @@ class Mil_Decon extends Creep
                 crmem.arrivalT = Game.time;
                 crmem.state = 'lingerTgtRoom';
                 break;
-            
+
             case 'lingerTgtRoom':
                 // On arriving in a hostile room, we need to linger a while and see if we're getting
                 // pinged with towers.  If so, healers need to take care of this primarily, so we
                 // return to home room to heal.
                 if(!crmem.arrivalT)
                     crmem.arrivalT = Game.time;
-               
+
                 // If not, and we're wounded, move back home where we can
                 // get healing.
                 if(creep.hits < .80 * creep.hitsMax){
                     crmem.state = 'moveStaging';
                     break;
                 }
-                
+
                 //console.log('ArrivalT='+crmem.arrivalT +' now='+Game.time);
                 if( (Game.time - crmem.arrivalT) >= 10 ) {
                     crmem.state = 'pickDecon';
                     break;
                 }
                 return;
-            
+
             case 'moveStaging':
                 rc = this.actionMoveToRoom(crmem.prevRoom);
                 if(rc == OK)
                     crmem.state = 'stagingRoom';
                 return;
-                
+
             case 'stagingRoom':
                 if(creep.room.name != crmem.prevRoom){
                     crmem.state = 'moveStaging';
@@ -278,14 +278,14 @@ class Mil_Decon extends Creep
                     }
                 }
                 else if(creep.pos.y==48)
-                    creep.move(TOP);    
-                
+                    creep.move(TOP);
+
                 //if(creep.hits < .60 * creep.hitsMax){
                 //    crmem.state = 'moveHome';
                 //    break;
                 //}
                 return;
-    
+
             case 'pickDecon':
                 // If we're starting to get hit move home for heals.
                 if(creep.hits != creep.hitsMax){
@@ -301,13 +301,13 @@ class Mil_Decon extends Creep
                 let best;
                 let bestVal;
 
-                
+
                 let si;
                 for(si=0; si<structs.length; si++){
                     let struct = structs[si];
                     let priority;
                     let range = struct.pos.getRangeTo(creep.pos);
-                
+
                     switch(struct.structureType){
                         case STRUCTURE_TOWER:
                             priority = 100;
@@ -347,14 +347,14 @@ class Mil_Decon extends Creep
                         default:
                             priority = 10;
                     }
-                    
+
                     let score = (priority * 10000000) + (100-range)*10000 + (100000-struct.hits);
                     if(!bestVal || score > bestVal){
                         bestVal = score;
                         best = struct;
                     }
                 }
-                
+
                 if(!best) {
                     let sites = crObj.getSites();
                     if(sites.length)
@@ -367,7 +367,7 @@ class Mil_Decon extends Creep
                     rc=creep.dismantle(best);
                 return;
 
-            
+
             case 'moveReclaim':
                 // Head back home to reclaim.  But if target room went hostile again,
                 // turn back.
@@ -376,7 +376,7 @@ class Mil_Decon extends Creep
                     crmem.state = 'moveTgtRoom';
                     break;
                 }
-                
+
                 rc = this.actionMoveToRoomRouted(crmem.homeName);
                 if(rc != OK)
                     return;
@@ -390,7 +390,7 @@ class Mil_Decon extends Creep
                         this.actMoveTo(spawns[0]);
                 }
                 return;
-                
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'moveTgtRoom';
@@ -398,7 +398,7 @@ class Mil_Decon extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

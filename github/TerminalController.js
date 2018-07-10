@@ -19,7 +19,7 @@ class TerminalController
     static getAllTotals() { return g_allTotals; }
     static getNTerminals() { return g_nTerminals; }
     static getStarvedRooms() { return g_starvedRooms; }
-    
+
     static run()
     {
         let allTotals = {};
@@ -28,7 +28,7 @@ class TerminalController
         let good;
         let sri;
         let nTerminal = 0;
-        
+
         // Sum each room's goods to get a (desired) average level.
         let mySpawnRooms = RoomHolder.getMySpawnRooms();
         for(let sri=0; sri<mySpawnRooms.length; sri++){
@@ -62,7 +62,7 @@ class TerminalController
                 if(good != RESOURCE_ENERGY || roomObj.m_room.name != Preference.prioritizedRoomName){
                     let trmAmt = terminal.store[good];
                     let stoAmt = sto.store[good];
-                    
+
                     if(!trmAmt)
                         trmAmt = 0;
                     if(!stoAmt)
@@ -106,9 +106,9 @@ class TerminalController
             else
                 tCt++;
         }
-        
+
         let found = false;
-        
+
         // Process any manual trades to friends
 
         if(!Memory.manualTrades){
@@ -118,10 +118,10 @@ class TerminalController
             Memory.manualTrades.tgtAmount = 0;
             Memory.manualTrades.sentAmount = 0;
         }
-        
+
         //if(srObj.m_room.name == 'W8N28')
         //    console.log('T='+Game.time+' W8N28 DBG 1 - Manual trades');
-        
+
         for(let spj=0; Memory.manualTrades.sentAmount < Memory.manualTrades.tgtAmount && spj<mySpawnRooms.length; spj++){
             let spjObj = mySpawnRooms[spj];
             let spjTrm = spjObj.getTerminal();
@@ -168,7 +168,7 @@ class TerminalController
                     //console.log('Skip non NPC order'+o.roomName);
                     continue;
                 }
-                
+
                 if(o.type == ORDER_BUY){
                     if(!bestBuy[o.resourceType] || o.price > bestBuy[o.resourceType]) {
                         bestBuy[o.resourceType] = o.price;
@@ -178,7 +178,7 @@ class TerminalController
                 else if (o.type == ORDER_SELL){
                     if(!bestSell[o.resourceType] || o.price < bestSell[o.resourceType]){
                         bestSell[o.resourceType] = o.price;
-                        bestSellOrder[o.resourceType] = o;                        
+                        bestSellOrder[o.resourceType] = o;
                     }
                 }
             }
@@ -193,12 +193,12 @@ class TerminalController
             }*/
             let bli;
             for(let rsc in bestSell){
-                if(bestSell[rsc] && bestBuy[rsc] 
+                if(bestSell[rsc] && bestBuy[rsc]
                    && (bestBuy[rsc] - bestSell[rsc]) >= .15
                    && srTrm.store[rsc] <= 20000
                    ){
                     //console.log('Found good deal '+rsc+' sell='+bestSell[rsc]+' buy='+bestBuy[rsc]);
-                    for(bli=0; bli<Preference.buyList.length; bli++){ 
+                    for(bli=0; bli<Preference.buyList.length; bli++){
                         if(Preference.buyList[bli] == rsc){
                             break;
                         }
@@ -225,7 +225,7 @@ class TerminalController
 
         //if(srObj.m_room.name == 'W8N28')
         //    console.log('T='+Game.time+' W8N28 DBG 1 - Sell orders found='+found+' cooldown='+srTrm.cooldown);
-            
+
         // Find something to sell
         if( !found && srTrm && !srTrm.cooldown && Preference.enableSales  ) {
             for(let rsc in srTrm.store){
@@ -234,10 +234,10 @@ class TerminalController
 
                 if(rsc.length > 1 || rsc == 'G')
                     continue;
-                
+
                 //if(srObj.m_room.name == 'W8N28')
                 //    console.log('... consider sale of '+rsc+' store='+srTrm.store[rsc]+' avg='+allTotals[rsc]/nTerminal);
-                
+
                 // Make our goods level is above 4500 per terminal average.
                 if( (trmTotals[rsc]/nTerminal) <= 4500 )
                     continue;
@@ -251,14 +251,14 @@ class TerminalController
                 let bestAmount;
                 for(let oi=0; oi<orders.length; oi++){
                     let o = orders[oi];
-                    
+
                     if(o.amount < 100)
                         continue;
 
                     let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(o.roomName);
                     //console.log('Try parse '+o.roomName+' json='+JSON.stringify(parsed));
                     let isNPC = ((parsed[1] % 10 === 0) && (parsed[2] % 10 === 0));
-    
+
                     if(!isNPC && Preference.npcOnly ){
                         //console.log('Skip non NPC order'+o.roomName);
                         continue;
@@ -266,7 +266,7 @@ class TerminalController
                     //else {
                     //    console.log('OK order'+o.roomName+' isNPC='+isNPC+' preference='+Preference.npcOnly);
                     //}
-                        
+
                     // Our goal is to keep all terminals below 4500.  Don't sell if it would
                     // put us below an average goods level to achieve that.
                     // Our linkers will drop/dispose goods above 5000 if the terminals are getting full, and
@@ -276,7 +276,7 @@ class TerminalController
                         oAmount = nTerminal*1000;
                     if(oAmount > o.amount)
                         oAmount = o.amount;
-                    
+
                     let cost = Game.market.calcTransactionCost(oAmount,srObj.m_room.name, o.roomName);
                     let costRatio = cost/oAmount;
                     if( (!bestPrice || o.price > bestPrice)
@@ -289,13 +289,13 @@ class TerminalController
                         //console.log('New best price='+o.price+' cost='+cost+' costRatio='+costRatio+ ' rsc='+rsc+' amount='+oAmount);
                     }
                 }
-                
+
                 //if(srObj.m_room.name == 'W8N28')
                 //    console.log('... ... best price='+bestPrice);
 
                 if(!bestPrice || bestPrice < .08)
                     continue;
-    
+
                 let rc=Game.market.deal(order.id, bestAmount, srObj.m_room.name);
                 if(rc == 0){
                     //console.log('term store='+srTrm.store[rsc]+' id='+srTrm.id);
@@ -330,7 +330,7 @@ class TerminalController
             //    console.log('Finding best good for room '+srObj.m_room.name);
 
             for(let good in srTrm.store){
-                // Don't balance chemicals in production - too much churn.  
+                // Don't balance chemicals in production - too much churn.
                 // Wait for cycle to complete and balance in bulk.
                 //   While we're checking, this is also a good time to check if
                 // the chemistry cycle should be completed.
@@ -344,7 +344,7 @@ class TerminalController
                         }
                         if(Game.time%50==0)
                             console.log('T='+Game.time+' Continuing production cycle.  Good '+good+' avgLevel='+allTotals[good]/nTerminal);
-   
+
                         continue;
                     }
                 }
@@ -352,7 +352,7 @@ class TerminalController
                 let sAmt   = (srTrm.store[good] + srSto.store[good]);
                 let sStoAmt = (srSto.store[good]);
                 let sTrmAmt = (srTrm.store[good]);
-                
+
                 if(!sStoAmt)
                     sStoAmt = 0;
                 if(!sTrmAmt)
@@ -364,11 +364,11 @@ class TerminalController
                 //if(Preference.debugTransfers == 'verbose')
                 //    console.log('.... good='+good+' roomAmount='+sAmt+' average='+avgAmt);
 
-                
+
                 // Don't transfer energy out of the prioritized room - we want it to get glutted.
                 if(good == RESOURCE_ENERGY && srObj.m_room.name == Preference.prioritizedRoomName)
                     continue;
-                
+
                 if(sAmt && sAmt > avgAmt){
                     let sDiff = (sAmt - avgAmt);
                     if(!bestDiff || sDiff > bestDiff){
@@ -383,7 +383,7 @@ class TerminalController
 
             if(Preference.debugTransfers == 'verbose')
                 console.log('Consider xfer room'+srObj.m_room.name+' bestGood='+bestGood+' diff='+bestDiff+' avg='+bestAvg);
-            
+
             // Don't waste our time if we're less than 100 units off average
             // Else find what other room has the lowest amount of this good.
             if(bestDiff >= 100){
@@ -395,17 +395,17 @@ class TerminalController
                 for(let dti=0; !found && dti<mySpawnRooms.length; dti++){
                     if(dti == spIdx)
                         continue;
-                    
+
                     let dtObj = mySpawnRooms[dti];
-                    let dtSto = dtObj.getSpawnStorage(); 
+                    let dtSto = dtObj.getSpawnStorage();
                     let dtTrm = dtObj.getTerminal();
-                    
+
                     if(!dtTrm || !dtSto)
                         continue;
-  
+
                     if(_.sum(dtTrm.store) >= 295000)
                         continue;
-                 
+
                     // Check if the target room needs this good (it's capacity is below average).
                     // But note that we want the prioritized room to receive all the energy rooms are willing to push.
                     let dtTrmAmt;
@@ -423,7 +423,7 @@ class TerminalController
                     if(   (dtObj.m_room.name != Preference.prioritizedRoomName || bestGood != RESOURCE_ENERGY)
                        &&  dtAmt >= bestAvg)
                         continue;
-                    
+
                     if(    (bestGood == RESOURCE_ENERGY && Preference.prioritizedRoomName == dtObj.m_room.name)
                         || (!lowestAmt && lowestAmt != 0)
                         || dtAmt < lowestAmt
@@ -436,14 +436,14 @@ class TerminalController
                         if(!lowestAmt)
                             lowestAmt = 0;
                         lowestDiff = (bestAvg - lowestAmt);
-                        
+
                         if (bestGood == RESOURCE_ENERGY && Preference.prioritizedRoomName == dtObj.m_room.name){
                             lowestAmt = 0;
                             lowestDiff = bestAvg;
                         }
                     }
                 }
-                
+
                 if(Preference.debugTransfers == 'verbose')
                     console.log('... lowest='+lowestObj.m_room.name+' amt='+lowestAmt);
 
@@ -455,23 +455,23 @@ class TerminalController
                     if(!lowestDiff)
                         lowestDiff = 0;
                 }
-                
+
                 if(lowestDiff >= 100){
                     // Now transfer to bring whichever room closest to the average.
                     let amount;
                     amount = (lowestDiff > bestDiff) ? bestDiff : lowestDiff;
-                    
+
                     if(amount > (lowestTrm.storeCapacity - _.sum(lowestTrm.store)) )
                         amount = (lowestTrm.storeCapacity - _.sum(lowestTrm.store));
-                    
+
                     let cost   = Game.market.calcTransactionCost
                                     (amount
                                     ,srObj.m_room.name
                                     ,lowestObj.m_room.name
                                     );
                     let rc=srTrm.send(bestGood, amount, lowestObj.m_room.name);
-    
-                    if(Preference.debugTransfers == 'verbose'){  
+
+                    if(Preference.debugTransfers == 'verbose'){
                         console.log('T='+Game.time+' Transfer of '+amount+' '+bestGood+' OK from '
                                     + srObj.m_room.name
                                     + ' to ' + lowestObj.m_room.name
@@ -488,70 +488,70 @@ class TerminalController
                         console.log('..  avg = '+bestAvg);
                         console.log('..  rc = '+rc);
                     }
-                    found = true;               
+                    found = true;
                 }
             }
         }
 
-        // Report incoming transactions for last tick to console.    
+        // Report incoming transactions for last tick to console.
         let trans = Game.market.incomingTransactions;
         for(let ti=0; ti<trans.length; ti++){
             let tr=trans[ti];
             if(tr.time >= (Game.time-1)){
-                
+
                 // Log the transaction unless it's just an inter-room transfer from another of my rooms.
                 let rObj=RoomHolder.get(tr.from);
                 if(Preference.debugTransfers || !rObj || !(rObj.m_room) || !(rObj.m_room.controller) || !(rObj.m_room.controller.my)){
                     console.log('T='+tr.time+' '+tr.to+' Transaction received '+tr.amount+' '+tr.resourceType+' from '+tr.from);
                 }
             }
-            else 
+            else
                 break;
-        }    
-        
-        
+        }
+
+
         ///----------------------------------------------
         // Place sell orders if we're glutted.
         // For the selected terminal's room, figure out what orders are already outstanding, by room, for that good.
         let openOrders = {};
         for(let oid in Game.market.orders){
             let o = Game.market.orders[oid];
-            
+
             if(o.roomName != srObj.m_room.name)
                 continue;
             if(openOrders[o.resourceType])
                 console.log('BUG! multiple open orders for room.. ignoring oid='+o.id);
             openOrders[o.resourceType] = o;
         }
-        
+
         // Next survey resources to see if any of them are above sell watermarks.
         //for(let good in allTotals){
-        //    
+        //
             // Initially lets just work on selling basic goods. TBD to extend
             // Sell anything over 20000 = 5000(terminal)+15000(storage)
         //    if(allTotals[good] < 20000 || rsc.length > 1)
         //        continue;
-        //    
-        //    
+        //
+        //
         //}
-        
+
         //-------------------------------------------------------
         // Before I actually do sales, I really need something to try to track sales price
         // history for different resources to have some more intelligent price targetting.
         // I'm going to try to experiment with algorithms til it 'feels' like it's getting the
         // right (and safe) answer.
-        
+
         // Four times a day, find, and save, the min sell price for each good, and max buy price.
         if(!Memory.marketHist)
             Memory.marketHist={};
         if(Game.time%127){
             //let allOrders = Game.market.getAllOrders();
-            
-            
+
+
         }
-        
-        
-        
+
+
+
         ///----------------------------------------------
         // Not often, but occasionally, delete old dead orders, and lower
         // price on ones that aren't moving.
@@ -568,7 +568,7 @@ class TerminalController
                     if(!Memory.orders)
                         Memory.orders = { };
                     let omem = Memory.orders[oid];
-                    
+
                     if(omem){
                         if(!o.active)
                             console.log('INACTIVE ORDER '+oid);
@@ -592,7 +592,7 @@ class TerminalController
             }
         }
     };
-    
+
 };
 
 module.exports = TerminalController;

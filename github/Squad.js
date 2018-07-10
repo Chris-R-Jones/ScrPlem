@@ -35,7 +35,7 @@ class Squad
     // object that was in Memory, but also when a new bot is spawned and
     // and assigned to a new squad.
     constructor(sqName, division)
-    { 
+    {
         let sqmem        = Memory.squads[sqName];
         this.m_sqName   = sqName;
         this.m_division = division;
@@ -61,7 +61,7 @@ class Squad
     needsNewCreep(nCrObj)
     {
         let ci;
-        
+
         // Initially we'll just accept the creep if it's a different role
         // so that there's one of each type per squad
         if(Preference.debugMilitary == 'verbose')
@@ -87,10 +87,10 @@ class Squad
         else
             delete crObj.m_crmem.division;
         crObj.m_squad = this;
-        
+
         let creep = crObj.m_creep;
         let body  = creep.body;
-        
+
         for(let bi=0; bi<body.length; bi++){
             let bodEl = body[bi];
             let btype = bodEl.type;
@@ -99,7 +99,7 @@ class Squad
                 this.m_bodCt[btype]=1;
             else
                 this.m_bodCt[btype]++;
-            
+
             let div = this.m_division;
             if(div){
                 if(!(div.m_bodCt[btype]))
@@ -123,7 +123,7 @@ class Squad
     // Invoked each turn by division to let squad update its orders.
     giveOrders()
     {
-        // Currently, we only do orders for squads in divisions with 
+        // Currently, we only do orders for squads in divisions with
         // attack orders, and only to calculate/advance/retreat the
         // squad rally position.
         // console.log('DBG squad '+this.m_sqName+' giveOrders()');

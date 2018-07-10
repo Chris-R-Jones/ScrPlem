@@ -4,7 +4,7 @@ var RoomHolder      = require('RoomHolder');
 // Mil decon is a boosted WORK focused military creep that focuses on cracking
 // walls and ultimately cleaning the target room of structures.
 //  It is a squad focused creep and will generally try to focus on squad-designated
-// locations and targets 
+// locations and targets
 
 // So far, at least, this is a boosted creep only, and tuned accordingly.
 const BODY_M1 = [ TOUGH, TOUGH, TOUGH, TOUGH, TOUGH
@@ -35,37 +35,37 @@ class Role_TstDecon extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, targetRoomName, max ) {
         let hRoom           = spawn.room;
         let tRoom           = Game.rooms[targetRoomName];
         let controller      = hRoom.controller;
         let cost;
         let body;
-        
+
         // Wait for full energy.
         if(hRoom.energyAvailable < BODY_M1_COST)
             return true;
-        body = BODY_M1;        
-        
+        body = BODY_M1;
+
         // Find a free name and spawn the bot.
         let altTime = 200;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'tstDecon', body, max, altTime, multispec, targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.tRoomName  = targetRoomName;
         crmem.state     = 'init';
         delete crmem.instance
         return true;
     };
-    
 
-    
+
+
     // Helper to find lab to boost a certain body part for this creep
     findLabForBoost(crObj, part)
     {
@@ -93,10 +93,10 @@ class Role_TstDecon extends Creep
                )
                return lab;
         }
-        
+
         return null;
     }
-    
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -120,13 +120,13 @@ class Role_TstDecon extends Creep
 	    //crmem.prevRoom = 'W3N40';
 
 	    tRoomName = crmem.tRoomName;
-	    
+
 	    // Always dismantle any adjacent structure if in target room.
 	    if(creep.room.name == tRoomName){
 	        structs = crObj.getAllStructures();
 	        closest = creep.pos.findClosestByRange
 	                    (structs
-                        ,   { filter: function (st) 
+                        ,   { filter: function (st)
                                 {
                                     return ( ( st.structureType != STRUCTURE_STORAGE || _.sum(st.store) == 0)
                                             && ( st.structureType != STRUCTURE_CONTAINER || _.sum(st.store) == 0)
@@ -146,17 +146,17 @@ class Role_TstDecon extends Creep
         if(!didDismantle || (didDismantle && creep.hits <  .80*creep.hitsMax))
             creep.heal(creep);
 
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //if(creep.name == 'tstDecon_W1N21_E1N23_0')
             //  console.log(Game.time+': '+creep.name+'pos='+ creep.pos+' loop'+exceed+' state='+crmem.state);
-            
+
             switch(crmem.state){
 
             case 'init':
-                
+
                 crmem.state = 'checkBoosts';
                 return;
 
@@ -172,7 +172,7 @@ class Role_TstDecon extends Creep
                     }
                 }
                 crmem.state = 'applyBoosts';
-                
+
                 return;
 
             case 'applyBoosts':
@@ -191,7 +191,7 @@ class Role_TstDecon extends Creep
                     return;
                 }
                 crmem.state = 'moveTgtRoom';
-                
+
                 break;
 
             case 'moveHome':
@@ -225,14 +225,14 @@ class Role_TstDecon extends Creep
                     }
                     else if(creep.pos.y==48)
                         creep.move(TOP);
-                }    
-                
-                
+                }
+
+
                 return;
 
             case 'moveTgtRoom':
                 delete crmem.arrivalT;
-                
+
                 // Ensure we're fully healed, move to target room.
                 if(creep.hits < (.80*creep.hitsMax)){
                     crmem.state = 'moveStaging';
@@ -256,34 +256,34 @@ class Role_TstDecon extends Creep
                 crmem.arrivalT = Game.time;
                 crmem.state = 'lingerTgtRoom';
                 break;
-            
+
             case 'lingerTgtRoom':
                 // On arriving in a hostile room, we need to linger a while and see if we're getting
                 // pinged with towers.  If so, healers need to take care of this primarily, so we
                 // return to home room to heal.
                 if(!crmem.arrivalT)
                     crmem.arrivalT = Game.time;
-               
+
                 // If not, and we're wounded, move back home where we can
                 // get healing.
                 if(creep.hits < (.80 * creep.hitsMax)){
                     crmem.state = 'moveStaging';
                     break;
                 }
-                
+
                 //console.log('ArrivalT='+crmem.arrivalT +' now='+Game.time);
                 if( (Game.time - crmem.arrivalT) >= 10 ) {
                     crmem.state = 'pickDecon';
                     break;
                 }
                 return;
-            
+
             case 'moveStaging':
                 rc = this.actionMoveToRoom(crmem.prevRoom);
                 if(rc == OK)
                     crmem.state = 'stagingRoom';
                 return;
-                
+
             case 'stagingRoom':
                 if(creep.room.name != crmem.prevRoom){
                     crmem.state = 'moveStaging';
@@ -312,14 +312,14 @@ class Role_TstDecon extends Creep
                     }
                 }
                 else if(creep.pos.y==48)
-                    creep.move(TOP);    
-                
+                    creep.move(TOP);
+
                 //if(creep.hits < .60 * creep.hitsMax){
                 //    crmem.state = 'moveHome';
                 //    break;
                 //}
                 return;
-    
+
             case 'pickDecon':
 
                 if(creep.room.name != tRoomName){
@@ -329,9 +329,9 @@ class Role_TstDecon extends Creep
                 }
 
 
-                // Make sure we're reasonably close to a friendly healer. 
+                // Make sure we're reasonably close to a friendly healer.
                 // They 'should' bubble along side us in a mass chaos fashion.
-                // Make sure we're reasonably close to a friendly healer. 
+                // Make sure we're reasonably close to a friendly healer.
                 // They 'should' bubble along side us in a mass chaos fashion.
                 let friendlies = crObj.getFriendlies();
                 let frCr = null;
@@ -357,7 +357,7 @@ class Role_TstDecon extends Creep
                     return;
                 }
                 else if(frCr && minDist >= 3){
-                    this.actMoveTo(frCr);   
+                    this.actMoveTo(frCr);
                     return;
                 }
                 else if(!frCr){
@@ -375,7 +375,7 @@ class Role_TstDecon extends Creep
                     let struct = structs[si];
                     let priority;
                     let range = struct.pos.getRangeTo(creep.pos);
-                
+
                     switch(struct.structureType){
                         case STRUCTURE_TOWER:
                             priority = 100;
@@ -408,21 +408,21 @@ class Role_TstDecon extends Creep
                         case STRUCTURE_TERMINAL:
                             priority = 88;
                             break;
-                            
+
                             continue;
                         case STRUCTURE_CONTROLLER:
                             continue;
                         default:
                             priority = 10;
                     }
-                    
+
                     let score = (priority * 10000000) + (100-range)*10000 + (100000-struct.hits);
                     if(!bestVal || score > bestVal){
                         bestVal = score;
                         best = struct;
                     }
                 }
-                
+
                 if(!best) {
                     let sites = crObj.getSites();
                     if(sites.length)
@@ -435,7 +435,7 @@ class Role_TstDecon extends Creep
                     rc=creep.dismantle(best);
                 return;
 
-            
+
             case 'moveReclaim':
                 // Head back home to reclaim.  But if target room went hostile again,
                 // turn back.
@@ -444,7 +444,7 @@ class Role_TstDecon extends Creep
                     crmem.state = 'moveTgtRoom';
                     break;
                 }
-                
+
                 rc = this.actionMoveToRoomRouted(crmem.homeName);
                 if(rc != OK)
                     return;
@@ -458,7 +458,7 @@ class Role_TstDecon extends Creep
                         this.actMoveTo(spawns[0]);
                 }
                 return;
-                
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'moveTgtRoom';
@@ -466,7 +466,7 @@ class Role_TstDecon extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

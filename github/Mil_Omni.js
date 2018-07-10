@@ -14,21 +14,21 @@ var RoomHolder      = require('RoomHolder');
 const BODY_CL8 = [ TOUGH, TOUGH, TOUGH, TOUGH, TOUGH
                , ATTACK, ATTACK, ATTACK, ATTACK, ATTACK
                , ATTACK, ATTACK, ATTACK, ATTACK, ATTACK
-               , RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK               
-               , RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK   
+               , RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK
+               , RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK
                , MOVE, MOVE, MOVE, MOVE, MOVE
                , MOVE, MOVE, MOVE, MOVE, MOVE
                , MOVE, MOVE, MOVE, MOVE, MOVE
                , MOVE, MOVE, MOVE, MOVE, MOVE
                , MOVE, MOVE, MOVE, MOVE, MOVE
-                ];               
+                ];
 
 // 5x10 = 50
 // 10x80 = 800
 // 10x150 = 1500
 // 25x50  = 1250
 //  3600
-const BODY_CL8_COST = 3600; 
+const BODY_CL8_COST = 3600;
 
 class Mil_Omni extends Creep
 {
@@ -38,14 +38,14 @@ class Mil_Omni extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, division, max ) {
         let targetRoomName = division.m_tgtRoomName;
         let hRoom        = spawn.room;
         let tRoom        = Game.rooms[targetRoomName];
         let controller   = hRoom.controller;
         let cost;
-        
+
         // Omnis are somewhat balanced ranged attack and tough, plus move.
         // RANGED=150
         // ATTACK=80
@@ -60,49 +60,49 @@ class Mil_Omni extends Creep
             body = BODY_CL8;
             cost = BODY_CL8_COST;
         }
-        else {        
+        else {
             let coreCost = 390;
             let nCore = Math.floor(hRoom.energyCapacityAvailable / coreCost);
             body = [];
             let ni;
-            
+
             if(nCore > 8)
                 nCore = 8;  // else we go over 50 body part limit...
-            
+
             for(ni=0; ni<nCore; ni++)
                 body.push(TOUGH);
-            
+
             for(ni=0; ni<nCore; ni++)
                 body.push(RANGED_ATTACK);
-    
+
             for(ni=0; ni<nCore; ni++)
                 body.push(ATTACK);
-    
+
             for(ni=0; ni<(3*nCore); ni++)
                 body.push(MOVE);
             cost = nCore*coreCost;
         }
-        
+
         if(hRoom.energyAvailable < cost)
             return true;
-        
+
         // Find a free name and spawn the bot.
         let altTime = 0;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'milOmni', body, max, altTime, multispec, targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.state     = 'homeRoom';
         crmem.division  = targetRoomName;
         delete crmem.instance;
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -118,7 +118,7 @@ class Mil_Omni extends Creep
 	    let structs;
 	    let closest;
 	    let debug="";
-	    
+
 	    let squad = this.m_squad;
 	    let division;
 	    if(squad)
@@ -149,18 +149,18 @@ class Mil_Omni extends Creep
         let tRoomName;
         if(squad && division)
 	        tRoomName = division.m_tgtRoomName;
-	    
+
         // Attack logic is independent of move logic.  We'll just attack
         // whatever is closest.  (Should probably refine that later).
         //
         // Avoid attacking source keepers though -- the normal sk clear bots
-        // are better equipped (since heavily ranged) and source keepers are mean 
-        // buggers against omnis.  Better to deal with the main Invader threat 
+        // are better equipped (since heavily ranged) and source keepers are mean
+        // buggers against omnis.  Better to deal with the main Invader threat
         // and get back to normalcy.
         let hostiles = crObj.getHostiles();
         let hCreep = creep.pos.findClosestByRange
                     (hostiles
-                            ,   { filter: function (cr) 
+                            ,   { filter: function (cr)
                                     {
                                         return (creep.owner.name != 'Source Keeper');
                                     }
@@ -177,7 +177,7 @@ class Mil_Omni extends Creep
             creep.attack(hCreep);
             //console.log('Attack hcreep rc='+rc+' creep='+hCreep);
         }
-        
+
         let allStruct = crObj.getAllStructures();
         let hStruct;
         if( (!hCreep || hRange > 3)
@@ -185,18 +185,18 @@ class Mil_Omni extends Creep
                  || ( (crObj.m_rmem.owner == "reserved" || crObj.m_rmem.owner == "nouser") && !(crObj.m_rmem.hostRoom))
                )
             && division
-            && division.m_primaryOrder == 3 /* ORDER_ATTACK */ 
+            && division.m_primaryOrder == 3 /* ORDER_ATTACK */
           ){
 
 
             hStruct = creep.pos.findClosestByRange
                         (allStruct
-                        , {  filter: function(st) 
+                        , {  filter: function(st)
                             { return (st.structureType != STRUCTURE_CONTROLLER
                                      && st.structureType != STRUCTURE_TERMINAL
                                      && st.structureType != STRUCTURE_STORAGE)
-                            
-                            } 
+
+                            }
                           }
                         );
             let rc1, rc2;
@@ -207,17 +207,17 @@ class Mil_Omni extends Creep
             if(hStruct && hRange <= 1){
                 rc2 = creep.attack(hStruct);
                 //console.log('Attack hcreep rc='+rc+' creep='+hCreep);
-            }   
+            }
             //console.log('hStruct found = '+hStruct+ 'rc1='+rc1+' rc2='+rc2);
-            
+
         }
 
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
-            
+
             //if(creep.name == 'milOmni_E2S19_E2S15_1')
             //    console.log(Game.time+' '+creep.name+' state='+crmem.state+' tRoom='+tRoomName);
-            
+
             switch(crmem.state){
 
             case 'homeRoom':
@@ -232,7 +232,7 @@ class Mil_Omni extends Creep
                 else
                     crmem.state = 'moveTgtRoom';
                 break;
-                
+
             case 'moveHome':
                 if(creep.hits == creep.hitsMax){
                     crmem.state = 'moveTgtRoom';
@@ -273,19 +273,19 @@ class Mil_Omni extends Creep
                 crmem.arrivalT = Game.time;
                 crmem.state = 'lingerTgtRoom';
                 break;
-            
+
             case 'lingerTgtRoom':
-                
+
                 if(creep.room.name != tRoomName){
                     crmem.state = 'moveTgtRoom';
                     break;
                 }
-                
+
                 if(creep.name == 'milOmni_E78S97_E71S98_0')
-                    console.log('...'+cRoom.memory.hostileTowerCt);        
-                
+                    console.log('...'+cRoom.memory.hostileTowerCt);
+
                 // If there are hostiles, start getting to work.
-                if(   ( !cRoom.memory.hostileTowerCt || 
+                if(   ( !cRoom.memory.hostileTowerCt ||
                         ( Game.time - crmem.arrivalT) > 15
                       )
                    && ( hCreep || ( creep.room.name == 'tRoomName' && allStruct.length ))
@@ -293,7 +293,7 @@ class Mil_Omni extends Creep
                     crmem.state = 'engageTargets';
                     break;
                 }
-                
+
                 // If not, and we're wounded, move back to staging where we can
                 // get healing.
                 if(creep.hits < (.90*creep.hitsMax)){
@@ -307,15 +307,15 @@ class Mil_Omni extends Creep
                 // Stick around 15, but then head toward reclaim.
                 // Note that even if we start heading to reclaim we can turn back.
                 //
-                /// TBD... do i still need these sorts of checks?  Wouldn't 
+                /// TBD... do i still need these sorts of checks?  Wouldn't
                 // division standby cover that?
                 if(    (cRoom.memory.owner == 'me' || cRoom.memory.owner == 'nouser')
                    && (Game.time - crmem.arrivalT) >= 15
-                   && division && division.m_primaryOrder == 2/*ORDER_DEFENCE*/ 
+                   && division && division.m_primaryOrder == 2/*ORDER_DEFENCE*/
                    && crObj.m_rmem.hostileOwner == 'Invader'
                    )
                    {
-                    crmem.state = 'moveReclaim'; 
+                    crmem.state = 'moveReclaim';
                     break;
                 }
                 return;
@@ -333,14 +333,14 @@ class Mil_Omni extends Creep
                 if(hCreep){
                     crmem.state = 'engageTargets';
                     break;
-                }                
+                }
                 //if(creep.hits < .60 * creep.hitsMax){
                 //    crmem.state = 'moveHome';
                 //    break;
                 //}
                 if(creep.hits == creep.hitsMax)
                     crmem.state = 'moveTgtRoom';
-                
+
                 // If there's room, move out of  arrivals.
                 if(creep.pos.x==1)
                     creep.move(RIGHT);
@@ -359,25 +359,25 @@ class Mil_Omni extends Creep
                     }
                 }
                 else if(creep.pos.y==48)
-                    creep.move(TOP);        
+                    creep.move(TOP);
                 return;
-            
+
             case 'engageTargets':
-                
+
                 // Creeps enter this state if room has hostiles.   (That
                 // isn't necessarily the case still).
-                
+
                 if(creep.hits < .95*creep.hitsMax){
                     crmem.state = 'moveStaging';
                 }
-                if(creep.room.name != tRoomName 
+                if(creep.room.name != tRoomName
                    && creep.room.name != crmem.homeName
                    && creep.room.name != crmem.prevRoom
                    ) {
                     crmem.state = 'moveTgtRoom';
                     break;
                 }
-                
+
                 // Check if still hostile.  If not move back to the room state
                 // for room we're in.
                 if(!hCreep && (creep.room.name != tRoomName || allStruct.length == 0)){
@@ -386,26 +386,26 @@ class Mil_Omni extends Creep
                         break;
                     }
                     else if(creep.room.name == tRoomName){
-                        crmem.state = 'lingerTgtRoom'; 
+                        crmem.state = 'lingerTgtRoom';
                         break;
-                    } 
+                    }
                     else{
                         crmem.state = 'stagingRoom';
                         break;
                     }
                 }
-            
-            
+
+
                 if( hCreep &&   Math.abs(hCreep.pos.x) != 0
                     && Math.abs(hCreep.pos.x) != 49
                     && Math.abs(hCreep.pos.y) != 0
                     && Math.abs(hCreep.pos.y) != 49
                     ){
-                        
+
                     // (This is pretty brute force, major TBD :)
                     rc = this.actMoveTo(hCreep, { ignoreDestructibleStructures: false, maxRooms: 1 });
                 }
-                else if( creep.room.name == tRoomName && division 
+                else if( creep.room.name == tRoomName && division
                          && division.m_primaryOrder == 3 /* ORDER_ATTACK */){
                     let spawnz = crObj.getSpawns();
                     if(spawnz.length > 0){
@@ -422,9 +422,9 @@ class Mil_Omni extends Creep
                             this.actMoveTo(sites[0].pos,  {maxRooms: 1});
                     }
                 }
-                
+
                 return;
-            
+
             case 'moveReclaim':
                 // Head back home to reclaim.  But if we got reassigned to a new division,
                 // turn back to new target.
@@ -435,7 +435,7 @@ class Mil_Omni extends Creep
                     crmem.state = 'moveTgtRoom';
                     break;
                 }
-                
+
                 // Are we in a room with spawns? If so head to one & recycle
                 let spawns = crObj.getSpawns();
                 if(spawns && spawns.length > 0 && spawns[0].my){
@@ -445,7 +445,7 @@ class Mil_Omni extends Creep
                         this.actMoveTo(spawns[0]);
                     return;
                 }
-                
+
                 // Is this room hosted by another? If so we'll find a spawn there.
                 // If not head toward home room - maybe we'll cross one.
                 if(crObj.m_rmem.hostRoom)
@@ -453,7 +453,7 @@ class Mil_Omni extends Creep
                 else
                     rc = this.actionMoveToRoomRouted(crmem.homeName);
                 return;
-              
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'moveHome';
@@ -461,7 +461,7 @@ class Mil_Omni extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

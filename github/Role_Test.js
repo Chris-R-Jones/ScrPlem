@@ -18,22 +18,22 @@ class Role_Test extends Creep
     constructor (creep, crmem)
     {
         super(creep, crmem);
-    }; 
-    
+    };
+
     static spawn( spawn ) {
         let room        = spawn.room;
         let controller  = room.controller;
         let body;
         let cost;
         let max;
-         
-        // Choose the body we want and will wait for energy for. 
+
+        // Choose the body we want and will wait for energy for.
         if(room.energyCapacityAvailable >= BODY_M1_COST){
             body = BODY_M1;
             cost = BODY_M1_COST;
             max = 1;
         }
-        
+
         // Wait for it, if not yet available
         if(room.energyAvailable < cost)
             return true;
@@ -41,20 +41,20 @@ class Role_Test extends Creep
         // Find a free name and spawn the bot.
         // No alt need, not time sensitive.
         let crname = Creep.spawnCommon(spawn, 'test', body, max, 400);
-        
+
         // if null we must already have it.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
-        // Initialze memory for the role. 
+
+        // Initialze memory for the role.
         crmem.state = 'init';
         crmem.allowExplore = true;
         delete crmem.instance
         return true;
-    }; 
-    
+    };
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -68,25 +68,25 @@ class Role_Test extends Creep
 	    let exceed;
 	    let si;
 	    let debug="";
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //console.log('T='+Game.time+' '+creep.name+' pos='+creep.pos);
 
             switch(crmem.state){
-                
+
             case 'init':
                 crmem.state = 'moveA';
-                return;     
-            
+                return;
+
             case 'moveA':
                 if(this.actionMoveToRoomRouted(Preference.testR1) == OK){
                     crmem.state = 'moveB';
                     break;
                 }
                 return;
- 
+
             case 'moveB':
                 if(this.actionMoveToRoomRouted(Preference.testR2) == OK){
                     crmem.state = 'moveC';
@@ -100,7 +100,7 @@ class Role_Test extends Creep
                     break;
                 }
                 return;
-                
+
 
             case 'moveD':
                 //this.actMoveTo(10,25);
@@ -110,7 +110,7 @@ class Role_Test extends Creep
                     break;
                 }
                 return;
-                
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'init';
@@ -118,7 +118,7 @@ class Role_Test extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

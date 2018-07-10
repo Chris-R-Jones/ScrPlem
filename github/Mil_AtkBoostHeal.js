@@ -33,37 +33,37 @@ class Mil_AtkBoostHeal extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, division, max ) {
-        let targetRoomName  = division.m_tgtRoomName;          
+        let targetRoomName  = division.m_tgtRoomName;
         let hRoom           = spawn.room;
         let tRoom           = Game.rooms[targetRoomName];
         let controller      = hRoom.controller;
         let cost;
         let body;
-        
+
         // Wait for full energy.
         if(hRoom.energyAvailable < BODY_M1_COST)
             return true;
-        body = BODY_M1;        
-        
+        body = BODY_M1;
+
         // Find a free name and spawn the bot.
         let altTime = 0;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'milAtkHeal', body, max, altTime, multispec, targetRoomName);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.division  = targetRoomName;
         crmem.state     = 'init';
         delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -71,52 +71,52 @@ class Mil_AtkBoostHeal extends Creep
 	    let squad = this.m_squad;
 	    let division;
 	    let crmem = this.m_crmem;
-	    let creep = this.m_creep;        
+	    let creep = this.m_creep;
 	    let cRoom  = creep.room;
 	    let crObj  = RoomHolder.get(cRoom.name);
 	    let maxLoop = 5;
 	    let exceed;
 	    let debug="";
-        
+
 	    if(squad)
 	        division = squad.m_division;
 	    if(!squad || (squad && !division)) {
-            // Creep either spawned after squad/division stood down (it has no squad) 
+            // Creep either spawned after squad/division stood down (it has no squad)
             // or it's squad must be in reserves.  Head to reclaim.
 	        crmem.state = 'moveReclaim';
 	    }
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //if(creep.name == 'milDecon_E75S97_E72S97_0')
             console.log(creep.name+' loop'+exceed+' state='+crmem.state);
-            
+
             switch(crmem.state){
 
             case 'init':
                 crmem.state = 'boost';
                 break;
-            
+
             case 'boost':
                 // Check if we're fully boosted, if not find some for my parts.
                 crmem.state = 'rejoinSquad';
                 break;
-            
+
             case 'rejoinSquad':
                 // Creep is put in this state if it has strayed too far from squad.
                 // (often, it's newly spawned).  Rejoin the group.
                 if(creep.room.name != squad.tgtPos.roomName){
                     rc = this.actionMoveToRoomRouted(squad.tgtPos.roomName);
-                    return;                        
+                    return;
                 }
                 if(creep.pos.getRangeTo(squad.tgtPos.x, squad.tgtPos.y) > MAX_SQUAD_RANGE){
-                    this.actMoveTo(squad.tgtPos.x, squad.tgtPos.y);    
-                    return;            
+                    this.actMoveTo(squad.tgtPos.x, squad.tgtPos.y);
+                    return;
                 }
                 crmem.state = 'inSquadCheckOrders';
                 break;
-            
+
             case 'inSquadCheckOrders':
                 // Check if we're still in squad range.  If not, rejoin.
                 if(creep.room.name != squad.tgtPos.roomName
@@ -149,7 +149,7 @@ class Mil_AtkBoostHeal extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

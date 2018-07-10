@@ -65,7 +65,7 @@ class Role_Mason extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj) {
         let room        = spawn.room;
         let rmem        = room.memory;
@@ -74,7 +74,7 @@ class Role_Mason extends Creep
         let cost;
         let max = 1;
 
-        // Don't spawn masons bots unless at least some walls are worse than 90% of 
+        // Don't spawn masons bots unless at least some walls are worse than 90% of
         // defence limit.
         let walls = hrObj.getRampartsWalls();
         let spStorage = hrObj.getSpawnStorage();
@@ -85,20 +85,20 @@ class Role_Mason extends Creep
         // construction, but I changed to just make sure there's a decent energy stockpile.
         if(controller.level < 4 || !spStorage || spStorage.store.energy < 30000)
             return false;
-        
+
         if(walls.length == 0)
             return false;
 
         if(hrObj.m_minRampartsWallsHits > (defenceMax*WALL_RAMPART_SPAWN_PERCENT))
             return false;
-        
+
         if(hrObj.m_minRampartsWallsHits > 1000000 && hrObj.m_minRampartsWallsHits > (hrObj.getAvgMinWallsHits()*1.1))
             return false;
-        
+
         if(!spStorage)
             return false;
 
-        // Choose the body we want and will wait for energy for. 
+        // Choose the body we want and will wait for energy for.
         if(room.energyCapacityAvailable >= BODY_SITES_M5_COST){
             body = BODY_SITES_M5;
             cost = BODY_SITES_M5_COST;
@@ -120,13 +120,13 @@ class Role_Mason extends Creep
         if(room.energyAvailable < cost)
             return true;
 
-        
+
         // Note - I used to have separate logic for L7 under the theory it had
         // less spawns and I wanted to favor upgrades over masonry.
         // Arguably that might still make more sense when we don't have many L8 rooms.
         // So TODO to revisit that special case.  But generally we want to just get busy at L7.
         // Note there's not a lot of worry about spawn pressure -- we still spawn upgraders first over masons.
-            
+
         if(room.controller.level >= 7){
             let minStruct = hrObj.m_minRampartWallStruct;
             if(minStruct.hits < 1000000 || (hrObj.m_minRampartsWallsHits < (hrObj.getAvgMinWallsHits()*.80)))
@@ -143,21 +143,21 @@ class Role_Mason extends Creep
         let crname = Creep.spawnCommon(spawn, 'mason', body, max, 0, "", spawn.room.name);
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
-        // Initialze memory for the role. 
+
+        // Initialze memory for the role.
         crmem.state = 'pickEnergy';
-        
+
         delete crmem.instance;
 
         console.log(Game.time+' '+room.name+' MASON GRANTED max='+max+' minWall='+hrObj.m_minRampartsWallsHits+' Avg='+(hrObj.getAvgMinWallsHits()));
-        
+
 
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -173,12 +173,12 @@ class Role_Mason extends Creep
 	    let defenceMax = rObj.getDefenceMax();
                         let struct;
         let minStruct = rObj.m_minRampartWallStruct;
-                  
+
         if(!minStruct){
-            console.log('MASON with no min struct in room'+creep.room.name); 
+            console.log('MASON with no min struct in room'+creep.room.name);
             return;
         }
-        
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
@@ -186,20 +186,20 @@ class Role_Mason extends Creep
 
             case 'pickEnergy':
                 let sto = rObj.getSpawnStorage();
-                
+
                 // Pick terminal if it has more energy proportionally.
                 let trm = rObj.getTerminal();
                 if(trm && (!sto || 3*trm.store.energy > sto.store.energy)){
                     sto = trm;
                 }
-                
+
                 if(!sto){
                     // In remote harvesting rooms we just source off dediharv
                     // containers.
                     let containers = rObj.getContainers();
                     let container= creep.pos.findClosestByPath
                                     (containers
-                                    ,   { filter: function (st) 
+                                    ,   { filter: function (st)
                                             {
                                                 return (st.store.energy >= 150);
                                             }
@@ -211,7 +211,7 @@ class Role_Mason extends Creep
                 }
                 this.setTarget(sto);
                 crmem.state = 'withdrawStruct';
-                break;    
+                break;
 
             case 'withdrawStruct':
                 rc=this.withdrawStruct(RESOURCE_ENERGY);
@@ -230,18 +230,18 @@ class Role_Mason extends Creep
                     crmem.state = 'pickEnergy';
                     return;
                 }
-                crmem.state = 'pickEnergy';                
+                crmem.state = 'pickEnergy';
                 break;
 
             case 'pickRepair':
-                
+
                 // When repairing, we want to fully repair a target to the high
                 // water mark, before switching targets, making it a little different
                 // than many other actions.  the Creep::repairStruct still clears
-                // the target, so we keep a separate variable to preserve a 
+                // the target, so we keep a separate variable to preserve a
                 // target once picked.
                 if(crmem.savedTargetId){
-                    
+
                     // Lookup object and see if it's over high watermark, if so clear.
                     struct = Game.getObjectById(crmem.savedTargetId);
                     if( struct.hits >= defenceMax ){
@@ -253,9 +253,9 @@ class Role_Mason extends Creep
                         break;
                     }
                 }
-                
+
                 // Else we need a new target.  But RoomObj already tracks the min wall/rampart
-                
+
                 // TBD, if there's nothing, we should perhaps just reclaim.
                 if(!minStruct /*|| minStruct.hits >= defenceMax*/){
                     crmem.state = 'pickEnergy';
@@ -266,17 +266,17 @@ class Role_Mason extends Creep
                 crmem.savedTargetId = minStruct.id;
                 crmem.state = 'repairStruct';
                 break;
-                
+
             case 'repairStruct':
                 struct = Game.getObjectById(crmem.savedTargetId);
-                
+
                 // If our target is gone, or we're done with it, select a new target.
                 // We'll only switch targets if there is one below the low watermark,
                 // else we'll just dump a full load on our target so we don't waste
                 // lots of time moving around.  Even though that means we'll go over
                 // defence max, this is more efficient in the long run.
-                if(!struct 
-                   || ( struct.hits > defenceMax 
+                if(!struct
+                   || ( struct.hits > defenceMax
                         && minStruct.hits < (defenceMax*WALL_RAMPART_SPAWN_PERCENT)
                       )
                   ) {
@@ -285,7 +285,7 @@ class Role_Mason extends Creep
                     crmem.state = 'pickRepair';
                     break;
                 }
-                
+
                 // Prioritize new ramparts to keep them alive til we
                 // get to them.
                 if(minStruct.hits <= 601 && minStruct.hits < struct.hits){
@@ -294,7 +294,7 @@ class Role_Mason extends Creep
                     crmem.state = 'pickRepair';
                     break;
                 }
-               
+
                 rc=this.repairStruct();
                 if( rc == OK)
                     return;
@@ -304,7 +304,7 @@ class Role_Mason extends Creep
                 }
                 else if(rc == ERR_INVALID_TARGET){
                     let structs = rObj.getAllStructures();
-                    
+
 
                     // We still have energy but finished with this repair.
                     // Repair tends to bounce us around, so while we're in the
@@ -315,10 +315,10 @@ class Role_Mason extends Creep
                     // of opportunity in area.
                     let struct =
                     creep.pos.findClosestByRange
-                        (structs, 
-                            { filter: function (st) 
+                        (structs,
+                            { filter: function (st)
                                 {
-                                    if(st.structureType != STRUCTURE_WALL 
+                                    if(st.structureType != STRUCTURE_WALL
                                         && st.structureType != STRUCTURE_RAMPART)
                                         return false;
                                     return (st.hits < defenceMax);
@@ -332,9 +332,9 @@ class Role_Mason extends Creep
                     else
                         crmem.state = 'pickEnergy';
                 }
-                
+
                 break;
-           
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'pickEnergy';
@@ -342,7 +342,7 @@ class Role_Mason extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

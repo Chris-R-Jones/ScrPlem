@@ -41,20 +41,20 @@ class Role_RemoteBootstrap extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, spObj, hostRoomName, targetRoomName, maxCreep ) {
         let room        = spawn.room;
         let controller  = room.controller;
         let body;
         let cost;
-        
+
         // Filter if we want to control what rooms host the new room, else
         // just past null.
         if(hostRoomName && spawn.room.name != hostRoomName)
             return false;
-        
-        // Choose the body we want and will wait for energy for. 
-        
+
+        // Choose the body we want and will wait for energy for.
+
         if(room.energyCapacityAvailable >= BODY_M8_COST){
             body = BODY_M8;
             cost = BODY_M8_COST;
@@ -75,29 +75,29 @@ class Role_RemoteBootstrap extends Creep
             body = BODY_M4;
             cost = BODY_M4_COST;
         }
-        else 
+        else
             return false;
-            
+
         // Wait for it, if not yet available
         if(room.energyAvailable < cost)
             return true;
-        
-        // Determine max creeps.  
+
+        // Determine max creeps.
         let trObj  = RoomHolder.get(targetRoomName);
         let multispec = "";
         let altlife = 300;
-        
+
         // Find a free name and spawn the bot.
         // For first room we'll boot a gazillion of them, so no
         // need for alt names or such.
         let crname = Creep.spawnCommon(spawn, 'remoteBoot', body, maxCreep, altlife, multispec, targetRoomName);
-        
+
         // This at least should mean we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
+
         // Initialze memory for the role.  Also assign a source
         // from which to harvest, spreading bootstrappers evenly across the
         // sources, based on their instance number.
@@ -114,8 +114,8 @@ class Role_RemoteBootstrap extends Creep
         delete crmem.instance;
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -130,12 +130,12 @@ class Role_RemoteBootstrap extends Creep
 	    let exceed;
 	    let si;
 	    let debug="";
-	    
+
 	    // Defence.. tbd to move into common logic
 	    if( rObj.m_rmem.hostileCt > 0 || trObj.m_rmem.hostileCt > 0 ){
 	        // Remote bootstrap defence is a little different than most.
 	        // In most cases we happened upon a hostile sector.  Something
-	        // routing probably should have avoided, but it's better to 
+	        // routing probably should have avoided, but it's better to
 	        // run through than to keep bouncing back toward home (possibly very far away)
 	        // and the hostile sector we'll just get routed to again.
 	        let hRoom = Game.rooms[crmem.homeName];
@@ -152,7 +152,7 @@ class Role_RemoteBootstrap extends Creep
 	        }
 	        else {
 	            // We aren't to target yet and are in a hostile room, or
-	            // we are headed to a hostile target.  Either way, keep on 
+	            // we are headed to a hostile target.  Either way, keep on
 	            // truckin.
                 this.actionMoveToRoomRouted(crmem.tRoomName);
                 if(crmem.state != 'moveTargetRoom'){
@@ -161,10 +161,10 @@ class Role_RemoteBootstrap extends Creep
                 }
                 return;
 	        }
-	
+
 	        return;
 	    }
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
@@ -172,14 +172,14 @@ class Role_RemoteBootstrap extends Creep
                 console.log(Game.time+': '+creep.name+' DBG state='+crmem.state+' mrpath='+crmem.mrpath);
 
             switch(crmem.state){
-            
+
             case 'moveTargetRoom':
                 if(this.actionMoveToRoomRouted(crmem.tRoomName) == OK){
                     crmem.state = 'pickEnergy';
                     break;
                 }
                 return;
-            
+
             case 'pickEnergy':
                 if(creep.room.name != crmem.tRoomName){
                     crmem.state = 'moveTargetRoom';
@@ -192,12 +192,12 @@ class Role_RemoteBootstrap extends Creep
                         crmem.state = 'withdrawStruct';
                         break;
                     }
-                    
+
                     // There could be a 'stolen' storage container.  If we've drained it, destroy it.
                     else if(!tRoom.storage.my && _.sum(tRoom.storage.store) == 0)
                         tRoom.storage.destroy();
                 }
-            
+
                 // If there are containers (which will typically mean that we
                 // are at L3 and they were created by dediharvs), see if we
                 // can pickup from containers and leave the work to the dediharvs.
@@ -205,13 +205,13 @@ class Role_RemoteBootstrap extends Creep
                 if(containers.length){
                     let container = this.m_creep.pos.findClosestByRange
                             (containers
-                            ,   { filter: function (st) 
+                            ,   { filter: function (st)
                                     {
                                         return (st.store.energy >= 150);
                                     }
                                 }
                             );
-                    
+
                     if(!container & tRoom.storage){
                         this.setTarget(tRoom.storage);
                         crmem.state = 'withdrawStruct';
@@ -248,10 +248,10 @@ class Role_RemoteBootstrap extends Creep
                 // Find target source of energy, as designated in spawn logic.
                 let sources  = trObj.getSources();
                 let best;
-                        
+
                 for(si=0; si<sources.length; si++){
-                    if(sources[si].pos.x == crmem.srcX 
-                       && sources[si].pos.y == crmem.srcY) 
+                    if(sources[si].pos.x == crmem.srcX
+                       && sources[si].pos.y == crmem.srcY)
                     {
                        best = sources[si];
                        break;
@@ -263,8 +263,8 @@ class Role_RemoteBootstrap extends Creep
                 }
                 this.setTarget(best);
                 crmem.state = 'harvestSource';
-                break;    
- 
+                break;
+
             case 'getDropped':
                 rc=this.pickupDropped(RESOURCE_ENERGY);
                 if(rc == ERR_FULL){
@@ -277,7 +277,7 @@ class Role_RemoteBootstrap extends Creep
                 if(rc == ERR_NOT_ENOUGH_RESOURCES || rc == ERR_NO_PATH)
                     return;
                 break;
-                
+
             case 'harvestSource':
                 rc=this.harvestSource(false);
                 if(rc == ERR_FULL){
@@ -316,7 +316,7 @@ class Role_RemoteBootstrap extends Creep
                     crmem.state = 'pickEnergy';
                     return;
                 }
-                crmem.state = 'pickEnergy';                
+                crmem.state = 'pickEnergy';
                 break;
 
             case 'pickFill':
@@ -328,7 +328,7 @@ class Role_RemoteBootstrap extends Creep
                     crmem.state = 'upgradeController';
                     break;
                 }
-                
+
                 // Check if spawn needs a fill
                 // Really we'll only have 1 spawn with bootstrap, so this be overkill,
                 // but just in case someone inherits this code...
@@ -342,25 +342,25 @@ class Role_RemoteBootstrap extends Creep
                     crmem.state = 'fillStructure';
                     break;
                 }
-                
+
                 // Check if any extensions need a fill
                 let extenList = trObj.getExtensions();
                 let ei;
                 let exten;
                 exten = creep.pos.findClosestByPath
                         (extenList
-                        ,   { filter: function (st) 
+                        ,   { filter: function (st)
                                 {
                                     return (st.energy < st.energyCapacity);
                                 }
-                            }                      
+                            }
                         );
                 if(exten){
                     this.setTarget(exten);
                     crmem.state = 'fillStructure';
                     break;
                 }
-                
+
                 // Check towers too
                 let towerList = trObj.getTowers();
                 let ti;
@@ -376,7 +376,7 @@ class Role_RemoteBootstrap extends Creep
                     crmem.state = 'fillStructure';
                     break;
                 }
-                
+
                 // Otherwise check if there is stuff to repair, or if not
                 // to build.
                 crmem.state = 'pickRepair';
@@ -421,7 +421,7 @@ class Role_RemoteBootstrap extends Creep
                     crmem.state = 'pickEnergy';
                     break;
                 }
-                
+
                 if(creep.carry.energy == 0)
                     crmem.state = 'pickEnergy';
                 else {
@@ -456,10 +456,10 @@ class Role_RemoteBootstrap extends Creep
                         break;
                     }
                 }
-                
+
                 // Otherwise check for new building
                 crmem.state = 'pickBuild';
-                
+
                 break;
 
             case 'repairStruct':
@@ -470,7 +470,7 @@ class Role_RemoteBootstrap extends Creep
                     crmem.state = 'pickEnergy';
                 else if(rc == ERR_INVALID_TARGET){
                     let structs = trObj.getAllStructures();
-                    
+
                     // We still have energy but finished with this repair.
                     // Repair tends to bounce us around, so while we're in the
                     // area, look for structs that aren't fully degraded to
@@ -480,10 +480,10 @@ class Role_RemoteBootstrap extends Creep
                     // of opportunity in area.
                     let struct =
                     creep.pos.findClosestByRange
-                        (structs, 
-                            { filter: function (st) 
+                        (structs,
+                            { filter: function (st)
                                 {
-                                    if(st.structureType == STRUCTURE_WALL 
+                                    if(st.structureType == STRUCTURE_WALL
                                        || st.structureType == STRUCTURE_RAMPART
                                        || st.structureType == STRUCTURE_CONTROLLER
                                        )
@@ -501,9 +501,9 @@ class Role_RemoteBootstrap extends Creep
                 }
                 else
                     console.log('repairStruct rc='+rc);
-                
+
                 break;
-                
+
             case 'upgradeController':
                 rc=this.upgradeController();
                 if(rc == ERR_NOT_ENOUGH_RESOURCES){
@@ -514,7 +514,7 @@ class Role_RemoteBootstrap extends Creep
                     return;
                 crmem.state = 'pickEnergy';
                 return;
-           
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'pickEnergy';
@@ -522,7 +522,7 @@ class Role_RemoteBootstrap extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' pos='+creep.pos+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' pos='+creep.pos+' exceeded max loops\n'+debug);
 	}
 }
 

@@ -15,11 +15,11 @@ class Role_CtrlMover extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj ) {
         let hRoom        = spawn.room;
         let controller   = hRoom.controller;
-        
+
         // Make sure room has reached L3 and at least 10 extensions.
         if(controller.level < 3)
             return false;
@@ -35,12 +35,12 @@ class Role_CtrlMover extends Creep
         if(!hrObj.m_rmem.lastPlanT && controller.level <= 4)
             return false;
 
-        // Get storage or container nearest to spawns, if not built yet 
+        // Get storage or container nearest to spawns, if not built yet
         // we're not ready/
         let spStorage = hrObj.getSpawnStorage();
         if(!spStorage)
             return false;
-        
+
         // Get container near controller.
         let ctrlCon = hrObj.getControllerContainer();
         if(!ctrlCon)
@@ -49,9 +49,9 @@ class Role_CtrlMover extends Creep
         // See if we stored a source path for this source to that
         // container.
         let path = hrObj.getStoreControllerPath();
-        
+
         // For every 20000 energy in storage, we spawn 5x of WORK in our
-        // upgraders.  So, 5E per turn. 
+        // upgraders.  So, 5E per turn.
         // So this creep needs to move at least 5E per turn to the container.
         // Both this creep and the upgrader are moderated over time by the storage level.
         // If they aren't moving/upgrading fast enough, storage energy levels will
@@ -63,20 +63,20 @@ class Role_CtrlMover extends Creep
         // So, the mover needs to be able to carry the 5 times E that
         // is consume by the upgraders in that duration.
         // (per 20000)
-        
+
         let multiplier;
         if(spStorage.structureType == STRUCTURE_CONTAINER)
             multiplier = 5;
         else
             multiplier = Math.max(1,spStorage.store.energy / 20000);
-        
+
         // At L8, we're limited to 15E per turn, so this becomes more fixed.
         if(controller.level == 8)
             multiplier = 3;
-        
+
         let additional = (controller.level == 8)?10:6;
         let perTripE = 5*multiplier*(2 * path.length + additional);
-        
+
         let carryNeeded = Math.ceil(perTripE / 50);
         let moveNeeded  = Math.ceil(carryNeeded/2);
         let totalCost = (moveNeeded+carryNeeded)*50;
@@ -84,7 +84,7 @@ class Role_CtrlMover extends Creep
 
         let perCreepCarryNeeded = Math.floor( (perTripE / 50) / maxCreeps );
         let perCreepMoveNeeded  = Math.ceil( perCreepCarryNeeded / 2);
-    
+
         while( (perCreepCarryNeeded + perCreepMoveNeeded) > 50){
             maxCreeps++;
             perCreepCarryNeeded = Math.floor( (perTripE / 50) / maxCreeps );
@@ -102,39 +102,39 @@ class Role_CtrlMover extends Creep
         console.log(' perCreepCarry = '+perCreepCarryNeeded);
         console.log(' perCreepMove = '+perCreepMoveNeeded);
         */
-        
+
         let cost = 50*(perCreepMoveNeeded+perCreepCarryNeeded);
         let body  = [];
         for(let bi=0; bi<perCreepCarryNeeded; bi++)
             body.push(CARRY);
         for(let bi=0; bi<perCreepMoveNeeded; bi++)
             body.push(MOVE);
-            
+
         // Wait for it, if not yet available.
         if(hRoom.energyAvailable < cost)
             return true;
-        
+
         // Find a free name and spawn the bot.
         // We need one instance per source, so this is pretty easy.  Do
         // enable alts.
         // TBD For alt time, this is basically 50.  Probably want to revisit that
         // for remote haresters, and add at least an additional 50 given they
-        // will be lower in spawn order and have longer to travel... 
+        // will be lower in spawn order and have longer to travel...
         let altTime = (body.length*3)+20;
         let crname = Creep.spawnCommon(spawn, 'ctrlmov', body, maxCreeps, altTime, null);
-        
+
         // If null, we hit max creeps.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
         crmem.state     = 'moveHpos';
         crmem.pathLen   = path.length;
         delete crmem.instance;
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -162,7 +162,7 @@ class Role_CtrlMover extends Creep
 	        crmem.state = 'moveHpos';
 	        return;
 	    }
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
@@ -175,8 +175,8 @@ class Role_CtrlMover extends Creep
                     crmem.state = 'pickEnergy';
                     break;
                 }
-                return;     
-                
+                return;
+
             case 'pickEnergy':
                 let dropped = rObj.getDroppedResources();
                 if(dropped && dropped.length > 0){
@@ -184,7 +184,7 @@ class Role_CtrlMover extends Creep
                     let drop;
                     for(di=0; di<dropped.length; di++){
                         drop = dropped[di];
-                        if(creep.pos.getRangeTo(drop.pos) <= 4 
+                        if(creep.pos.getRangeTo(drop.pos) <= 4
                            && drop.resourceType == RESOURCE_ENERGY){
                             this.setTarget(drop);
                             crmem.state = 'getDropped';
@@ -214,8 +214,8 @@ class Role_CtrlMover extends Creep
                 }
                 this.setTarget(which);
                 crmem.state = 'withdrawStruct';
-                break;    
-                
+                break;
+
             case 'getDropped':
                 rc=this.pickupDropped(RESOURCE_ENERGY);
                 if(rc == ERR_FULL){
@@ -227,13 +227,13 @@ class Role_CtrlMover extends Creep
                 crmem.state = 'pickEnergy';
                 if(rc == ERR_NOT_ENOUGH_RESOURCES || rc == ERR_NO_PATH)
                     return;
-                break; 
-                
+                break;
+
             case 'withdrawStruct':
                 rc=this.withdrawStruct(RESOURCE_ENERGY);
                 if(rc == ERR_FULL){
                     crmem.state = 'pickFill';
-                    
+
                     // We just filled, and will now embark on trip to controller
                     // container.  However, before we do, we still have a chance
                     // of putting goods back if we won't make it.
@@ -255,14 +255,14 @@ class Role_CtrlMover extends Creep
                     crmem.state = 'pickEnergy';
                     return;
                 }
-                crmem.state = 'pickEnergy';                
+                crmem.state = 'pickEnergy';
                 break;
 
             case 'pickFill':
                 cnt = hrObj.getControllerContainer();
                 if(!cnt)
                     return;
-                
+
                 crmem.state = 'moveToStructure';
                 break;
 
@@ -361,7 +361,7 @@ class Role_CtrlMover extends Creep
                     }
                 }
                 break;
-                
+
 
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
@@ -370,7 +370,7 @@ class Role_CtrlMover extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

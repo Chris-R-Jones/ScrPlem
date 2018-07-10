@@ -6,7 +6,7 @@ var Preference      = require('Preference');
 // Creep game/memory object analysis
 //-------------------------------------------------------------
 
-// Creep constructor.  
+// Creep constructor.
 // In the constructor we can store any anlysis that will not change, but
 // be careful as these results aren't permanent -- anything that may
 // change at all should be stored by refresh.
@@ -50,30 +50,30 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
     let creep;
     let crmem;
     let ci;
-    let s = '';  
+    let s = '';
 
     let needDebug = false;
-    
-    // Find a name for creep, 
+
+    // Find a name for creep,
     for(ci=0; ci<maxInstance; ci++){
-        
+
         // The creep's home room is typically part of name, but if
         // multiple rooms can spawn the creep and we just need a fixed
         // number of them "global" can be specified so it's unique no
         // matter where it is spawned.
         if(!homeName && homeName != "global")
             homeName = room.name;
-        
+
         oname = name = role+'_'
              + homeName+'_'
-             + ( (!targetRoomName || targetRoomName == room.name) 
-                        ? "" 
+             + ( (!targetRoomName || targetRoomName == room.name)
+                        ? ""
                         : targetRoomName+"_"
                )
              + (multiSpec ? multiSpec : "")+ci;
         altname = name+'_alt';
 
-        if( false 
+        if( false
             && (   oname == 'dharv_W5N8_0' || altname == 'dharv_W5N8_0_alt'
                 || oname == 'dharv_W5N8_1' || altname == 'dharv_W5N8_1_alt'
             )
@@ -81,10 +81,10 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
             needDebug = true;
             s = 'DBG match name';
         }
-        
+
         creep = Game.creeps[name];
         altcreep = Game.creeps[altname];
-        
+
         if(!creep && !altcreep){
             if(needDebug){
                 s = s + 'break no creep or altcreep\n';
@@ -104,7 +104,7 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
         // One exists, see if it needs replacement.
         if(altLife == 0)
             continue;
-        
+
         // Which lives, and what is the alternate name?
         if(creep)
             name = altname;
@@ -114,15 +114,15 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
         // Note in below - I've been seeing creeps that seem to be spawning but creep.spawning
         // is false... ticksToLive seems to be undefined though.   Found confirmation of this here:
         // https://screeps.com/forum/topic/443/creep-spawning-is-not-updated-correctly-after-spawn-process
-        // This only affects private servers.   
-        //  I'm just assuming that if creep.ticksToLive is undefined it's spawning - I'm not sure I see a 
+        // This only affects private servers.
+        //  I'm just assuming that if creep.ticksToLive is undefined it's spawning - I'm not sure I see a
         // case that would be untrue - if the creep object exists it should have a life of be spawning.
         if(creep.spawning || creep.ticksToLive === undefined || creep.ticksToLive > altLife ) {
             if(needDebug)
                 s = s + '... Continue spawning='+creep.spawning+' ticks='+creep.ticksToLive+'\n';
             continue;
         }
-        
+
         if(needDebug){
             s = s + '  ....'+'\n';
             s = s + '  creep='+creep+'\n';
@@ -136,7 +136,7 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
             s = s + '   ttl='+creep.ticksToLive+'\n';
             s = s + '   altLife='+altLife+'\n';
         }
-            
+
         break;
     }
     if( ci == maxInstance )
@@ -154,22 +154,22 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
                    +'eAvail='+spawn.room.energyAvailable+' role='+role+' body='+body);
         return null;
     }
-    
+
     if( needDebug ) {
         Memory.creeps[name].createDebug=s;
     }
-    
+
     if(Preference.debugSpawns == true
        ||  Preference.debugSpawns == spawn.room.name ){
         console.log('T='+Game.time+' '+spawn.room.name+' spawned '+name);
     }
-    
+
     // Note, we don't instantiate object here -- it'll get instantiated next
     // tick based on role, and since creep is spawning, there's otherwise no
     // immediate need.
     return name;
 }
- 
+
 // Selects a target room object and stores target id for move to target.
 Creep.prototype.setTarget = function( targetObj )
 {
@@ -179,7 +179,7 @@ Creep.prototype.setTarget = function( targetObj )
     crmem.targetId = targetObj.id;
     if(crmem.mrpath)
         delete crmem.mrpath;
-    
+
 }
 
 // Clears target -- usually unecessary as most routines will clear it when
@@ -201,21 +201,21 @@ Creep.prototype.clearTarget = function ()
 Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
 {
     // Return false if no need to defend
-    if(creep.hits == creep.hitsMax 
-       && rObj.getHostiles().length == 0 
+    if(creep.hits == creep.hitsMax
+       && rObj.getHostiles().length == 0
        && (!trObj.m_rmem.hostileCt || trObj.m_rmem.hostileCt == 0)
        && !trObj.m_rmem.keeperRoom)
         return false;
-    
+
     // If our current room isn't hostile we instead evaluate the target room, as we want
     // to determine if it's safe to enter.
     if(rObj.getHostiles().length == 0)
         rObj = trObj;
-    
+
     let hostiles;
     if(rObj.m_room)
         hostiles=rObj.getHostiles();
-    
+
     // We act differently depend on whether the room is full only of source keepers.
     // Determine if that's the case.
     let skOnly = true;
@@ -233,7 +233,7 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
         if(!rmem.keeperRoom || rmem.hostileOwner != 'Source Keeper')
             skOnly = false;
     }
-    
+
     // If these aren't only source keepers, then retreat to home.
     if(!skOnly){
         if(creep.carryCapacity>0){
@@ -256,7 +256,7 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
                     if(creep.memory.defenceTowerId){
                         tower = Game.getObjectById(creep.memory.defenceTowerId);
                     }
-                    if(!tower){ 
+                    if(!tower){
                         let towers = hrObj.getTowers();
                         if(towers.length){
                             let tIdx = Math.floor(Math.random() * towers.length);
@@ -304,12 +304,12 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
     else {
         // We know there are only source keepers, so generally we can go about our business,
         // unless one if them is near, in which case, we retreat til they don't pursue.
-        
-        // If we aren't in the room, just head toward it, 
+
+        // If we aren't in the room, just head toward it,
         if(!hostiles){
             return false;
         }
-        
+
         // If we are near a lair, and that lair is about to spawn, then start heading home to
         // get out of way of impending creep.
         let needMove = false;
@@ -317,11 +317,11 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
         let lair = creep.pos.findClosestByRange(lairs);
         if(lair && lair.ticksToSpawn && lair.ticksToSpawn <= 12)
             needMove = true;
-        
+
         let hCreep = creep.pos.findClosestByRange(hostiles);
         if(!needMove && (! hCreep || hCreep.pos.getRangeTo(creep) > 8))
             return false;
-        
+
         // If one is close, move toward home, but only as long as we're in that range.
         let towers = hrObj.getTowers();
         if(towers && towers.length)
@@ -351,7 +351,7 @@ Creep.prototype.harvestSource = function( allowOvercommit )
     let target;
     let err;
     let rc;
-    
+
     if(!allowOvercommit && _.sum(creep.carry) == creep.carryCapacity)
         err=ERR_FULL;
     else if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
@@ -368,7 +368,7 @@ Creep.prototype.harvestSource = function( allowOvercommit )
         if(!err)
             return OK;
     }
-    
+
     if(crmem.targetId)
         delete crmem.targetId;
     if(crmem.targetPath)
@@ -406,8 +406,8 @@ Creep.prototype.withdrawStruct = function( resource, amount )
         if(!resource)
             err = ERR_NOT_ENOUGH_RESOURCES;
     }
-    else if( !err 
-             && ( (resource == RESOURCE_ENERGY && target.energy && target.energy == 0) 
+    else if( !err
+             && ( (resource == RESOURCE_ENERGY && target.energy && target.energy == 0)
                   || (target.store && target.store[resource] == 0)
                 )
            ){
@@ -435,7 +435,7 @@ Creep.prototype.withdrawStruct = function( resource, amount )
             }
         }
     }
-    
+
     if(crmem.targetId)
         delete crmem.targetId;
     if(crmem.targetPath)
@@ -458,7 +458,7 @@ Creep.prototype.pickupDropped = function( resource )
     let target;
     let err;
     let rc;
-    
+
     if(_.sum(creep.carry) == creep.carryCapacity)
         err=ERR_FULL;
     else if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
@@ -477,7 +477,7 @@ Creep.prototype.pickupDropped = function( resource )
         if(!err)
             return OK;
     }
-    
+
     if(crmem.targetId)
         delete crmem.targetId;
     if(crmem.targetPath)
@@ -515,8 +515,8 @@ Creep.prototype.pickupTomb = function( resource, amount )
         if(!resource)
             err = ERR_NOT_ENOUGH_RESOURCES;
     }
-    else if( !err 
-             && ( (resource == RESOURCE_ENERGY && target.energy && target.energy == 0) 
+    else if( !err
+             && ( (resource == RESOURCE_ENERGY && target.energy && target.energy == 0)
                   || (target.store && target.store[resource] == 0)
                 )
            ){
@@ -565,7 +565,7 @@ Creep.prototype.upgradeController = function( )
     let err = OK;
     let rc;
     let range;
-    
+
     if( creep.carry.energy == 0)
         err=ERR_NOT_ENOUGH_RESOURCES;
     else if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
@@ -599,7 +599,7 @@ Creep.prototype.actionReserveController = function( )
     let err = OK;
     let rc;
     let range;
-    
+
     if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
         err=ERR_INVALID_TARGET;
     else if((range=target.pos.getRangeTo(creep)) >= 2){
@@ -631,7 +631,7 @@ Creep.prototype.actionClaimController = function( )
     let err = OK;
     let rc;
     let range;
-    
+
     if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
         err=ERR_INVALID_TARGET;
     else if((range=target.pos.getRangeTo(creep)) >= 2){
@@ -667,7 +667,7 @@ Creep.prototype.buildSite = function( )
     let rc;
     let range;
 
-    
+
     if( creep.carry.energy == 0)
         err=ERR_NOT_ENOUGH_RESOURCES;
     else if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId))){
@@ -714,7 +714,7 @@ Creep.prototype.repairStruct = function( )
     let err;
     let rc;
     let range;
-    
+
     if( creep.carry.energy == 0)
         err=ERR_NOT_ENOUGH_RESOURCES;
     else if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
@@ -756,7 +756,7 @@ Creep.prototype.fillTarget = function( resource )
     let err = OK;
     let rc;
     let range;
-    
+
     if(!resource){
         for ( let good in creep.carry ) {
             if (creep.carry[good] && creep.carry[good] != 0){
@@ -765,12 +765,12 @@ Creep.prototype.fillTarget = function( resource )
             }
         }
     }
-    
+
     if( !resource || creep.carry[resource] == 0 )
         err=ERR_NOT_ENOUGH_RESOURCES;
     else if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
         err=ERR_INVALID_TARGET;
-    else if(resource == RESOURCE_ENERGY 
+    else if(resource == RESOURCE_ENERGY
             && (
                    ( target.energy && target.energy == target.energyCapacity )
                 || ( target.store  && _.sum(target.store) >= target.storeCapacity )
@@ -787,12 +787,12 @@ Creep.prototype.fillTarget = function( resource )
         err=ERR_FULL;
     }
     else if((range=target.pos.getRangeTo(creep)) >= 2){
-        
+
 
         let rc = this.actionMoveToPos(target.pos);
         return OK;
     }
-    
+
     if(!err){
         err=creep.transfer(target, resource);
         if(!err)
@@ -852,36 +852,36 @@ Creep.prototype.actionMoveToCoord = function( x, y, roomName, range )
 {
     let creep = this.m_creep;
     let pos;
-    
+
     if(!range && range != 0)
         range = 1;
     if(!roomName)
         roomName = creep.room.name;
-    
+
     if( (creep.room.name == roomName )
         && Math.abs(x - creep.pos.x) <= range
         && Math.abs(y - creep.pos.y) <= range
       )
       return OK;
-    
+
     let rc;
     if(!roomName || roomName == creep.room.name)
         rc=this.actMoveTo(x, y, { maxRooms: 1, reusePath: 5});
     else {
         pos = new RoomPosition(x,y, roomName);
-    
+
         // OK, yes, it will get more complex, but to start, lets keep simple.
         // When changing consider the other actionMove routines too.
         rc=this.actMoveTo(pos, { reusePath: 5});
     }
-    
+
     if(rc != ERR_NO_PATH)
         return ERR_BUSY;
     return rc;
 }
 
 
-// Moves to within 1 distance of a selected position.  
+// Moves to within 1 distance of a selected position.
 // Arg:
 //      pos - target position
 // Returns:
@@ -895,13 +895,13 @@ Creep.prototype.actionMoveToPos = function( pos, range )
 {
     let creep = this.m_creep;
     let crmem = creep.memory;
-    
+
     if(!range)
         range = 1;
-    
+
     if(creep.pos.roomName != pos.roomName)
         return this.actionMoveToRoom(pos.roomName);
-    
+
     if( creep.room.name == pos.roomName
         && Math.abs(pos.x - creep.pos.x) <= range
         && Math.abs(pos.y - creep.pos.y) <= range
@@ -910,22 +910,22 @@ Creep.prototype.actionMoveToPos = function( pos, range )
         delete crmem.moveNPCount;
         return OK;
     }
-    
+
     if(crmem.amLastPos && creep.pos.x == crmem.amLastPos.x && creep.pos.y == crmem.amLastPos.y)
         crmem.moveNPCount = (crmem.moveNPCount ? crmem.moveNPCount+1 : 1);
     else{
         crmem.amLastPos=creep.pos;
         delete crmem.moveNPCount;
     }
-    
+
     let reuseCount = 5;
     if(crmem.moveNPCount && crmem.moveNPCount > 5)
         reuseCount = 1;
-    
+
     // OK, yes, it will get more complex, but to start, lets keep simple.
     // When changing consider the actionMoveToCoord too
     let rc=this.actMoveTo(pos, { maxRooms: 1, reusePath: reuseCount});
-    
+
     if(rc != ERR_NO_PATH)
         return ERR_BUSY;
     return rc;
@@ -933,7 +933,7 @@ Creep.prototype.actionMoveToPos = function( pos, range )
 
 // Moves to room name passed in parameter.
 // (At the moment, any way possible, not optimization for distance and not necessarily 'safe')
-// 
+//
 // Returns:
 //      OK       - reached room and out of exit lane
 //      ERR_BUSY - in progress
@@ -941,13 +941,13 @@ Creep.prototype.actionMoveToPos = function( pos, range )
 Creep.prototype.actionMoveToRoom = function( roomName )
 {
     let creep = this.m_creep;
-    
+
     if(creep.room.name == roomName){
         if(creep.pos.x != 0
             && creep.pos.x != 49
             && creep.pos.y != 0
             && creep.pos.y != 49
-            ) return OK; 
+            ) return OK;
 
         // Once in room move with ignoreDistructibles to try to find a position inside the entryway,
         // if there are creeps budleed up but also walls.
@@ -973,7 +973,7 @@ Creep.prototype.actionMoveToRoom = function( roomName )
         }
         return rc;
     }
-    
+
     // Another one that needs significant work... but cheap and easy
     let pos = new RoomPosition(25,25,roomName);
     let rc = this.actMoveTo(pos,{ reusePath: 5 });
@@ -993,12 +993,12 @@ Creep.prototype.enterRoom = function ()
 {
     let creep = this.m_creep;
     let crmem = creep.memory;
-    
+
     if(creep.pos.x != 0
         && creep.pos.x != 49
         && creep.pos.y != 0
         && creep.pos.y != 49
-        ) { 
+        ) {
         return OK;
     }
     else {
@@ -1030,39 +1030,39 @@ Creep.prototype.moveByPathFinderResult = function ()
 {
     let creep = this.m_creep;
     let crmem = creep.memory;
-    
+
     if(!crmem.mrpath || crmem.mrpath.length < 1){
         delete crmem.mrpath;
         return;
     }
-    
+
     let fPos = crmem.mrpath[0];
 
-    if(fPos.x == creep.pos.x 
+    if(fPos.x == creep.pos.x
        && fPos.y == creep.pos.y
        && fPos.roomName == creep.pos.roomName
       ) {
         let lPos = crmem.mrpath[0];
         let sPos = crmem.mrpath[1] ? crmem.mrpath[1] : null;
         let nPos = crmem.mrpath[2] ? crmem.mrpath[2] : null;
-        
+
         crmem.mrpath.shift();
-        
+
         if(crmem.mrFailCt)
             delete crmem.mrFailCt;
-        
+
         if(crmem.mrpath.length == 0){
             //console.log(creep.name+ ' PATH COMPLETE!! '+creep.pos);
             delete crmem.mrpath;
             return ERR_BUSY;
         }
-        
+
         if( Math.abs(lPos.x - sPos.x) > 1 || Math.abs(lPos.y - sPos.y) > 1 ){
             // When in the exit, and next turn is in the exit, do nothing to move, we
             // move automatically, lest we move out.
             return ERR_BUSY;
         }
-        else {    
+        else {
             let dir = creep.pos.getDirectionTo(sPos.x, sPos.y);
             //console.log(creep.name+' moving direction '+dir);
             creep.move(dir);
@@ -1089,7 +1089,7 @@ Creep.prototype.moveByPathFinderResult = function ()
             }
             else {
                 let sPos = crmem.mrpath[0];
-                
+
                 // Not sure we need this 'immediate recover' anymore, was mostly to chase a bug, but if for
                 // any reason pathfinder gets totally whacked, this could help get out of it.
                 if(crmem.mrFailCt > 3 && Math.abs(creep.pos.x - sPos.x) > 5 || Math.abs(creep.pos.y - sPos.y) > 5){
@@ -1098,7 +1098,7 @@ Creep.prototype.moveByPathFinderResult = function ()
                     delete crmem.mrFailCt;
                     return ERR_BUSY;
                 }
-                
+
                 if(Math.abs(creep.pos.x - crmem.mrpath[0].x) <= 2 && Math.abs(creep.pos.y - crmem.mrpath[0].y) <= 2 ){
                     //console.log('Trying to move out of it!');
                     let dir = creep.pos.getDirectionTo(sPos.x, sPos.y);
@@ -1122,34 +1122,34 @@ Creep.prototype.actionMoveToRoomSafe = function( roomName )
 {
     let creep = this.m_creep;
     let crmem = creep.memory;
-    
+
     //console.log(creep.name+' T='+Game.time+' MTRSFDBG 1 roomName='+roomName+ ' pos='+creep.pos);
- 
+
     // If we've reached destination, yipee
     if(creep.room.name == roomName){
         delete crmem.mrpath;
         return this.enterRoom();
     }
-    
+
     // If we are still on a saved path, use it.
     if(crmem.mrpath){
         return this.moveByPathFinderResult();
     }
-    
+
     let pfdebug;
     //if(creep.name == 'remoteBoot_W8N27_W4N21_3'){
     //    pfdebug = true;
     //    crmem.allowExplore = false;
     //}
-    
+
     let pos = new RoomPosition(25,25,roomName);
-    
+
     if(pfdebug) console.log(creep.name+' FINDING PATH '+creep.room.name+' -> '+roomName);
-    
+
     let pfresult = PathFinder.search
         ( creep.pos
         , { pos: pos, range: 25 }
-        ,   { 
+        ,   {
                 // We need to set the defaults costs higher so that we
                 // can set the road cost lower in `roomCallback`
                 //
@@ -1158,13 +1158,13 @@ Creep.prototype.actionMoveToRoomSafe = function( roomName )
                 plainCost: 1.1,
                 swampCost: 3,
                 maxRooms: 32,
-    
-                roomCallback: function(cbRoomName) 
+
+                roomCallback: function(cbRoomName)
                 {
                     let rmem = Memory.rooms[cbRoomName];
                     let room = Game.rooms[cbRoomName];
                     let costs;
-                    
+
                     // If we've never been there at all...
                     if(!rmem && !room){
                         // If it is our target room and we don't know about it,
@@ -1174,7 +1174,7 @@ Creep.prototype.actionMoveToRoomSafe = function( roomName )
                             if(pfdebug) console.log('... '+cbRoomName+' blank matrix');
                             return costs;
                         }
-                        
+
                         // But any room that's on the way there we need to return false
                         // to limit the search and dangers.
                         if(!crmem.allowExplore){
@@ -1187,22 +1187,22 @@ Creep.prototype.actionMoveToRoomSafe = function( roomName )
                             return new PathFinder.CostMatrix;
                         }
                     }
-                    
+
                     // Avoid hostile rooms, unless it's our origin or destination
-                    if((rmem.keeperRoom || rmem.hostileCt || rmem.hostileTowerCt) 
+                    if((rmem.keeperRoom || rmem.hostileCt || rmem.hostileTowerCt)
                        && cbRoomName != creep.room.name
                        && cbRoomName != roomName){
                         if(pfdebug) console.log('... '+cbRoomName+' false hostile');
                         return false;
                     }
 
-                    /*if(rmem.costMatrix) { 
+                    /*if(rmem.costMatrix) {
                         if ( !room || ( Game.time - rmem.costMatrixTime ) <= 100){
-                            
+
                             costs = PathFinder.CostMatrix.deserialize(rmem.costMatrix);
-                            
+
                             // Avoid creeps in the room (if we know room)
-                            if(room){ 
+                            if(room){
                                 room.find(FIND_CREEPS).forEach(function(creep) {
                                   costs.set(creep.pos.x, creep.pos.y, 0xff);
                                 });
@@ -1213,14 +1213,14 @@ Creep.prototype.actionMoveToRoomSafe = function( roomName )
                     }
                     */
                     costs = new PathFinder.CostMatrix;
-                    
+
                     // If we don't have vision return blank matrix (but dont' save it)
                     // We do at least know from memory it's not hostile.
                     if(!room) {
                         if(pfdebug) console.log('... '+cbRoomName+' no vision, blank matrix');
                         return costs;
                     }
-                    
+
                     room.find(FIND_STRUCTURES).forEach(function(struct) {
                       if (struct.structureType === STRUCTURE_ROAD) {
                         // Favor roads over plain tiles
@@ -1232,16 +1232,16 @@ Creep.prototype.actionMoveToRoomSafe = function( roomName )
                         costs.set(struct.pos.x, struct.pos.y, 0xff);
                       }
                     });
-            
+
                     rmem.costMatrix = costs.serialize();
                     rmem.costMatrixTime = Game.time;
-                    
+
                     // Avoid creeps in the room
                     // (But note I'm doing this AFTER serializing.)
                     room.find(FIND_CREEPS).forEach(function(creep) {
                       costs.set(creep.pos.x, creep.pos.y, 0xff);
                     });
-                    
+
                     if(pfdebug) console.log('... '+cbRoomName+' new cost matrix');
                     return costs;
                 }
@@ -1251,7 +1251,7 @@ Creep.prototype.actionMoveToRoomSafe = function( roomName )
         console.log(creep.name+' incomplete path '+creep.room.name+' -> '+roomName);
         console.log(creep.name+' current pos='+creep.pos);
         console.log(creep.name+' pathlen = '+pfresult.path.length);
-        
+
         let lastRoom;
         for(let i=0; i<pfresult.path.length; i++){
             if(!lastRoom || pfresult.path[i].roomName != lastRoom){
@@ -1259,9 +1259,9 @@ Creep.prototype.actionMoveToRoomSafe = function( roomName )
                 console.log('... pfr['+i+']='+pfresult.path[i]);
             }
         }
-        
+
     }
-    
+
     // If the very first position is an exit lane, shift it out, because we'll actually be
     // there.
     if(pfresult.path && pfresult.path.length > 0){
@@ -1290,7 +1290,7 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
     let crmem = creep.memory;
 
     let pfdebug;
-    
+
     //if(true && creep.name == 'milOmni_E78S98_E74S91_0')
     //    pfdebug = true;
 
@@ -1304,10 +1304,10 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
         delete crmem.mrpath;
         return this.enterRoom();
     }
-    
+
     if(crmem.moveRoomDest && crmem.moveRoomDest != roomName){
         if(pfdebug) console.log(creep.name+' mismatch dest room');
-    
+
         delete crmem.mrpath;
         delete crmem.mrroute;
     }
@@ -1340,11 +1340,11 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
             crmem.mrroute.splice(0,ri);
         }
     }
-    
+
     let route = crmem.mrroute;
     if(!route){
         if(pfdebug) console.log(creep.name+' generating new room route');
-        
+
         route = PathMaker.getSafeRoute( cRoomName, roomName );
         //console.log('Creep '+creep.name+' found route'+route);
         if(route == ERR_NO_PATH)
@@ -1352,7 +1352,7 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
         crmem.mrroute = route;
     }
 
-    
+
     // PathFinder is pretty borked for distance travel.  But does help to get
     // clean routes for a few rooms.  Never search more than 3 rooms ahead.
     // Find a path to middle of next room 3 ahead or final destination.
@@ -1364,18 +1364,18 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
     else
         pos = new RoomPosition(25,25,route[3]);
     if(pfdebug) console.log(creep.name+' FINDING PATH '+creep.room.name+' -> '+pos);
-    
+
     let pfresult = PathFinder.search
         ( creep.pos
         , { pos: pos, range: 23 }
-        ,   { 
+        ,   {
                 // We need to set the defaults costs higher so that we
                 // can set the road cost lower in `roomCallback`
                 plainCost: 1.1,
                 swampCost: 3,
                 maxRooms: 32,
-    
-                roomCallback: function(cbRoomName) 
+
+                roomCallback: function(cbRoomName)
                 {
                     // PathFinder is pretty borked without at pretty legitimate set of rooms.
                     // Check if the search room is already on the room route found earlier.
@@ -1388,20 +1388,20 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
                         if(pfdebug) console.log('... '+cbRoomName+' not on room route, return false.');
                         return false;
                     }
-                        
+
                     // It is, so now generate a cost matrix.
                     let rmem = Memory.rooms[cbRoomName];
                     let room = Game.rooms[cbRoomName];
                     let costs;
 
                     // Hopefully we have a matrix from a recent visit.
-                    if(rmem && rmem.costMatrix) { 
+                    if(rmem && rmem.costMatrix) {
                         if ( !room || ( Game.time - rmem.costMatrixTime ) <= 100){
-                            
+
                             costs = PathFinder.CostMatrix.deserialize(rmem.costMatrix);
-                            
+
                             // Avoid creeps in the room (if we know room)
-                            if(room){ 
+                            if(room){
                                 room.find(FIND_CREEPS).forEach(function(creep) {
                                   costs.set(creep.pos.x, creep.pos.y, 0xff);
                                 });
@@ -1410,16 +1410,16 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
                             return costs;
                         }
                     }
-                    
+
                     // Else generate one.
                     costs = new PathFinder.CostMatrix;
-                                        
+
                     // If we don't have vision return blank matrix (but dont' save it)
                     if(!room) {
                         if(pfdebug) console.log('... '+cbRoomName+' no vision, blank matrix');
                         return costs;
                     }
-                    
+
                     room.find(FIND_STRUCTURES).forEach(function(struct) {
                       if (struct.structureType === STRUCTURE_ROAD) {
                         // Favor roads over plain tiles
@@ -1444,29 +1444,29 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
                         costs.set(site.pos.x, site.pos.y, 0xff);
                       }
                     });
-            
+
                     rmem.costMatrix = costs.serialize();
                     rmem.costMatrixTime = Game.time;
-                    
+
                     // Avoid creeps in the room
                     // (But note I'm doing this AFTER serializing.)
                     room.find(FIND_CREEPS).forEach(function(creep) {
                       costs.set(creep.pos.x, creep.pos.y, 0xff);
                     });
-                    
+
                     if(pfdebug) console.log('... '+cbRoomName+' new cost matrix');
                     return costs;
                 }
             }
         );
-        
+
     if(pfdebug) console.log(creep.name+' new route len='+pfresult.path.length+' incomplete = '+pfresult.incomplete);
-    
+
     if(pfdebug && pfresult.incomplete){
         console.log(creep.name+' incomplete path '+creep.room.name+' -> '+roomName);
         console.log(creep.name+' current pos='+creep.pos);
         console.log(creep.name+' pathlen = '+pfresult.path.length);
-        
+
         let lastRoom;
         for(let i=0; i<pfresult.path.length; i++){
             if(!lastRoom || pfresult.path[i].roomName != lastRoom){
@@ -1480,20 +1480,20 @@ Creep.prototype.actionMoveToRoomRouted = function( roomName )
     // there.
     if(pfresult.path && pfresult.path.length > 0){
         crmem.mrpath = pfresult.path;
-        
+
         if(pfdebug) console.log('After set crmem.mrpath = '+crmem.mrpath);
-        
+
         rc = creep.moveByPath(pfresult.path);
 
         let initialPos = pfresult.path[0];
         if(initialPos.x == 0 || initialPos.x == 49 || initialPos.y == 0 || initialPos.y == 49) {
-            
+
             if(pfdebug) console.log(creep.name+' .. initial position in lane');
-    
-            
+
+
             crmem.mrpath.shift();
-            
-            
+
+
         }
     }
     return ERR_BUSY;

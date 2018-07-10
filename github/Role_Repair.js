@@ -6,7 +6,7 @@ var RoomHolder      = require('RoomHolder');
 // Role_Repair is a simple worker creep to spawn itself and walk around
 // repairing, when structures get below certain thresholds.
 // It will also build sites, but the intent here is room upgrade not bootstrap.
-// (It has a light MOVE build so needs roads).  We use it to build initial roads in 
+// (It has a light MOVE build so needs roads).  We use it to build initial roads in
 // neighbor remote harvesting rooms -- but there it will primarily move from the
 // DediHarv containers where it finds energy and builds roads away.  (and moves into the
 // room empty so no MOVE for CARRY needed)
@@ -14,9 +14,9 @@ var RoomHolder      = require('RoomHolder');
 
 //----------------------------------------------
 // Some notes on repair efficiency and room needs
-// 
+//
 // Each road in the room decays at a rate of 100 hits every 1000 turns.
-//    More frequently accessed roads decay more frequently based on the 
+//    More frequently accessed roads decay more frequently based on the
 //    number of body parts.  I don't really have any data to say how often
 //    the decay rate is in practice...  lets say 100 hits every 300 turns.
 //    or .3 hits per turn.
@@ -25,7 +25,7 @@ var RoomHolder      = require('RoomHolder');
 //    We typically have 3 of them (controller & 2x source).
 //
 // Each WORK repairs a struct 100 hits on creep.repair(), and consumes 1 E.
-// 
+//
 // Excluding creep repair cost itself and creep efficiency, what is the
 // energy that needs to go into repairing the structures?
 //
@@ -33,7 +33,7 @@ var RoomHolder      = require('RoomHolder');
 //     100 roads * . 3 hits       1 energy
 //                 ---------  *  -----------  = .3 energy
 //                    turn       100 hits          /turn
-//     
+//
 // The average room has 3 containers (controller & 2x source)
 //
 //      3 containers  * 50 hits   * 1 energy
@@ -44,10 +44,10 @@ var RoomHolder      = require('RoomHolder');
 // really that big of a deal.
 //
 // But we do need around 2 energy per turn average repair rate to keep up.
-// 
+//
 // Based on this, I'm going to try using a creep with 2 x WORK, 2 x CARRY
 // (and 2x MOVE) to start with.
-// 
+//
 // If that's more than really needed, watermarks will keep it from being too wasteful.
 //
 // Do note that the cost of the creep itself is 400, so, and additional .26 E /turn.
@@ -108,14 +108,14 @@ class Role_Repair extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, targetRoomName) {
         let room        = spawn.room;
         let controller  = room.controller;
         let body;
         let cost;
         let max;
-        
+
         // Make sure room has reached L3 and at least 8 extensions.
         // (else bootstrappers cover us)
         if(controller.level < 3)
@@ -126,18 +126,18 @@ class Role_Repair extends Creep
             if(exten.length < 10)
                 return false;
         }
-        
+
         // Don't spawn repair bots unless we are below the low watermark
         let trObj  = RoomHolder.get(targetRoomName);
-        
+
         // Wait for a probe or some activity in the room.
         if(!trObj || ! trObj.m_room)
             return false;
-        
+
         let sites  = trObj.getSites();
         let containers = trObj.getContainers();
         let spStorage = hrObj.getSpawnStorage();
- 
+
         // Once we get storage we tend to be able to build some pretty big repair creeps
         // that can starve out storage.  make sure we've built up some to spend.
         // NOTE.. I was very tempted to remove this at one point where a room was failing to
@@ -146,8 +146,8 @@ class Role_Repair extends Creep
         // So... keep that sort of situation in mind if you run into this again.
         if(!spStorage || (spStorage.structureType == STRUCTURE_STORAGE && spStorage.store.energy < 5000))
             return false;
-        
-        
+
+
         if(sites.length == 0 && trObj.m_minRepairPercent > REPAIR_LOW_WATERMARK)
             return false;
 
@@ -161,7 +161,7 @@ class Role_Repair extends Creep
         if(targetRoomName == room.name && !spStorage)
             return false;
 
-        // Choose the body we want and will wait for energy for. 
+        // Choose the body we want and will wait for energy for.
         if(room.energyCapacityAvailable >= BODY_NOSITES_M1_COST){
             body = BODY_NOSITES_M1;
             cost = BODY_NOSITES_M1_COST;
@@ -210,17 +210,17 @@ class Role_Repair extends Creep
         let crname = Creep.spawnCommon(spawn, 'repair', body, max, 0, "", targetRoomName);
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
-        // Initialze memory for the role. 
+
+        // Initialze memory for the role.
         crmem.state = 'moveTargetRoom';
-        
+
         delete crmem.instance;
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -236,7 +236,7 @@ class Role_Repair extends Creep
 	    else{
 	        tRoom = Game.rooms[crmem.homeName];
 	        tName = crmem.homeName;
-	    } 
+	    }
 	    let trObj  = RoomHolder.get(tName);
 	    let rObj   = RoomHolder.get(creep.room.name);
 	    let hrObj  = RoomHolder.get(crmem.homeName);
@@ -248,14 +248,14 @@ class Role_Repair extends Creep
 	    let debug="";
 	    let minStruct;
 	    let minPct;
-	    
+
 	    // Defence
 	    if(this.commonDefence(creep, rObj, hrObj, trObj)){
 	        crmem.state = 'moveTargetRoom';
 	        this.clearTarget();
 	        return;
 	    }
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
@@ -263,21 +263,21 @@ class Role_Repair extends Creep
             //    console.log(Game.time+' '+creep.name+' state='+crmem.state);
 
             switch(crmem.state){
-                
+
             case 'moveTargetRoom':
                 rc=this.actionMoveToRoomRouted(tName);
                 if(rc == OK) {
                     crmem.state = 'pickEnergy';
                     break;
                 }
-                return;     
-                
+                return;
+
             case 'pickEnergy':
                 let dropped = rObj.getDroppedResources();
                 if(dropped && dropped.length > 0){
                     let drop=creep.pos.findClosestByPath
                         (dropped
-                        ,   { filter: function (dr) 
+                        ,   { filter: function (dr)
                                 {
                                     return (   (trObj.m_rmem.keeperRoom || creep.pos.getRangeTo(dr.pos) <= 6)
                                             && dr.resourceType == RESOURCE_ENERGY)
@@ -296,7 +296,7 @@ class Role_Repair extends Creep
                     break;
                 }
                 let sto = trObj.getSpawnStorage();
-                
+
                 if(sto && sto.structureType != STRUCTURE_CONTAINER && !sto.my){
                     // Rare case, but someone left their junk in my room.
                     // destroy it.
@@ -305,13 +305,13 @@ class Role_Repair extends Creep
                     else
                         creep.dismantle(sto);
                 }
-                
+
                 if(sto && sto.structureType == STRUCTURE_STORAGE && sto.store.energy < 2000){
                     // In mining rooms with a single source, repair guys can actually
                     // starve out the room.  Don't let that happen, just sleep a bit.
                     return;
                 }
-                
+
                 if(!sto || sto.store.energy == 0){
                     // In remote harvesting rooms we just source off dediharv
                     // containers.  At home, if we're doing initial builds
@@ -319,7 +319,7 @@ class Role_Repair extends Creep
                     let containers = trObj.getContainers();
                     let container= creep.pos.findClosestByPath
                                     (containers
-                                    ,   { filter: function (st) 
+                                    ,   { filter: function (st)
                                             {
                                                 return (st.store.energy >= 150);
                                             }
@@ -331,7 +331,7 @@ class Role_Repair extends Creep
                 }
                 this.setTarget(sto);
                 crmem.state = 'withdrawStruct';
-                break;    
+                break;
 
             case 'getDropped':
                 rc=this.pickupDropped(RESOURCE_ENERGY);
@@ -363,7 +363,7 @@ class Role_Repair extends Creep
                     crmem.state = 'pickEnergy';
                     return;
                 }
-                crmem.state = 'pickEnergy';                
+                crmem.state = 'pickEnergy';
                 break;
 
             case 'pickBuild':
@@ -376,7 +376,7 @@ class Role_Repair extends Creep
                     crmem.state = 'repairStruct';
                     break;
                 }
-                
+
                 // Check if there are sites to be built, and build.  RoomPlanner
                 // places these and prioritizes for growth. So any site we find.
                 let sites = trObj.getSites();
@@ -409,14 +409,14 @@ class Role_Repair extends Creep
                     return;
                 }
                 break;
- 
+
             case 'pickRepair':
                 let struct;
-                
+
                 // When repairing, we want to fully repair a target to the high
                 // water mark, before switching targets, making it a little different
                 // than many other actions.  the Creep::repairStruct still clears
-                // the target, so we keep a separate variable to preserve a 
+                // the target, so we keep a separate variable to preserve a
                 // target once picked.
                 if(crmem.savedTargetId){
                     // Lookup object and see if it's over high watermark, if so clear.
@@ -430,7 +430,7 @@ class Role_Repair extends Creep
                         break;
                     }
                 }
-                
+
                 // Else we need a new target.
                 // Check if there are sites to repair - something we begin to
                 // need at L3 as we place/build roads.
@@ -446,7 +446,7 @@ class Role_Repair extends Creep
                 crmem.savedTargetId = minStruct.id;
                 crmem.state = 'repairStruct';
                 break;
-                
+
             case 'repairStruct':
                 rc=this.repairStruct();
                 debug = debug+'... rc='+rc+'\n';
@@ -456,7 +456,7 @@ class Role_Repair extends Creep
                     crmem.state = 'pickEnergy';
                 else if(rc == ERR_INVALID_TARGET){
                     let structs = trObj.getAllStructures();
-                    
+
                     // We still have energy but finished with this repair.
                     // Repair tends to bounce us around, so while we're in the
                     // area, look for structs that aren't fully degraded to
@@ -466,8 +466,8 @@ class Role_Repair extends Creep
                     // of opportunity in area.
                     let struct =
                     creep.pos.findClosestByRange
-                        (structs, 
-                            { filter: function (st) 
+                        (structs,
+                            { filter: function (st)
                                 {
                                     if(st.structureType == STRUCTURE_CONTROLLER)
                                         return false;
@@ -486,16 +486,16 @@ class Role_Repair extends Creep
                     else
                         crmem.state = 'pickEnergy';
                 }
-                
+
                 break;
 
-            
+
             case 'moveReclaim':
                 // Head back home to reclaim.  But if we got reassigned to a new division,
                 // turn back to new target.
                 rc = this.actionMoveToRoom(crmem.homeName);
                 if(rc != OK)
-                    return; 
+                    return;
                 let spawns = rObj.getSpawns();
                 if(spawns && spawns.length > 0){
                     if(spawns[0].pos.getRangeTo(creep.pos) <= 1){
@@ -506,7 +506,7 @@ class Role_Repair extends Creep
                         this.actMoveTo(spawns[0]);
                 }
                 return;
-           
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'pickEnergy';
@@ -514,7 +514,7 @@ class Role_Repair extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

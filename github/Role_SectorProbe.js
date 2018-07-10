@@ -19,22 +19,22 @@ class Role_SectorProbe extends Creep
     constructor (creep, crmem)
     {
         super(creep, crmem);
-    }; 
-    
+    };
+
     static spawn( spawn ) {
         let room        = spawn.room;
         let controller  = room.controller;
         let body;
         let cost;
         let max;
-         
-         
+
+
         //----- DISABLED DISABLED DISABLED!!!!
         //--   See the notes in the run routine.
         //------
         return false;
-         
-        // Choose the body we want and will wait for energy for. 
+
+        // Choose the body we want and will wait for energy for.
         if(room.energyCapacityAvailable >= BODY_M1_COST){
             body = BODY_M1;
             cost = BODY_M1_COST;
@@ -42,7 +42,7 @@ class Role_SectorProbe extends Creep
         }
         else
             return true;
-        
+
         // Wait for it, if not yet available
         if(room.energyAvailable < cost)
             return true;
@@ -55,25 +55,25 @@ class Role_SectorProbe extends Creep
         let sd = parsed[3];
         let sv = 10 * ( Math.floor(parsed[4] / 10) ) + 5;
         let centerRoomName = ""+fd+fv+sd+sv;
-        
+
         // Find a free name and spawn the bot.
         // No alt need, not time sensitive.
         let altTime = 0;
         let multispec = "" ;
         let crname = Creep.spawnCommon(spawn, 'sectProbe', body, max, altTime, multispec, centerRoomName, "global");
-        
+
         // if null we must already have it.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
-        // Initialze memory for the role. 
+
+        // Initialze memory for the role.
         crmem.state = 'init';
         delete crmem.instance
         return true;
-    }; 
-    
+    };
+
     setNextRoom()
     {
 	    let crmem = this.m_crmem;
@@ -86,7 +86,7 @@ class Role_SectorProbe extends Creep
         let crfv = Number(parsed[2]);
         let crsd = parsed[3];
         let crsv = Number(parsed[4]);
-        
+
         // Scan rooms - In the same order as reading -- left-right, top to bottom.
         // but starting from the current room (whose position we just parsed)
         let nxfv = crfv;
@@ -107,9 +107,9 @@ class Role_SectorProbe extends Creep
         do {
             // Get coords of next room the check
             nxfv++;
-            if(nxfv == tlfv+11){ 
-                nxfv -= 11; 
-                nxsv++; 
+            if(nxfv == tlfv+11){
+                nxfv -= 11;
+                nxsv++;
                 if(nxsv == tlsv+11){
                     nxsv-=11;
                 }
@@ -119,7 +119,7 @@ class Role_SectorProbe extends Creep
             let nextRoomName = (""+crfd+nxfv +crsd+nxsv);
 
             crmem.nextRoomName = nextRoomName;
-            
+
             // Check to see if a route to this is safe.  If score is over 5,
             // then skip it as we'd have to travel through an unsafe room that
             // would surely kill this creep.
@@ -143,14 +143,14 @@ class Role_SectorProbe extends Creep
             //    console.log('Approved sector probe route, danger='+danger);
             //    console.log('.. route: '+JSON.stringify(route));
             //}
-                
+
             // Get it's memory and determine if we should visit it.
             let rmem = Memory.rooms[nextRoomName];
-            
+
             // If there's no memory at all, clearly yes.
             if(!rmem)
                 return true;
-            
+
             // If we haven't recorded vision time, or it has been 100000 ticks
             // since last visit, then yes.
             if(!rmem.lastVisionT || (Game.time - rmem.lastVisionT)>100000)
@@ -178,7 +178,7 @@ class Role_SectorProbe extends Creep
         } while(nxfv != crfv || nxsv != crsv);
         return false;
     }
-    
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -193,7 +193,7 @@ class Role_SectorProbe extends Creep
 	    let exceed;
 	    let si;
 	    let debug="";
-	    
+
 	    // TBD wow - disabling sector probe halved my CPU... some bug in the longer distance move routines that is causing
 	    // it to thrash.. perhaps not finding a route but keeps trying.  It seems like it was in safe route planning because
 	    // I saw some CPU timeouts specifically in that routine (even when we have bucket failsafe to save cycles, so that one
@@ -202,7 +202,7 @@ class Role_SectorProbe extends Creep
 	    // But for now... these guys are going to just idle...
 	    /// ---- Note, this is also diabled in the spawn routine... once fixed, update there too..
 	    return;
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
@@ -211,25 +211,25 @@ class Role_SectorProbe extends Creep
             //    console.log('T='+Game.time+' '+creep.name+' pos='+creep.pos+' state='+crmem.state+' next='+crmem.nextRoomName);
 
             switch(crmem.state){
-                
+
             case 'init':
                 crmem.state = 'findNextRoom';
-                return;     
-            
+                return;
+
             case 'findNextRoom':
                 // Find next room to visit
                 if(this.setNextRoom())
                     crmem.state = 'moveToRoom';
-                else 
+                else
                     crmem.state = 'idle';
                 break;
-                
+
             case 'moveToRoom':
                 if(creep.pos.x != 0 && creep.pos.x != 49
                    && creep.pos.y !=0 && creep.pos.y != 49
                    && creep.room.controller){
                     let ctrl = creep.room.controller;
-                    if(ctrl && 
+                    if(ctrl &&
                        (!ctrl.sign
                         || (ctrl.sign && ctrl.sign.username && ctrl.sign.username != creep.owner.username)
                        )
@@ -264,7 +264,7 @@ class Role_SectorProbe extends Creep
                     crmem.state = 'moveToRoom';
                 }
                 return;
- 
+
             case 'idle':
                 if(!(crmem.idleRandom))
                     crmem.idleRandom = Math.floor(Math.random()*500);
@@ -279,7 +279,7 @@ class Role_SectorProbe extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

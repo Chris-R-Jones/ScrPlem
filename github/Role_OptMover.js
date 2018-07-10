@@ -16,7 +16,7 @@ class Role_OptMover extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, targetRoomName ) {
         let hRoom        = spawn.room;
         let tRoom        = Game.rooms[targetRoomName];
@@ -24,7 +24,7 @@ class Role_OptMover extends Creep
         let sources      = trObj.getSources();
         let controller   = hRoom.controller;
         let si;
-        
+
         // Make sure room has reached L3 and at least 10 extensions.
         if(controller.level < 3)
             return false;
@@ -35,33 +35,33 @@ class Role_OptMover extends Creep
                 return false;
         }
 
-        // Get storage or container nearest to spawns, if not built yet 
+        // Get storage or container nearest to spawns, if not built yet
         // we're not ready/
         let spStorage = hrObj.getSpawnContainer();
         if(!spStorage)
             return false;
-        
+
         // Don't move energy in neighbors if plan isn't complete. Repair bots need it
         // to build roads.   While it's tempting, don't do this at home.  If we're
         // not getting bootstrapped any longer, then this results in dead room.
         // Distributors need their energy from spawn storage.
         if(!trObj.m_rmem.lastPlanT && targetRoomName != spawn.room.name && ! trObj.isCenterRoom())
             return false;
-            
-        // Loop through sources, each one has its own distance and so 
+
+        // Loop through sources, each one has its own distance and so
         // we need to treat each individually.
         for(si=0; si<sources.length; si++){
             let source = sources[si];
-            
+
             let container = trObj.getDediHarvestContainer(hrObj, source);
             if(!container)
                 continue;
-            let ctpos = container.pos.x+'_'+container.pos.y;    
-                
+            let ctpos = container.pos.x+'_'+container.pos.y;
+
             // See if we stored a source path for this source to that
             // container.
             let path = hrObj.getDediHarvPath(container);
-            
+
             // Body needs to be just big enough to move energy from source
             // to spawn container at the same rate DediHarv generates it.
             // DediHarv generates 10 per turn  (except in source keeper rooms, where it's 14)
@@ -70,7 +70,7 @@ class Role_OptMover extends Creep
             // (Plus any rerouting time)
             // So, the mover needs to be able to carry the 10 times E that
             // is generated in that duration.
-            
+
             let fullPathLen = path.length;
             if(targetRoomName != spawn.room.name){
                 // TBD to do this right and calculate the remainder of the path length
@@ -99,7 +99,7 @@ class Role_OptMover extends Creep
                 perCreepCarryNeeded = Math.floor( (perTripE / 50) / maxCreeps );
                 perCreepMoveNeeded  = Math.ceil( perCreepCarryNeeded / 2);
             }
-        
+
             /*if(hRoom.name == 'E78S97' && source.pos.x == 18 && source.pos.y == 44){
                 console.log('-----');
                 console.log(' path length='+path.length);
@@ -112,7 +112,7 @@ class Role_OptMover extends Creep
                 console.log(' perCreepCarry = '+perCreepCarryNeeded);
                 console.log(' perCreepMove = '+perCreepMoveNeeded);
             }*/
-            
+
             let cost = 50*(perCreepMoveNeeded+perCreepCarryNeeded);
             let body  = [];
             for(let bi=0; bi<perCreepCarryNeeded; bi++)
@@ -123,19 +123,19 @@ class Role_OptMover extends Creep
             // Wait for it, if not yet available.
             if(hRoom.energyAvailable < cost)
                 return true;
-            
+
             // Find a free name and spawn the bot.
             // We need one instance per source, so this is pretty easy.  Do
             // enable alts.
             let altTime = (body.length*3)+fullPathLen*2;
             let crname = Creep.spawnCommon(spawn, 'omover', body, maxCreeps, altTime, ctpos, targetRoomName);
-            
+
             // If null, we hit max creeps.
             if(crname == null)
                 continue;
-            
+
             let crmem  = Memory.creeps[crname];
-            
+
             // Initialze memory for the role.  Also assign a source position
             // from which to harvest, spreading bootstrappers evenly across the
             // harvest positions, based on their instance number.
@@ -148,7 +148,7 @@ class Role_OptMover extends Creep
             // (Where, we will build a container for holding proceeds).  Choose
             // the closest, and hopefully plains.
             let hp = trObj.getDediHarvestPosition(spawn, source);
-            
+
             crmem.tRoomName = targetRoomName;
             crmem.srcX      = source.pos.x;
             crmem.srcY      = source.pos.y;
@@ -157,7 +157,7 @@ class Role_OptMover extends Creep
             crmem.ctrp.y    = container.pos.y;
             crmem.state     = 'moveHpos';
             crmem.pathLen   = fullPathLen;
-    
+
             // TBD - we don't need instance number after spawn logic is complete.
             // then again, leave it for now, just in case :)
             // delete crmem.instance
@@ -166,8 +166,8 @@ class Role_OptMover extends Creep
         return false;
 
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -184,7 +184,7 @@ class Role_OptMover extends Creep
 	    let exceed;
 	    let si;
 	    let debug="";
-	    
+
 	    // Defence
 	    if(this.commonDefence(creep, rObj, hrObj, trObj)){
 	        crmem.state = 'moveHpos';
@@ -195,24 +195,24 @@ class Role_OptMover extends Creep
 
 	        return;
 	    }
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //if(creep.name == 'omover_W14N21_36_120')
             //    console.log('T='+Game.time+creep.name+' pos='+creep.pos+' loop='+exceed+' state='+crmem.state);
-            
+
             switch(crmem.state){
 
             case 'moveHpos':
-                
+
                 // We might get here after a defence mode reset while already carrying a load.
                 // in that case, carry on to dest.
                 if(_.sum(creep.carry) == creep.carryCapacity){
                     crmem.state = 'pickFill';
                     break;
                 }
-                
+
                 if(!crmem.ctrp){
                     console.log(creep.name+' pos='+creep.pos+' BUG! Creep sad. No destination :( ');
                     creep.suicide();
@@ -233,27 +233,27 @@ class Role_OptMover extends Creep
                 else{
                     debug=debug+'rc='+rc+'\n';
                 }
-                return;     
-                
+                return;
+
             case 'pickEnergy':
                 if(creep.room.name != crmem.tRoomName){
                     crmem.state = 'moveHpos';
                     break;
                 }
                 let spawn = hrObj.findTopLeftSpawn();
-                
+
                 if(!(trObj.m_room)){
                     crmem.state = 'moveHpos';
                     return;
                 }
-                
+
                 let sources = trObj.getSources();
                 let source;
 
 
                 for(si=0; si<sources.length; si++){
-                    if(sources[si].pos.x == crmem.srcX 
-                       && sources[si].pos.y == crmem.srcY) 
+                    if(sources[si].pos.x == crmem.srcX
+                       && sources[si].pos.y == crmem.srcY)
                     {
                        source = sources[si];
                        break;
@@ -261,23 +261,23 @@ class Role_OptMover extends Creep
                 }
                 if(!source)
                     return;
-                
+
                 let container = trObj.getDediHarvestContainer(hrObj, source);
                 if(!container){
                     // Container not built yet, need to wait.
                     return;
                 }
-                    
+
                 this.setTarget(container);
                 crmem.state = 'withdrawStruct';
-                break;    
+                break;
 
             case 'withdrawStruct':
                 let tgt = Game.getObjectById(crmem.targetId);
-                
+
                 rc=this.withdrawStruct(RESOURCE_ENERGY);
                 debug = debug + " rc= "+rc+"\n";
-                    
+
                 if(rc == ERR_FULL || (tgt && tgt.store.energy < 15) || rc == ERR_NOT_ENOUGH_RESOURCES) {
                     // We filled but container is empty.  Generally we'll just
                     // start heading back.  But particularly in SK rooms, there
@@ -287,13 +287,13 @@ class Role_OptMover extends Creep
                     this.clearTarget();
                     if(_.sum(creep.carry) < creep.carryCapacity){
                         let dropped = trObj.getDroppedResources();
-                        
+
                         if(dropped && dropped.length > 0){
                             let di;
                             let drop;
                             for(di=0; di<dropped.length; di++){
                                 drop = dropped[di];
-                                if(creep.pos.getRangeTo(drop.pos) <= 6 
+                                if(creep.pos.getRangeTo(drop.pos) <= 6
                                    && drop.resourceType == RESOURCE_ENERGY){
                                     this.setTarget(drop);
                                     crmem.state = 'getDropped';
@@ -302,7 +302,7 @@ class Role_OptMover extends Creep
                             }
                         }
                     }
-                    
+
                     crmem.state = 'pickFill';
                     return;
                 }
@@ -312,19 +312,19 @@ class Role_OptMover extends Creep
                     crmem.state = 'pickEnergy';
                     return;
                 }
-                crmem.state = 'pickEnergy';                
+                crmem.state = 'pickEnergy';
                 break;
 
             case 'getDropped':
-                
+
                 if(_.sum(creep.carry) >= (creep.carryCapacity-100)){
                     this.clearTarget();
                     crmem.state = 'pickFill';
                     break;
                 }
-                
+
                 // Note we generally get here after filling from struct
-                // and so want to proceed to filling the home after a 
+                // and so want to proceed to filling the home after a
                 // best attempt to pickup.
                 rc=this.pickupDropped(RESOURCE_ENERGY);
                 if(rc == ERR_FULL){
@@ -339,14 +339,14 @@ class Role_OptMover extends Creep
                 break;
 
             case 'pickFill':
-                
+
                 let spStorage = hrObj.getSpawnContainer();
                 let trm;
-                
+
                 if(!spStorage)
                     return;
                 trm = hrObj.getTerminal();
-                
+
                 if(!trm && _.sum(spStorage.store) == spStorage.storeCapacity){
                     if(spStorage.structureType == STRUCTURE_CONTAINER){
                         // We tend to glut the early rooms, move straight to controller.
@@ -362,7 +362,7 @@ class Role_OptMover extends Creep
                     }
                     return;
                 }
-                
+
                 if(trm && (trm.store[RESOURCE_ENERGY]*3 < spStorage.store[RESOURCE_ENERGY])){
                     this.setTarget(trm);
                 }
@@ -387,7 +387,7 @@ class Role_OptMover extends Creep
                     if(crmem.pathLen && creep.ticksToLive < ((2*crmem.pathLen)+15)){
                         crmem.state = 'recycle';
                         break;
-                    }                    
+                    }
                     crmem.state = 'pickEnergy';
                     break;
                 }
@@ -409,7 +409,7 @@ class Role_OptMover extends Creep
                     }
                 }
                 break;
-                
+
             default:
                 console.log('BUG! Unrecognized creep state='+crmem.state+' for creep='+creep.name);
                 crmem.state = 'pickEnergy';
@@ -417,7 +417,7 @@ class Role_OptMover extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+'pos='+creep.pos+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+'pos='+creep.pos+' exceeded max loops\n'+debug);
 	}
 }
 

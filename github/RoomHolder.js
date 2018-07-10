@@ -12,27 +12,27 @@ class RoomHolder
         else
             g_mySpawnRooms.length = 0;
     }
-    
+
     static getAllRooms(){
         return g_rooms;
     }
-    
+
     static get( roomName ) {
         return g_rooms[roomName];
     }
-    
+
     static set ( roomName, robj ) {
         g_rooms[roomName] = robj;
     }
-    
+
     static addMySpawnRoom( rObj ){
-        g_mySpawnRooms.push(rObj); 
+        g_mySpawnRooms.push(rObj);
     }
-    
+
     static getMySpawnRooms(){
         return g_mySpawnRooms;
     }
-    
+
 }
 
 module.exports = RoomHolder;

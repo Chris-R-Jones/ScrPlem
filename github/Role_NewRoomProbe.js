@@ -18,7 +18,7 @@ class Role_NewRoomProbe extends Creep
     {
         super(creep, crmem);
     };
-    
+
     static spawn( spawn, hrObj, homeRoomName, targetRoomName ) {
         let hRoom        = spawn.room;
         let trObj        = RoomHolder.get(targetRoomName);
@@ -26,7 +26,7 @@ class Role_NewRoomProbe extends Creep
         let body;
         let cost;
         let max;
-        
+
         if(hRoom.controller.level < 3)
             return false;
 
@@ -35,14 +35,14 @@ class Role_NewRoomProbe extends Creep
 
         if(tRoom)   // If we already have vision, don't need it.
             return;
-            
-        // Choose the body we want and will wait for energy for. 
+
+        // Choose the body we want and will wait for energy for.
         if(hRoom.energyCapacityAvailable >= BODY_M1_COST){
             body = BODY_M1;
             cost = BODY_M1_COST;
             max = 1;
         }
-        
+
         // Wait for it, if not yet available
         if(hRoom.energyAvailable < cost)
             return true;
@@ -51,21 +51,21 @@ class Role_NewRoomProbe extends Creep
         // No alt need, not time sensitive.
         let crname = Creep.spawnCommon(spawn, 'nrprobe', body, max, 0, targetRoomName);
 
-        
+
         // if null we must already have it.
         if(crname == null)
             return false;
-        
+
         let crmem  = Memory.creeps[crname];
-        
-        // Initialze memory for the role. 
+
+        // Initialze memory for the role.
         crmem.state = 'init';
         crmem.tRoomName = targetRoomName;
         delete crmem.instance
         return true;
     };
-    
-    
+
+
     // Logic callback invoked to have a creep run it's actions - derived from
     // base Creep class (a 'virtual function' or whatever you call it in JS).
 	runLogic()
@@ -79,23 +79,23 @@ class Role_NewRoomProbe extends Creep
 	    let exceed;
 	    let si;
 	    let debug="";
-	    
+
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             switch(crmem.state){
-                
+
             case 'init':
                 crmem.state = 'moveA';
-                return;     
-            
+                return;
+
             case 'moveA':
                 if(this.actionMoveToRoomRouted(crmem.tRoomName) == OK){
                     crmem.state = 'linger';
                     break;
                 }
                 return;
-           
+
            case 'linger':
                 if(creep.room.name != crmem.tRoomName){
                     crmem.state = 'moveA';
@@ -106,7 +106,7 @@ class Role_NewRoomProbe extends Creep
                 let sites = crObj.getSites();
                 let site = creep.pos.findClosestByRange
                            (sites
-                            ,   { filter: function (st) 
+                            ,   { filter: function (st)
                                     {
                                         return !(st.my);
                                     }
@@ -116,7 +116,7 @@ class Role_NewRoomProbe extends Creep
                     this.setTarget(site);
                     crmem.state = 'walkEnemySite';
                     break;
-                }              
+                }
                 return;
 
             case 'walkEnemySite':
@@ -136,7 +136,7 @@ class Role_NewRoomProbe extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);   
+	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
 	}
 }
 

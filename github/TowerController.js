@@ -6,12 +6,12 @@ class TowerController
         let friendlies = rObj.getFriendlies();
         let bestFCloseCount = 0;
         let bestHCreep;
-        
+
         let walls = rObj.getRampartsWalls();
         for(let hi=0; hi<hostiles.length; hi++){
             let hCreep = hostiles[hi];
             let wallDist;
-            
+
             let wall = hCreep.pos.findClosestByRange(walls);
             //if(wall)
             //    console.log('Found wall '+wall+' pos='+wall.pos);
@@ -19,21 +19,21 @@ class TowerController
                 wallDist = 0;
             else
                 wallDist = wall.pos.getRangeTo(hCreep);
-            
+
             let fCloseCount = 0;
             for(let fi=0; fi<friendlies.length; fi++){
                 if(friendlies[fi].pos.getRangeTo(hCreep) <= 3)
                     fCloseCount++;
             }
-            
+
             //console.log('Consider '+hCreep+' close='+fCloseCount+' dist='+wallDist);
-            
+
             // Don't both firing on hostiles unless they are close to
             // walls and thus turrets for maximum damage, or they are
             // getting supported by nearby friendly creeps.
             if(fCloseCount == 0 && wallDist > 2)
                 continue;
-            
+
             if(!bestHCreep || fCloseCount > bestFCloseCount){
                 bestHCreep = hCreep;
                 bestFCloseCount = fCloseCount;
@@ -43,7 +43,7 @@ class TowerController
         //console.log('returning '+bestHCreep);
         return bestHCreep;
     }
-    
+
     static towerRun(rObj, towers, hostiles, wounded)
     {
         // Our basic approach with towers is
@@ -58,10 +58,10 @@ class TowerController
         //
         //   3) Pick the healer if there is one.  If you can't
         //      whack the healer, you probably can't whack anything.
-        
+
         //   4) Once you engage, lock on for at least 8 turns,
         //      or til they leave.
-        
+
         //    Otherwise, we risk room bounce.  With 8T we stand
         // a burning chance of getting them.   Once we lock on,
         // blast them for 8 turns.
@@ -85,9 +85,9 @@ class TowerController
 
             let rmem = rObj.m_rmem;
             let hCreep;
-  
+
             //console.log(rObj.m_room.name+' towers attacking: ');
-  
+
             // If we had a target last turn, see if it is still damaged.
             // If it hasn't managed to heal completely, keep pounding it
             if(rmem.lastTowerTargetId)
@@ -110,14 +110,14 @@ class TowerController
                 if(rmem.lastTowerTargetId){
                     //console.log('   ... Clearing previous target - dead.');
                     delete rmem.lastTowerTargetId;
-                }    
+                }
                 hCreep = this.findBestTarget(rObj, towers, hostiles);
                 if(hCreep){
                     //console.log('   ... Targetting creep '+hCreep+' owner='+hCreep.owner.username);
                     //console.log(rObj.m_room.name+'   ... Firing...');
                     rmem.lastTowerTargetId = hCreep.id;
                     for (let ti=0; ti<towers.length; ti++){
-                        if(towers[ti].energy > 0)                    
+                        if(towers[ti].energy > 0)
                             towers[ti].attack(hCreep);
                     }
                 }

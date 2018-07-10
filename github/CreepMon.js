@@ -53,7 +53,7 @@ class CreepMon {
         g_creeps = {}
         if(!Memory.creeps)
             Memory.creeps = {}
-        
+
         g_roleCounts = { bootmove: 0
                        , chemist: 0
                        , claim: 0
@@ -83,14 +83,14 @@ class CreepMon {
                        , milOmni: 0
                        , milAtkDecon: 0
                        , milAtkHeal: 0
-                       
+
                        , tstHeal: 0
                        , tstDecon: 0
                        , tstGrunt: 0
                        };
-                       
+
         let nCreeps = 0;
-        
+
         for(let crName in Game.creeps){
             let creep = Game.creeps[crName];
             let crmem = Memory.creeps[crName];
@@ -107,7 +107,7 @@ class CreepMon {
             if(creepObj)
                 creepObj.refreshObj(creep,crmem);
             else {
-                
+
                 // Increase per-role counters
                 if(! g_roleCounts[crmem.role] && g_roleCounts[crmem.role] != 0) {
                     console.log('Warning, uninitialized g_roleCounts for role='+crmem.role+' val='+g_roleCounts[crmem.role]);
@@ -115,7 +115,7 @@ class CreepMon {
                 }
                 else
                     g_roleCounts[crmem.role]++;
-                
+
                 switch(crmem.role){
                     case 'bootmove':
                         creepObj = new Role_BootMover(creep,crmem);
@@ -186,7 +186,7 @@ class CreepMon {
                     case 'tfill':
                         creepObj = new Role_TowerFill(creep,crmem);
                         break;
-                        
+
                     case 'milDecon':
                         creepObj = new Mil_Decon(creep,crmem);
                         break;
@@ -204,8 +204,8 @@ class CreepMon {
                         break;
                     case 'milAtkHeal':
                         creepObj = new Mil_AtkBoostHeal(creep,crmem);
-                        break;       
-                        
+                        break;
+
                     case 'tstHeal':
                         creepObj = new Role_TstHeal(creep,crmem);
                         break;
@@ -215,7 +215,7 @@ class CreepMon {
                     case 'tstGrunt':
                         creepObj = new Role_TstGrunt(creep,crmem);
                         break;
-                        
+
                     default:
                         console.log('BUG! no newTick() entry for role='
                                     +crmem.role
@@ -226,7 +226,7 @@ class CreepMon {
             }
         }
         Grafana.logNCreeps(nCreeps, g_roleCounts);
-        
+
         // Search for creeps that are dead, and clean them up.
         for(let crName in Memory.creeps){
             if(Game.creeps[crName])
@@ -244,14 +244,14 @@ class CreepMon {
 	//-------------------------------------------------------------
     // Creep logic main loop.
     //----------------------------------------------------------------------
-	
+
 	// Invoked once per tick to loop through all economy creeps, processing
 	// their actions.
 	static econCreepLoop()
 	{
 	    for(let crName in g_creeps){
 	        let creepObj = g_creeps[crName];
-	        
+
 	        // Don't run 'test' creep logic.  See testCreepLoop
 	        if(creepObj.m_crmem.role == 'test')
 	            continue;
@@ -260,14 +260,14 @@ class CreepMon {
 	        creepObj.runLogic();
 	    }
 	}
-	
+
 	// Invoked once per tick to loop through test creep actions.
 	// (This allows us to do testing without impacting other creep activities.)
 	static testCreepLoop()
 	{
 	    for(let crName in g_creeps){
 	        let creepObj = g_creeps[crName];
-	        
+
 	        if(creepObj.m_crmem.role != 'test')
 	            continue;
 	        if(creepObj.m_creep.spawning)
@@ -276,7 +276,7 @@ class CreepMon {
 	    }
 	}
 
-	
+
 };
 
 
