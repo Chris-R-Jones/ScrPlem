@@ -151,7 +151,11 @@ class Role_Repair extends Creep
         if(sites.length == 0 && trObj.m_minRepairPercent > REPAIR_LOW_WATERMARK)
             return false;
 
-        if(targetRoomName != room.name && containers.length == 0)
+        // We'll spawn in keeper rooms even without containers to help the dediharvs get
+        // established.  This tends to be important when first starting -as the keepers
+        // 'walk' over the construction site dumping E... which can then be used to
+        // help boot it up more quickly by repair.
+        if(!trObj.m_rmem.keeperRoom && targetRoomName != room.name && containers.length == 0)
             return false;
 
         if(targetRoomName == room.name && !spStorage)
@@ -271,19 +275,20 @@ class Role_Repair extends Creep
             case 'pickEnergy':
                 let dropped = rObj.getDroppedResources();
                 if(dropped && dropped.length > 0){
-                    let di;
-                    let drop;
-                    for(di=0; di<dropped.length; di++){
-                        drop = dropped[di];
-                        if(creep.pos.getRangeTo(drop.pos) <= 6 
-                           && drop.resourceType == RESOURCE_ENERGY){
-                            this.setTarget(drop);
-                            crmem.state = 'getDropped';
-                            break;
-                        }
-                    }
-                    if(di != dropped.length)
+                    let drop=creep.pos.findClosestByPath
+                        (dropped
+                        ,   { filter: function (dr) 
+                                {
+                                    return (   (trObj.m_rmem.keeperRoom || creep.pos.getRangeTo(dr.pos) <= 6)
+                                            && dr.resourceType == RESOURCE_ENERGY)
+                                }
+                            }
+                        );
+                    if(drop){
+                        this.setTarget(drop);
+                        crmem.state = 'getDropped';
                         break;
+                    }
                 }
 
                 if(crmem.tRoomName && creep.room.name != crmem.tRoomName){
