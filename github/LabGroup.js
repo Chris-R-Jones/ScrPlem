@@ -505,7 +505,10 @@ class LabGroup
         let loadList = Preference.loadList;
 
         // Focus on production unless we have a war need to load.
-        if(!Preference.warPrep && !rmem.assaultLastT || (Game.time - rmem.assaultLastT) > 200000){
+        if(   g_product
+           && !Preference.warPrep 
+           && ( !rmem.assaultLastT || (Game.time - rmem.assaultLastT) > 200000 )
+           ){
             loadList = [];
         }
 
@@ -602,7 +605,10 @@ class LabGroup
         let loadList = Preference.loadList;
 
         // Focus on production unless we have a war need to load.
-        if(!Preference.warPrep && !rmem.assaultLastT || (Game.time - rmem.assaultLastT) > 200000){
+        if(   g_product
+           && !Preference.warPrep 
+           && ( !rmem.assaultLastT || (Game.time - rmem.assaultLastT) > 200000 )
+           ){
             loadList = [];
         }
 
