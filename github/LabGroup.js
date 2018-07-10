@@ -234,6 +234,13 @@ class LabGroup
                 console.log('.. r2='+bestR2);
                 console.log('.. lev='+bestLev);
                 console.log('.. deficit='+bestDeficit);
+
+                /* Save history of last 40 production orders */
+                if(!Memory.chemHistory)
+                    Memory.chemHistory = [];
+                Memory.chemHistory.push(bestProduct);
+                if(Memory.chemHistory.length > 40)
+                    Memory.chemHistory.shift();
             }
             else
                 console.log('Found nothing to produce');
