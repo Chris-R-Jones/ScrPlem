@@ -154,10 +154,6 @@ class LabGroup
                     console.log('Consider r1='+r1+'... skip - totals='+totals[r1]);
                 continue;
             }
-            if(starvedRooms[r1]){
-                console.log('Consider r1='+r1+'... skip - '+starvedRooms[r1]+' starved rooms');
-                continue;
-            }
 
             for(let r2 in REACTIONS[r1]) {
                 let r2Lev = this.productLevel(r2);
@@ -173,11 +169,6 @@ class LabGroup
                         console.log('Consider r1='+r1+'... skip - totals='+totals[r1]);
                     continue;
                 }
-                if(starvedRooms[r2]){
-                    console.log('Consider r1='+r1+', r2='+r2+'... skip - '+starvedRooms[r2]+' starved rooms');
-                    continue;
-                }
-
                 let prod = REACTIONS[r1][r2];
 
                 if(this.inProdExcludeList(prod)){
@@ -192,6 +183,19 @@ class LabGroup
                 if(lev != 6 && (totals[prod]/nTerminals)>1000){
                     console.log('Consider r1='+r1+', r2='+r2+'... skip, product < final and over 1000 avg');
                     continue;    
+                }
+
+                /* Intentionally putting these starvation checks here rather than earlier - because
+                 * there some products that are on exclude list also tend to be starved... but starvation
+                 * isn't the real problem.
+                 */
+                if(starvedRooms[r1]){
+                    console.log('Consider r1='+r1+'... skip - '+starvedRooms[r1]+' starved rooms');
+                    continue;
+                }
+                if(starvedRooms[r2]){
+                    console.log('Consider r1='+r1+', r2='+r2+'... skip - '+starvedRooms[r2]+' starved rooms');
+                    continue;
                 }
 
                 if(totals[prod] > 0)
