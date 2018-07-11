@@ -209,7 +209,7 @@ class Role_Linker extends Creep
                     if(rsc == RESOURCE_ENERGY || !Preference.storageExodus) {
                         // We always want to keep at least 500 units in terminal
                         // for exchanges & balancing. Beyond that, we try to keep a ratio of 3/1.
-                        if( (trmU+stoU) < 4000 ) {
+                        if( (trmU+stoU) < 2000 ) {
                             if(trmU < 500){
                                 diff = (500-trmU);
                                 if(diff > stoU)

@@ -247,7 +247,13 @@ class LabGroup
         /* Save history of last 40 production orders */
         if(!Memory.chemHistory)
             Memory.chemHistory = [];
-        Memory.chemHistory.push(bestProduct ? bestProduct : "skip");
+        let histStr = "skip";
+        if(bestProduct) {
+            histStr = ""+bestR1+"("+(totals[bestR1]/nTerminals)+") + "
+                        +bestR2+"("+(totals[bestR2]/nTerminals)+") -> "
+                        +bestProduct+"("+(totals[bestProduct]/nTerminals);
+        }
+        Memory.chemHistory.push(histStr);
         if(Memory.chemHistory.length > 40)
             Memory.chemHistory.shift();
 

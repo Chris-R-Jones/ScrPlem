@@ -20,7 +20,7 @@ var PlemPref = {
     // For selecting room to bootstrap, and primary room that drives it.
     hostRoomName: 'E4N47',
     bootRoomName: 'E7N49',
-    bootEnabled:  true  ,
+    bootEnabled:  false  ,
 
     // Whether to 'exodus' goods toward terminal for sale or transfer.
     storageExodus: false,

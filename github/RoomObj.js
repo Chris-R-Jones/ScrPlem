@@ -1438,11 +1438,11 @@ RoomObj.roomSummaryReport = function ()
             wrn = wrn + " UPGRADING="+progress+"%";
         }
 
-        if(room.name == 'W9N26'){
-            let breached = roomObj.getBreached();
-            if(breached)
-                wrn = wrn + " BREACHED";
-        }
+        // Note that the following does show 'breached' if there is an opening to
+        // a neighbor room that itself is closed off.  Not going to tackle that for now..
+        let breached = roomObj.getBreached();
+        if(breached)
+            wrn = wrn + " BREACHED";
 
         console.log(roomObj.m_room.name +' L'+ctrl.level+' '+wrn);
     }
