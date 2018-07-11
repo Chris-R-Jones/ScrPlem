@@ -1194,11 +1194,13 @@ RoomObj.prototype.getDefenceMatrix = function( )
         //    Else set cost to 2 to represent plains
         let t = (Game.map.getTerrainAt(pos.x,pos.y,rname));
         if(t == 'plains')
-            costs.set(x,y,2);
+            costs.set(pos.x,pos.y,2);
         else if (t == 'swamp')
-            costs.set(x,y,5);
-        else
-            console.log("BUG! got walls, shouldn't get here");
+            costs.set(pos.x,pos.y,5);
+        else {
+            console.log("BUG! pos="+JSON.stringify(pos)+" got terrain "+t+", shouldn't get here");
+            return null;
+        }
 
         // c) for each adjacent position:
         //    - if position is exit lane - mark matrix as breached.
@@ -1213,9 +1215,9 @@ RoomObj.prototype.getDefenceMatrix = function( )
                 else if( (y+dy) == 0 || (y+dy) == 49 )
                     this.m_breached = true;
                 else{
-                    let c = costs.get(x+dx,y+dy);
+                    let c = costs.get(pos.x+dx,pos.y+dy);
                     if(c == 0)
-                        visitStack.push( {x: (x+dx), y: (y+dy) } )
+                        visitStack.push( {x: (pos.x+dx), y: (pos.y+dy) } )
                 }
             }
         }
@@ -1435,9 +1437,11 @@ RoomObj.roomSummaryReport = function ()
             wrn = wrn + " UPGRADING="+progress+"%";
         }
 
-        let breached = roomObj.getBreached();
-        if(breached)
-            wrn = wrn + " BREACHED";
+        if(room.name == 'W9N26'){
+            let breached = roomObj.getBreached();
+            if(breached)
+                wrn = wrn + " BREACHED";
+        }
 
         console.log(roomObj.m_room.name +' L'+ctrl.level+' '+wrn);
     }
