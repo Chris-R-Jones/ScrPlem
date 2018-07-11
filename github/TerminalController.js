@@ -283,6 +283,7 @@ class TerminalController
                 let bestCost;
                 let bestPrice;
                 let bestAmount;
+                let bestIsNPC;
                 for(let oi=0; oi<orders.length; oi++){
                     let o = orders[oi];
 
