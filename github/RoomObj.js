@@ -1172,12 +1172,12 @@ RoomObj.prototype.getDefenceMatrix = function( )
     }
 
     // 3) Visit all wall structures, setting: TerrainWall = 255, Rampart = 20
-    this.m_rampartsWalls.forEach(function(st)){
+    this.m_rampartsWalls.forEach(function(st){
         if(st.structureType == STRUCTURE_WALL)
             costs.set(st.pos.x,st.pos.y,0xFF);
         else
             costs.set(st.pos.x,st.pos.y,20);
-    }
+    })
 
     // 4) Push spawn position on stack.
     let sp = this.findTopLeftSpawn();
@@ -1223,28 +1223,28 @@ RoomObj.prototype.getDefenceMatrix = function( )
 
     // 7) Visit all structures.  If the cost is zero, skip it (leave as zero for step 8)
     //    Else if road, set to matrix to 1, or for unwakable structures, set to 255.
-    this.m_allStruct.forEach(function(st)){
-        if(costs.get(st.pos.x, st.pos.y) == 0 )
-            continue;
-        switch(st.structureType){
-        case STRUCTURE_ROAD:
-            costs.set(st.pos.x, st.pos.y, 1);
-            break;
-        case STRUCTURE_CONTAINER:
-            // Walkable, just leave at whatever else was set
-            break;
-        case STRUCTURE_WALL:
-            // Walkable, should already have set this.
-            break;
-        case STRUCTURE_RAMPART:
-            // Walkable, should already have set this.
-            break;
-        default:
-            // Should be an unwalkable struct
-            costs.set(st.pos.x, st.pos.y, 0xFF);
-            break;
+    this.m_allStruct.forEach(function(st){
+        if(costs.get(st.pos.x, st.pos.y) != 0 ) {
+            switch(st.structureType){
+            case STRUCTURE_ROAD:
+                costs.set(st.pos.x, st.pos.y, 1);
+                break;
+            case STRUCTURE_CONTAINER:
+                // Walkable, just leave at whatever else was set
+                break;
+            case STRUCTURE_WALL:
+                // Walkable, should already have set this.
+                break;
+            case STRUCTURE_RAMPART:
+                // Walkable, should already have set this.
+                break;
+            default:
+                // Should be an unwalkable struct
+                costs.set(st.pos.x, st.pos.y, 0xFF);
+                break;
+            }
         }
-    }
+    })
 
     // 8) Walk through all of the matrix.  For any 0-value entries
     //    set value to 0xFF.

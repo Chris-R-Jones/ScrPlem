@@ -238,7 +238,6 @@ class Role_Chemist extends Creep
                             // Don't bother unless there's enough to make it worth the roundtrip
                             if(_.sum(tomb.store) >= 10*creep.pos.getRangeTo(tomb.pos)){
                                 this.setTarget(tomb);
-                                console.log(creep.name+' DEBUG going after tomb '+creep.pos);
                                 crmem.state = 'getTomb';
                                 break;
                             }
