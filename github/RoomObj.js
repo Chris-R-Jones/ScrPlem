@@ -1126,7 +1126,7 @@ RoomObj.prototype.isCenterAccessRoom = function( )
 // Returns if the room's walls are breached.
 RoomObj.prototype.getBreached = function( )
 {
-    getDefenceMatrix();
+    this.getDefenceMatrix();
     return this.m_breached;
 }
 
@@ -1193,7 +1193,7 @@ RoomObj.prototype.getDefenceMatrix = function( )
         // b) Check static terrain if swamp.  Set cost to 5 if so.
         //    Else set cost to 2 to represent plains
         let t = (Game.map.getTerrainAt(pos.x,pos.y,rname));
-        if(t == 'plains')
+        if(t == 'plain')
             costs.set(pos.x,pos.y,2);
         else if (t == 'swamp')
             costs.set(pos.x,pos.y,5);
@@ -1210,10 +1210,11 @@ RoomObj.prototype.getDefenceMatrix = function( )
             for(let dy=-1; dy<=1; dy++){
                 if(dx == 0 && dy == 0)
                     continue;
-                if( (x+dx) == 0 || (x+dx) == 49 )
-                    this.m_breached = true;
-                else if( (y+dy) == 0 || (y+dy) == 49 )
-                    this.m_breached = true;
+                if( (pos.x+dx) == 0 || (pos.x+dx) == 49 || (pos.y+dy) == 0 || (pos.y+dy) == 49 ) {
+                    let t2 = (Game.map.getTerrainAt(pos.x+dx,pos.y+dy,rname));
+                    if(t2 != 'wall')
+                        this.m_breached = true;
+                }
                 else{
                     let c = costs.get(pos.x+dx,pos.y+dy);
                     if(c == 0)
