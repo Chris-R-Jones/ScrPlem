@@ -239,6 +239,14 @@ class TerminalController
 
         // Find something to sell
         if( !found && srTrm && !srTrm.cooldown && Preference.enableSales  ) {
+
+            let bestOrder;
+            let bestCostRatio;
+            let bestCost;
+            let bestPrice;
+            let bestAmount;
+            let bestIsNPC;
+
             for(let rsc in srTrm.store){
 
                 //if(srObj.m_room.name == 'W8N28')
@@ -278,12 +286,6 @@ class TerminalController
 
                 // Find best order cost
                 let orders = Game.market.getAllOrders({type: ORDER_BUY, resourceType: rsc});
-                let order;
-                let bestCostRatio;
-                let bestCost;
-                let bestPrice;
-                let bestAmount;
-                let bestIsNPC;
                 for(let oi=0; oi<orders.length; oi++){
                     let o = orders[oi];
 
@@ -295,6 +297,8 @@ class TerminalController
 
                     if(!isNPC && Preference.npcOnly )
                         continue;
+                    if(o.price < .08 && !isNPC)
+                        continue;
 
                     // Our goal is to keep all terminals below 4500.  Don't sell if it would
                     // put us below an average goods level to achieve that.
@@ -304,37 +308,40 @@ class TerminalController
 
                     if ( oAmount > srTrm.store[rsc] )
                         oAmount = srTrm.store[rsc];
-                    if( oAmount > o.amount )
+                    if ( oAmount > o.amount )
                         oAmount = o.amount;
 
                     let cost = Game.market.calcTransactionCost(oAmount,srObj.m_room.name, o.roomName);
                     let costRatio = cost/oAmount;
-                    if( (!bestPrice || o.price > bestPrice)
-                        || (bestPrice == o.price && (!bestCostRatio || costRatio<bestCostRatio))){
-                        order=o;
+
+                    if( !bestRsc
+                        || ( rsc == bestRsc 
+                             && ( o.price > bestPrice 
+                                  || (bestPrice == o.price && (!bestCostRatio || costRatio<bestCostRatio))
+                                )
+                           )
+                        || ( rsc != bestRsc && oAmount > bestAmount )
+                      ) {
+                        bestOrder=o;
                         bestIsNPC = isNPC;
                         bestCostRatio=costRatio;
+                        bestRsc=rsc;
                         bestCost=cost;
                         bestPrice=o.price;
                         bestAmount=oAmount;
-                        //console.log('New best price='+o.price+' cost='+cost+' costRatio='+costRatio+ ' rsc='+rsc+' amount='+oAmount);
+                        console.log('New best rsc='+bestRsc+' price='+o.price+' cost='+cost+' costRatio='+costRatio+ ' rsc='+rsc+' amount='+oAmount);
                     }
                 }
+            }
 
-                //if(srObj.m_room.name == 'W8N28')
-                //    console.log('... ... best price='+bestPrice);
-
-                if(!bestPrice || ( bestPrice < .08 && !bestIsNPC ) )
-                    continue;
-
-                let rc=Game.market.deal(order.id, bestAmount, srObj.m_room.name);
+            if(bestOrder) {
+                let rc=Game.market.deal(bestOrder.id, bestAmount, srObj.m_room.name);
                 if(rc == 0){
-                    //console.log('term store='+srTrm.store[rsc]+' id='+srTrm.id);
                     console.log(Game.time+' '+ srObj.m_room.name+' Executing sell '+bestAmount
-                               +' '+order.resourceType+' price='+order.price+' cost='+bestCost
-                               +' costRatio='+bestCostRatio+' order amount='+order.amount
-                               +' id='+order.id
-                               +' toRoom='+order.roomName
+                               +' '+bestOrder.resourceType+' price='+bestOrder.price+' cost='+bestCost
+                               +' costRatio='+bestCostRatio+' order amount='+bestOrder.amount
+                               +' id='+bestOrder.id
+                               +' toRoom='+bestOrder.roomName
                                +' termStore='+srTrm.store[rsc]
                                +' energy='+srTrm.store[RESOURCE_ENERGY]
                                );
@@ -342,7 +349,7 @@ class TerminalController
                     break;
                 }
                 else{
-                    console.log('RC='+rc+' amount='+bestAmount+' o.amount='+order.amount+' oid='+order.id+' good='+order.resourceType+' srTrmStore='+srTrm.store[rsc]);
+                    console.log('RC='+rc+' amount='+bestAmount+' o.amount='+bestOrder.amount+' oid='+bestOrder.id+' good='+bestOrder.resourceType+' srTrmStore='+srTrm.store[rsc]);
                 }
             }
         }
