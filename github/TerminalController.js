@@ -240,17 +240,40 @@ class TerminalController
         // Find something to sell
         if( !found && srTrm && !srTrm.cooldown && Preference.enableSales  ) {
             for(let rsc in srTrm.store){
-                if(!srTrm.store[rsc] || srTrm.store[rsc]<=4500)
-                    continue;
-
-                if(rsc.length > 1 || rsc == 'G')
-                    continue;
 
                 //if(srObj.m_room.name == 'W8N28')
                 //    console.log('... consider sale of '+rsc+' store='+srTrm.store[rsc]+' avg='+allTotals[rsc]/nTerminal);
+                if(rsc.length > 1 || rsc == 'G')
+                    continue;
 
-                // Make our goods level is above 4500 per terminal average.
-                if( (trmTotals[rsc]/nTerminal) <= 4500 )
+                // HOW MUCH DO WE WANT TO STOCKIPLE VERSUS SELL?
+                // Generally, it's good to stockpile the basic goods so that we never starve
+                // chemical production.
+                // However... stockpiling lots of each of the 7 basic minerals quickly adds up.
+                // Storing 5000 of each good is more than 10% of the terminal capacity.
+                //
+                // I'll take the approach that we'll store up to 20000 of each good (5000 in terminal, 15000
+                // in storage) generally.  but if the terminal exceeds 250K, we'll back this down to
+                // 4000 total (1000 in terminal, 3000 in storage).  We'll have to see if that that's 'enough' 
+                // in most cases to pad production pretty well (I suspect so).
+                let rscAvg = (allTotals[rsc]/nTerminal);
+                let targetLevel;
+
+                if(_.sum(srTrm.store) >= 250000)
+                    targetLevel = 4000;
+                else
+                    targetLevel = 20000;
+
+                let roomTot = 0;
+                if(srTrm.store[rsc])
+                    roomTot += srTrm.store[rsc];
+                if(srSto.store[rsc])
+                    roomTot += srSto.store[rsc];
+                if(roomTot <= targetLevel)
+                    continue;
+                if(rscAvg <= targetLevel)
+                    continue;
+                if(!srTrm.store[rsc])
                     continue;
 
                 // Find best order cost
@@ -267,25 +290,20 @@ class TerminalController
                         continue;
 
                     let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(o.roomName);
-                    //console.log('Try parse '+o.roomName+' json='+JSON.stringify(parsed));
                     let isNPC = ((parsed[1] % 10 === 0) && (parsed[2] % 10 === 0));
 
-                    if(!isNPC && Preference.npcOnly ){
-                        //console.log('Skip non NPC order'+o.roomName);
+                    if(!isNPC && Preference.npcOnly )
                         continue;
-                    }
-                    //else {
-                    //    console.log('OK order'+o.roomName+' isNPC='+isNPC+' preference='+Preference.npcOnly);
-                    //}
 
                     // Our goal is to keep all terminals below 4500.  Don't sell if it would
                     // put us below an average goods level to achieve that.
                     // Our linkers will drop/dispose goods above 5000 if the terminals are getting full, and
                     // this gives us an opportunity to slowly try to selloff before hitting that limit.
-                    let oAmount = (srTrm.store[rsc]-4500);
-                    if(oAmount > (nTerminal*1000))
-                        oAmount = nTerminal*1000;
-                    if(oAmount > o.amount)
+                    let oAmount = roomTot - targetLevel;
+
+                    if ( oAmount > srTrm.store[rsc] )
+                        oAmount = srTrm.store[rsc];
+                    if( oAmount > o.amount )
                         oAmount = o.amount;
 
                     let cost = Game.market.calcTransactionCost(oAmount,srObj.m_room.name, o.roomName);
@@ -293,6 +311,7 @@ class TerminalController
                     if( (!bestPrice || o.price > bestPrice)
                         || (bestPrice == o.price && (!bestCostRatio || costRatio<bestCostRatio))){
                         order=o;
+                        bestIsNPC = isNPC;
                         bestCostRatio=costRatio;
                         bestCost=cost;
                         bestPrice=o.price;
@@ -304,7 +323,7 @@ class TerminalController
                 //if(srObj.m_room.name == 'W8N28')
                 //    console.log('... ... best price='+bestPrice);
 
-                if(!bestPrice || bestPrice < .08)
+                if(!bestPrice || ( bestPrice < .08 && !bestIsNPC ) )
                     continue;
 
                 let rc=Game.market.deal(order.id, bestAmount, srObj.m_room.name);
