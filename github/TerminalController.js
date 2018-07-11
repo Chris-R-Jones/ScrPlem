@@ -44,6 +44,17 @@ class TerminalController
 
             nTerminal++;
 
+            let labs = roomObj.getLabs();
+            for(let li=0; li<labs.length; li++){
+                let lab = labs[li];
+                if(lab.mineralType && lab.mineralAmount){
+                    good = lab.mineralType;
+                    if(!allTotals[good])
+                        allTotals[good] = 0;
+                    allTotals[good] += lab.mineralAmount;
+                }
+            }
+
             let ri;
             for (ri=0; ri<RESOURCES_ALL.length; ri++){
                 good = RESOURCES_ALL[ri];
