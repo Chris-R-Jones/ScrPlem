@@ -91,6 +91,9 @@ function RoomObj ( room, rmem ) {
     if(this.m_labGroup)
         delete this.m_labGroup;
 
+    if(this.m_defenceMatrix)
+        delete this.m_defenceMatrix;
+
     // If rmem is null, this is a brand spanking new room.  Give it a
     // memory (initially we don't have to have any variables 'always' but
     // do store into it so we do need the object).
@@ -1119,6 +1122,141 @@ RoomObj.prototype.isCenterAccessRoom = function( )
     return false;
 }
 
+
+// Returns if the room's walls are breached.
+RoomObj.prototype.getBreached = function( )
+{
+    getDefenceMatrix();
+    return this.m_breached;
+}
+
+// Builds a cost matrix for movement in the room when in defence from hostiles.
+// Also determines if the room is breached.
+RoomObj.prototype.getDefenceMatrix = function( )
+{
+    if(this.m_defenceMatrix)
+        return this.m_defenceMatrix;
+
+    // Algorithm is to 'flood' out from spawn to try to figure out what
+    // coordinates are inside walls.
+
+    // 1) Start with a zeroed matrix.
+    // 2) Fill with static terrain values for walls.  TerrainWall = 255
+    // 3) Visit all wall structures, setting: TerrainWall = 255, Rampart = 20
+    // 4) Push spawn position on stack.
+    // 5) While stack not empty:
+    //    a) pop node.
+    //    b) Check static terrain if swamp.  Set cost to 5 if so.
+    //       Else set cost to 2 to represent plains
+    //    c) for each adjacent position:
+    //       - if position is exit lane - mark matrix as breached.
+    //       - if node is wall or rampart, skip it
+    //       - if position isn't visited (value is 0), push on stack
+    // 7) Visit all structures.  If the cost is zero, skip it (leave as zero for step 8)
+    //    Else if road, set to matrix to 1, or for unwakable structures, set to 255.
+    // 8) Walk through all of the matrix.  For any 0-value entries
+    //    set value to 0xFF.
+
+    // 1) Start with zeroed matrix
+    costs = new PathFinder.CostMatrix;
+    this.m_breached = false;
+
+    // 2) Fill with static terrain values for walls.
+    let rname = this.m_room.name;
+    for(let x=1; x<=48; x++){
+        for(let y=1; y<= 48; y++){
+            let t = (Game.map.getTerrainAt(x,y,rname));
+            if(t == 'wall')
+                costs.set(x,y,0xff);
+        }
+    }
+
+    // 3) Visit all wall structures, setting: TerrainWall = 255, Rampart = 20
+    this.m_rampartsWalls.forEach(function(st)){
+        if(st.structureType == STRUCTURE_WALL)
+            costs.set(st.pos.x,st.pos.y,0xFF);
+        else
+            costs.set(st.pos.x,st.pos.y,20);
+    }
+
+    // 4) Push spawn position on stack.
+    let sp = this.findTopLeftSpawn();
+    visitStack = [ ];
+    visitStack.push(sp.pos);
+
+    // 5) While stack not empty:
+    while(visitStack.length != 0){
+
+        // a) pop position.
+        pos = visitStack.pop();
+
+        // b) Check static terrain if swamp.  Set cost to 5 if so.
+        //    Else set cost to 2 to represent plains
+        let t = (Game.map.getTerrainAt(pos.x,pos.y,rname));
+        if(t == 'plains')
+            costs.set(x,y,2);
+        else if (t == 'swamp')
+            costs.set(x,y,5);
+        else
+            console.log("BUG! got walls, shouldn't get here");
+
+        // c) for each adjacent position:
+        //    - if position is exit lane - mark matrix as breached.
+        //    - if node is wall or rampart, skip it
+        //    - if position isn't visited (value is 0), push on stack
+        for(let dx=-1; dx<=1; dx++){
+            for(let dy=-1; dy<=1; dy++){
+                if(dx == 0 && dy == 0)
+                    continue;
+                if( (x+dx) == 0 || (x+dx) == 49 )
+                    this.m_breached = true;
+                else if( (y+dy) == 0 || (y+dy) == 49 )
+                    this.m_breached = true;
+                else{
+                    let c = costs.get(x+dx,y+dy);
+                    if(c == 0)
+                        visitStack.push( {x: (x+dx), y: (y+dy) } )
+                }
+            }
+        }
+    }
+
+    // 7) Visit all structures.  If the cost is zero, skip it (leave as zero for step 8)
+    //    Else if road, set to matrix to 1, or for unwakable structures, set to 255.
+    this.m_allStruct.forEach(function(st)){
+        if(costs.get(st.pos.x, st.pos.y) == 0 )
+            continue;
+        switch(st.structureType){
+        case STRUCTURE_ROAD:
+            costs.set(st.pos.x, st.pos.y, 1);
+            break;
+        case STRUCTURE_CONTAINER:
+            // Walkable, just leave at whatever else was set
+            break;
+        case STRUCTURE_WALL:
+            // Walkable, should already have set this.
+            break;
+        case STRUCTURE_RAMPART:
+            // Walkable, should already have set this.
+            break;
+        default:
+            // Should be an unwalkable struct
+            costs.set(st.pos.x, st.pos.y, 0xFF);
+            break;
+        }
+    }
+
+    // 8) Walk through all of the matrix.  For any 0-value entries
+    //    set value to 0xFF.
+    for(let x=1; x<=48; x++){
+        for(let y=1; y<= 48; y++){
+            if(costs.get(x,y) == 0 )
+                costs.set(x,y,0xff);
+        }
+    }
+    this.m_defenceMatrix = costs;
+}
+
 //-------------------------------------------------------------
 // Room spawn logic handling
 //----------------------------------------------------------------------
@@ -1296,6 +1434,10 @@ RoomObj.roomSummaryReport = function ()
             let progress = Math.floor(room.controller.progress / room.controller.progressTotal * 1000000)/10000;
             wrn = wrn + " UPGRADING="+progress+"%";
         }
+
+        let breached = roomObj.getBreached();
+        if(breached)
+            wrn = wrn + " BREACHED";
 
         console.log(roomObj.m_room.name +' L'+ctrl.level+' '+wrn);
     }
