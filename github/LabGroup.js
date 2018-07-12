@@ -108,7 +108,7 @@ class LabGroup
         for (let ri=0; ri<RESOURCES_ALL.length; ri++){
 	        let good = RESOURCES_ALL[ri];
 
-	        if(this.inProdExcludeList(good))
+	        if(this.inProdExcludeList(good) || good == 'power')
 	            continue;
 
             let level = this.productLevel(good);
@@ -123,7 +123,7 @@ class LabGroup
 
                     if(missingSummary != "")
                         missingSummary = ", "+missingSummary;
-                    missingSummary = missingSummary + good + "(" + totals[good]/nTerminals + ")";
+                    missingSummary = "" + good + "(" + totals[good]/nTerminals + ")" + missingSummary;
                 }
             }
         }
