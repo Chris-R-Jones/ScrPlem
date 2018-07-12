@@ -106,27 +106,35 @@ class LabGroup
             levNG[level]=0;
         }
         for (let ri=0; ri<RESOURCES_ALL.length; ri++){
-	        let good = RESOURCES_ALL[ri];
+            let good = RESOURCES_ALL[ri];
 
-	        if(this.inProdExcludeList(good) || good == 'power')
-	            continue;
+            if(this.inProdExcludeList(good) || good == 'power')
+                continue;
 
             let level = this.productLevel(good);
             if(totals[good])
                 levTot[level] += totals[good];
             levNG[level]++;
 
-            if(!totals[good] || (totals[good]/nTerminals) < 500){
+            if(!totals[good] || (totals[good]/nTerminals) < 500 || (starvedRooms[good] && starvedRooms[good] > 0)){
                 for(let li=level; li<7; li++){
                     missing[li] = good;
                     fullCapacity[li] = false;
 
+                    console.log('Formatting '+li+' good='+good+' before='+missingSummary);
                     if(missingSummary != "")
                         missingSummary = ", "+missingSummary;
-                    missingSummary = "" + good + "(" + totals[good]/nTerminals + ")" + missingSummary;
+                    let starvedStr;
+                    if(starvedRooms[good] && starvedRooms[good] > 0)
+                        starvedStr = "[STARVED]";
+                    else
+                        starvedStr = "";
+                    missingSummary = ("" + good + starvedStr + "(" + totals[good]/nTerminals + ")" + missingSummary);
+                    console.log('Formatting '+li+' good='+good+' after='+missingSummary);
                 }
             }
         }
+
         for (let level=0; level<7; level++){
             if(levNG[level] > 0)
                 levAvg[level] = levTot[level] / levNG[level];
