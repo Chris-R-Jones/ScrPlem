@@ -246,6 +246,7 @@ class TerminalController
             let bestPrice;
             let bestAmount;
             let bestIsNPC;
+            let bestRsc;
 
             for(let rsc in srTrm.store){
 
@@ -342,11 +343,10 @@ class TerminalController
                                +' costRatio='+bestCostRatio+' order amount='+bestOrder.amount
                                +' id='+bestOrder.id
                                +' toRoom='+bestOrder.roomName
-                               +' termStore='+srTrm.store[rsc]
+                               +' termStore='+srTrm.store[bestRsc]
                                +' energy='+srTrm.store[RESOURCE_ENERGY]
                                );
                     found = true;
-                    break;
                 }
                 else{
                     console.log('RC='+rc+' amount='+bestAmount+' o.amount='+bestOrder.amount+' oid='+bestOrder.id+' good='+bestOrder.resourceType+' srTrmStore='+srTrm.store[rsc]);
