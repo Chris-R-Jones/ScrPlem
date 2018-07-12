@@ -100,6 +100,7 @@ class LabGroup
         let levTot=[];
         let levNG=[];
         let levAvg=[];
+        let missingSummary="";
         for (let level=0; level<7; level++){
             levTot[level]=0;
             levNG[level]=0;
@@ -119,6 +120,10 @@ class LabGroup
                 for(let li=level; li<7; li++){
                     missing[li] = good;
                     fullCapacity[li] = false;
+
+                    if(missingSummary != "")
+                        missingSummary = ", "+missingSummary;
+                    missingSummary = missingSummary + good + "(" + totals[good]/nTerminals + ")";
                 }
             }
         }
@@ -247,7 +252,7 @@ class LabGroup
         /* Save history of last 40 production orders */
         if(!Memory.chemHistory)
             Memory.chemHistory = [];
-        let histStr = "skip";
+        let histStr = "skip. missing=[ "+missingSummary+" ]";
         if(bestProduct) {
             histStr = ""+bestR1+"("+(totals[bestR1]/nTerminals)+") + "
                         +bestR2+"("+(totals[bestR2]/nTerminals)+") -> "
