@@ -373,14 +373,21 @@ class TerminalController
                 //   While we're checking, this is also a good time to check if
                 // the chemistry cycle should be completed.
                 if(Memory.chemistry){
-                    if(good == Memory.chemistry.product)
+                    if(good == Memory.chemistry.product) {
+                        if(good.length <= 4 && allTotals[good]/nTerminal >= 1750){
+                            console.log('T='+Game.time+' Terminating production cycle.  Product '+good+' avgLevel='+allTotals[good]/nTerminal);
+                            delete Memory.chemistry;
+                        }
+                        else if(Game.time%50==0)
+                            console.log('T='+Game.time+' Continuing production cycle.  Product '+good+' avgLevel='+allTotals[good]/nTerminal);
                         continue;
+                    }
                     if(good == Memory.chemistry.r1 || good == Memory.chemistry.r2){
                         if(allTotals[good]/nTerminal < 450){
                             console.log('T='+Game.time+' Terminating production cycle.  Good '+good+' avgLevel='+allTotals[good]/nTerminal);
                             delete Memory.chemistry;
                         }
-                        if(Game.time%50==0)
+                        else if(Game.time%50==0)
                             console.log('T='+Game.time+' Continuing production cycle.  Good '+good+' avgLevel='+allTotals[good]/nTerminal);
 
                         continue;
