@@ -142,7 +142,6 @@ class Squad
         let crObj = this.m_creeps[0];
         let crCoord = new RoomCoord(crObj.m_creep.room.name);
         let fromCoord = new RoomCoord(fromRoom);
-        console.log('Squad '+this.m_sqName+' consider dist to '+fromRoom+' result = '+linearDist);
         let linearDist = (crCoord.xDist(fromCoord) + crCoord.yDist(fromCoord));
         return linearDist;
     }

@@ -71,7 +71,7 @@ var PlemPref = {
     areaSignText: "[Ypsilon Pact] Reserved for YP",
 
     // Generalissimo attack orders.
-    //debugMilitary: 'E9N48',       // false, 'verbose', or roomName
+    debugMilitary: true,                 // true (basic division/squad reporting) , false, 'verbose', or roomName
     attackOrders: { 'W14N21': false, 'W14N20':false, 'W16N20':false ,'W15N20':false, 'E9N48':false, 'E9N49':false, 'E8N48':false, 'E9N47':false, 'E8N49':false, 'E7N49': false, 'E7N48': false },
     attackFromRooms: [ 'W13N25','W12N26','W8N22', 'W9N19','W11N22', 'W11N23' ], // [ 'W8N22', 'W6N22' ],
     attackBoosted: false,
