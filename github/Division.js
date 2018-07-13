@@ -431,6 +431,15 @@ class Division
 
     considerSquad(squad)
     {
+        // Is this even possible? Seems like it is - we check stand down before
+        // calling considerSquad (sounds wrong ??)
+        if(squad.m_creeps.length < 1)
+            return false;
+
+        // For now, only accept squads if they are within 5 rooms distant (linear)
+        // In the future - perhaps extend this depending on importance/size of threat.
+        if(squad.roomDistance(this.m_tgtRoomName) > 5)
+            return false;
 
         let dAttack = this.m_bodCt[ATTACK] ? this.m_bodCt[ATTACK] : 0;
         let dRanged = this.m_bodCt[RANGED_ATTACK] ? this.m_bodCt[RANGED_ATTACK] : 0;

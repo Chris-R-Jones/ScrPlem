@@ -1,4 +1,5 @@
 var Preference = require('Preference');
+var RoomCoord  = require('RoomCoord');
 
 const SQ_ORDER_INIT       = 0;
 const SQ_ORDER_STAND_DOWN = 1;
@@ -127,6 +128,23 @@ class Squad
         // attack orders, and only to calculate/advance/retreat the
         // squad rally position.
         // console.log('DBG squad '+this.m_sqName+' giveOrders()');
+    }
+
+    // Return linear distance between the room these creeps are in
+    // and the passed room.  (used for example to see if the squad
+    // should join a distant division
+    roomDistance( fromRoom )
+    {
+        // So far we don't really have a 'lead' creep in the squad
+        // although that's the long term goal.  Just pick a creep.
+        if(this.m_creeps.length == 0)
+            return 1000;
+        let crObj = this.m_creeps[0];
+        let crCoord = new RoomCoord(crObj.m_creep.room.name);
+        let fromCoord = new RoomCoord(fromRoom);
+        console.log('Squad '+this.m_sqName+' consider dist to '+fromRoom+' result = '+linearDist);
+        let linearDist = (crCoord.xDist(fromCoord) + crCoord.yDist(fromCoord));
+        return linearDist;
     }
 
 };
