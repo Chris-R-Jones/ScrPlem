@@ -695,6 +695,8 @@ RoomObj.prototype.getHostiles = function()
         this.m_rmem.hostileCt    = 0;
         this.m_rmem.hostileOwner = m_hostiles[0].owner.username;
         this.m_rmem.hostileLastT = Game.time;
+        if(!this.m_rmem.hostileStartT)
+            this.m_rmem.hostileStartT = Game.time;
         if(m_hostiles[0].owner.username != 'Invader'){
             this.m_rmem.assaultOwner = m_hostiles[0].owner.username;
             this.m_rmem.assaultLastT = Game.time;
@@ -729,11 +731,14 @@ RoomObj.prototype.getHostiles = function()
     }
     else{
         delete this.m_rmem.hostileCt;
-
-        //delete this.m_rmem.hostileOwner; -- keep these to decide whether to stand down.. tbd for a limited time.
-        //delete this.m_rmem.hostileLastT; --
+        delete this.m_rmem.hostileStartT;
         delete this.m_rmem.hostileBodCt;
         delete this.m_rmem.hostileBoostCt;
+
+        // Don't delete the following - they are used to decide whether to stand down and gives a history
+        // of what the recent attack was.
+        //delete this.m_rmem.hostileLastT;
+        //delete this.m_rmem.hostileOwner;
     }
     return m_hostiles;
 }

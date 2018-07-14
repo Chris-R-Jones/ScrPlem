@@ -2,6 +2,7 @@
 var Squad      = require('Squad');
 var RoomHolder = require('RoomHolder');
 var Preference = require('Preference');
+var RoomCoord  = require('RoomCoord');
 
 const ORDER_OBSERVE = 1;
 const ORDER_DEFENCE = 2;
@@ -266,7 +267,7 @@ class Division
 
         // On invader attacks, we generally don't need heal, attack/ranged
         // will do it- they can always retreat to home healing.
-        if(rmem.hostileCt <= 3 && ( rmem.hostileOwner == 'Invader' || rmem.hostileOwner == 'Screeps'))
+        if((rmem.hostileCt && rmem.hostileCt <= 3) && ( rmem.hostileOwner == 'Invader' || rmem.hostileOwner == 'Screeps'))
             nHeal = 0;
 
         // On bigger attacks especially nonuser, boost our numbers
@@ -371,17 +372,24 @@ class Division
         let spCoord = new RoomCoord(spawnRoomName);
         let tgtCoord = new RoomCoord(this.m_tgtRoomName);
         let linearDist = (spCoord.xDist(tgtCoord) + spCoord.yDist(tgtCoord));
-        if(rmem && rmem.hostileCt <= 3 && rmem.hostileOwner == 'Invader'
+        if(rmem && rmem.hostileCt && rmem.hostileCt <= 3 && rmem.hostileOwner == 'Invader'
            && (rmem.hostRoom != spawnRoomName && this.m_tgtRoomName != spawnRoomName)
-           && (Game.time-rmem.hostileLastT) <= (linearDist * 30)
+           && (Game.time-rmem.hostileStartT) <= (linearDist * 30)
            ) {
             let hostObj = RoomHolder.get(rmem.hostRoom);
             if(hostObj && hostObj.m_room.controller.level >= 5)
                 return null;
+            console.log('DBG 1 - gave host room a chance');
         }
 
-        console.log('DBG SPAWN ALLOWING HELP elapsed='+(Game.time-rmem.hostileLastT)+' dist='+linearDist
-                   +' tgt='+this.m_tgtRoomName+' helper='+spawnRoomName);
+        if(spawnRoomName != rmem.hostRoom && spawnRoomName != this.m_tgtRoomName){
+            console.log('DBG SPAWN ALLOWING HELP elapsed='+(Game.time-rmem.hostileStartT)+' dist='+linearDist
+                       +'\n\t tgt='+this.m_tgtRoomName+'\n\thelper='+spawnRoomName
+                       +'\n\t rmem.hostileCt='+rmem.hostileCt
+                       +'\n\t rmem.hostileOwner='+rmem.hostileOwner
+                       +'\n\t rmem.hostRoom='+rmem.hostRoom
+                       );
+        }
 
         let dAttack = this.m_bodCt[ATTACK] ? this.m_bodCt[ATTACK] : 0;
         let dRanged = this.m_bodCt[RANGED_ATTACK] ? this.m_bodCt[RANGED_ATTACK] : 0;
