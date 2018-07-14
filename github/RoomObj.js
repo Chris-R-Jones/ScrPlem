@@ -695,8 +695,7 @@ RoomObj.prototype.getHostiles = function()
         this.m_rmem.hostileCt    = 0;
         this.m_rmem.hostileOwner = m_hostiles[0].owner.username;
         this.m_rmem.hostileLastT = Game.time;
-        if(!this.m_rmem.hostileStartT)
-            this.m_rmem.hostileStartT = Game.time;
+            
         if(m_hostiles[0].owner.username != 'Invader'){
             this.m_rmem.assaultOwner = m_hostiles[0].owner.username;
             this.m_rmem.assaultLastT = Game.time;
@@ -706,6 +705,7 @@ RoomObj.prototype.getHostiles = function()
         let boostCt = {};
         for(let hi=0; hi<m_hostiles.length; hi++){
             let host = m_hostiles[hi];
+            let hBodCt = {}
             for(let bi=0; bi<host.body.length; bi++){
                 let bodEl = host.body[bi];
                 let btype = bodEl.type;
@@ -714,6 +714,10 @@ RoomObj.prototype.getHostiles = function()
                     bodCt[btype]=1;
                 else
                     bodCt[btype]++;
+                if(!hBodCt[btype])
+                    hBodCt[btype]=1;
+                else
+                    hBodCt[btype]++;
                 if(boost) {
                     if(!boostCt[btype])
                         boostCt[btype]=1;
@@ -721,15 +725,25 @@ RoomObj.prototype.getHostiles = function()
                         boostCt[btype]++;
                 }
             }
+            // TBD.. Why am I excluding certain creeps from this, should document it... I
+            // guess just not to overreact when some probe walks in?? hmm...
+            if(hBodCt[ATTACK]>0 || hBodCt[RANGED_ATTACK]>0 || hBodCt[HEAL] > 0 || hBodCt[WORK] > 0)
+                this.m_rmem.hostileCt++;            
         }
-        // TBD.. Why am I excluding certain creeps from this, should document it... I
-        // guess just not to overreact when some probe walks in?? hmm...
-        if(bodCt[ATTACK]>0 || bodCt[RANGED_ATTACK]>0 || bodCt[HEAL] > 0 || bodCt[WORK] > 0)
-            this.m_rmem.hostileCt++;
+
         this.m_rmem.hostileBodCt = bodCt;
         this.m_rmem.hostileBoostCt = boostCt;
+
+        if(!this.m_rmem.hostileStartT){
+            this.m_rmem.hostileStartT = Game.time;
+            if(Preference.debugMilitary && this.m_rmem.hostileOwner != 'Source Keeper' && (this.m_rmem.owner == 'me' || this.m_rmem.hostRoom))
+                console.log('T='+Game.time+' Room '+this.m_room.name+' hostilities begin! '+this.m_rmem.hostileCt+' attackers ('+m_hostiles[0].owner.username+')');
+        }
     }
     else{
+        if(this.m_rmem.hostileStartT && this.m_rmem.hostileOwner != 'Source Keeper' && Preference.debugMilitary && (this.m_rmem.owner == 'me' || this.m_rmem.hostRoom))
+            console.log('T='+Game.time+' Room '+this.m_room.name+' hostilities ended after '+(Game.time - this.m_rmem.hostileStartT)+' ticks');
+
         delete this.m_rmem.hostileCt;
         delete this.m_rmem.hostileStartT;
         delete this.m_rmem.hostileBodCt;

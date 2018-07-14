@@ -43,10 +43,55 @@ class Mil_Omni extends Creep
         let targetRoomName = division.m_tgtRoomName;
         let hRoom        = spawn.room;
         let tRoom        = Game.rooms[targetRoomName];
+        let trObj        = RoomHolder.get(targetRoomName);
         let controller   = hRoom.controller;
+        let body;
         let cost;
 
-        // Omnis are somewhat balanced ranged attack and tough, plus move.
+        // If this is a fairly isolated invader attack without healing, we
+        // want to reply as quickly as possible, and minimize the size/cost/time to spawn.
+        // We can just match the attacking invader's body counts and exceed by 1.
+        if(hRoom.controller.level >= 7
+           && trObj.m_rmem.hostileCt == 1
+           && trObj.m_rmem.hostileOwner == 'Invader'
+           && !trObj.m_rmem.hostileBodCt[HEAL]
+           ) {
+            let ni;
+            let mlen;
+            let tCt,rCt,aCt,mCt;
+            let hBCt = trObj.m_rmem.hostileBodCt;
+            let hOCt = trObj.m_rmem.hostileBoostCt;
+            
+            // The following assumes that invaders only boost with 2x boosts.  (I think that's true!?)
+            // If they boost with acids or worst catalyzed acids, this needs revisit..
+            // (I have seen catalyzed ones in the SK rooms... in groups -- not single invaders)
+            body = [];
+            cost = 0;
+            
+            tCt = (hBCt[TOUGH] ? hBCt[TOUGH] : 0) + (hOCt[TOUGH] ? hOCt[TOUGH] : 0)+1;  
+            rCt = (hBCt[RANGED_ATTACK] ? hBCt[RANGED_ATTACK] : 0) + (hOCt[RANGED_ATTACK] ? hOCt[RANGED_ATTACK] : 0)+1;
+            aCt = (hBCt[ATTACK] ? hBCt[ATTACK] : 0) + (hOCt[ATTACK] ? hOCt[ATTACK] : 0)+1;  
+            mCt = (tCt+rCt+aCt);
+            for(ni=0; ni<tCt; ni++){
+                body.push(TOUGH);
+                cost += BODYPART_COST[TOUGH];
+            }
+            for(ni=0; ni<mCt; ni++){
+                body.push(MOVE);
+                cost += BODYPART_COST[MOVE];
+            }
+            for(ni=0; ni<rCt; ni++){
+                body.push(RANGED_ATTACK);
+                cost += BODYPART_COST[RANGED_ATTACK];
+            }
+            for(ni=0; ni<aCt; ni++){
+                body.push(ATTACK);
+                cost += BODYPART_COST[ATTACK];
+            }
+            
+        }
+
+        // Otherwise... omnis are somewhat balanced ranged attack and tough, plus move.
         // RANGED=150
         // ATTACK=80
         // TOUGH=10
@@ -55,8 +100,7 @@ class Mil_Omni extends Creep
         //   N x [ TOUGH, RANGED, ATTACK, MOVE, MOVE, MOVE ]
         //     = (N x 390)
 
-        let body;
-        if(hRoom.controller.level == 8){
+        else if(hRoom.controller.level == 8){
             body = BODY_CL8;
             cost = BODY_CL8_COST;
         }

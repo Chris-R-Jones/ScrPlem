@@ -266,9 +266,24 @@ class Division
         nWork = 0;
 
         // On invader attacks, we generally don't need heal, attack/ranged
-        // will do it- they can always retreat to home healing.
-        if((rmem.hostileCt && rmem.hostileCt <= 3) && ( rmem.hostileOwner == 'Invader' || rmem.hostileOwner == 'Screeps'))
-            nHeal = 0;
+        // will do it- they can always retreat to home healing.  Further we'll try to tune to '1 more than'.  See 
+        // similar code in omni.
+        if((rmem.hostileCt && rmem.hostileCt <= 3) && ( rmem.hostileOwner == 'Invader' || rmem.hostileOwner == 'Screeps')){
+            
+            if(!rmem.hostileBodCt[HEAL]){
+                nHeal = 0;
+                if(_.sum(rmem.hostileBoostCt)==0){
+                    nAttack = rmem.hostileBodCt[ATTACK]+1;
+                    nRanged = rmem.hostileBodCt[RANGED_ATTACK]+1;
+                }
+                else {
+                    // I don't think invaders ever boost with acids - only basic compounds and so 2x power.
+                    // (Might need to revisit that..)
+                    nAttack = rmem.hostileBodCt[ATTACK]*2 + 1;
+                    nRanged = rmem.hostileBodCt[RANGED_ATTACK]*2 + 1;
+                }
+            }
+        }
 
         // On bigger attacks especially nonuser, boost our numbers
         else if (rmem.hostileOwner != 'Invader' && rmem.hostileOwner != 'Screeps' && rmem.owner != "none" && rmem.owner != "nouser"){
@@ -379,10 +394,9 @@ class Division
             let hostObj = RoomHolder.get(rmem.hostRoom);
             if(hostObj && hostObj.m_room.controller.level >= 5)
                 return null;
-            console.log('DBG 1 - gave host room a chance');
         }
 
-        if(spawnRoomName != rmem.hostRoom && spawnRoomName != this.m_tgtRoomName){
+        if(false && rmem.hostileCt && spawnRoomName != rmem.hostRoom && spawnRoomName != this.m_tgtRoomName){
             console.log('DBG SPAWN ALLOWING HELP elapsed='+(Game.time-rmem.hostileStartT)+' dist='+linearDist
                        +'\n\t tgt='+this.m_tgtRoomName+'\n\thelper='+spawnRoomName
                        +'\n\t rmem.hostileCt='+rmem.hostileCt
