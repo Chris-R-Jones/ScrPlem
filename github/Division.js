@@ -363,17 +363,25 @@ class Division
         // react more quickly.  But if it doesn't react within 50 ticks of
         // friendly creeps leaving the room (which is generally around 75
         // ticks of becoing hostile then help out.  It's probably either
-        // too busy or somehow incapable.
+        // too busy or somehow incapable.  Let neighboring rooms help out
+        // at increasing distance with how long it has been hostile.
+        // (Each 30 turns, allow rooms at distance 1 more room away)
         let rmem = this.m_tgtRoomMem;
         let trObj = this.m_trObj;
+        let spCoord = new RoomCoord(spawnRoomName);
+        let tgtCoord = new RoomCoord(this.m_tgtRoomName);
+        let linearDist = (spCoord.xDist(tgtCoord) + spCoord.yDist(tgtCoord));
         if(rmem && rmem.hostileCt <= 3 && rmem.hostileOwner == 'Invader'
            && (rmem.hostRoom != spawnRoomName && this.m_tgtRoomName != spawnRoomName)
-           && (Game.time-rmem.hostileLastT)<50
+           && (Game.time-rmem.hostileLastT) <= (linearDist * 30)
            ) {
             let hostObj = RoomHolder.get(rmem.hostRoom);
             if(hostObj && hostObj.m_room.controller.level >= 5)
                 return null;
         }
+
+        console.log('DBG SPAWN ALLOWING HELP elapsed='+(Game.time-rmem.hostileLastT)+' dist='+linearDist
+                   +' tgt='+this.m_tgtRoomName+' helper='+spawnRoomName);
 
         let dAttack = this.m_bodCt[ATTACK] ? this.m_bodCt[ATTACK] : 0;
         let dRanged = this.m_bodCt[RANGED_ATTACK] ? this.m_bodCt[RANGED_ATTACK] : 0;
