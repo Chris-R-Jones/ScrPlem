@@ -63,6 +63,7 @@ class Role_Test extends Creep
 	    let creep = this.m_creep;
 	    let hRoom  = Game.rooms[crmem.homeName];
 	    let hrObj  = RoomHolder.get(hRoom.name);
+	    let rObj  = RoomHolder.get(creep.room.name);
 	    let rc;
 	    let maxLoop = 5;
 	    let exceed;
@@ -72,7 +73,7 @@ class Role_Test extends Creep
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
-            //console.log('T='+Game.time+' '+creep.name+' pos='+creep.pos);
+            //console.log('T='+Game.time+' '+creep.name+' pos='+creep.pos+' state='+crmem.state);
 
             switch(crmem.state){
 
@@ -81,34 +82,48 @@ class Role_Test extends Creep
                 return;
 
             case 'moveA':
-                if(this.actionMoveToRoomRouted(Preference.testR1) == OK){
+                if(creep.pos.x != 9 || creep.pos.y != 19)
+                    creep.moveTo(9,19);
+                else
                     crmem.state = 'moveB';
-                    break;
-                }
                 return;
 
             case 'moveB':
-                if(this.actionMoveToRoomRouted(Preference.testR2) == OK){
+                if(creep.pos.x != 6 || creep.pos.y != 41)
+                    creep.moveTo(6,41);
+                else
                     crmem.state = 'moveC';
-                    break;
-                }
                 return;
 
             case 'moveC':
-                if(this.actionMoveToRoomRouted(Preference.testR3) == OK){
+                if(creep.pos.x != 14 || creep.pos.y != 34)
+                    creep.moveTo(14,34);
+                else
                     crmem.state = 'moveD';
-                    break;
-                }
+                return;
+
+            case 'moveD':
+                if(creep.pos.x != 6 || creep.pos.y != 41)
+                    creep.moveTo(6,41);
+                else
+                    crmem.state = 'moveA';
+                return;
+
+            case 'moveE':
+                let tgtPos = new RoomPosition(14,34,creep.room.name);
+                //Game.getObjectById('5982fe5eb097071b4adc0c93');
+                let rc = this.defenceMatMove(tgtPos);
+                console.log('... defMove rc ='+rc);
+                crmem.state = 'moveA';
+                return;
+
+            case 'moveC':
+
                 return;
 
 
             case 'moveD':
-                //this.actMoveTo(10,25);
-                //creep.say('YPReserved',true);
-                if(this.actionMoveToRoomRouted(Preference.testR4) == OK){
-                    crmem.state = 'moveA';
-                    break;
-                }
+
                 return;
 
             default:

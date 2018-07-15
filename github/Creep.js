@@ -1,6 +1,6 @@
-
 var PathMaker       = require('PathMaker');
 var Preference      = require('Preference');
+var RoomHolder      = require('RoomHolder');
 
 //-------------------------------------------------------------
 // Creep game/memory object analysis
@@ -802,6 +802,44 @@ Creep.prototype.fillTarget = function( resource )
     if(crmem.targetPath)
         delete crmem.targetPath;
     return err;
+}
+    
+// Moves only within 'safe' areas of defense matrix of current room.
+Creep.prototype.defenceMatMove = function( tgtPos )
+{
+    let crmem = this.m_crmem;
+    let creep = this.m_creep;
+    let rObj  = RoomHolder.get(creep.room.name);
+    let matrix = rObj.getDefenceMatrix();
+    let breached = rObj.getBreached();
+    let rc;
+    if(!matrix || breached) 
+        return creep.moveTo(tgtPos);
+    
+    let v = matrix.get(creep.pos.x, creep.pos.y);
+    if(v == 0xFF){
+        // We are already outside.  Move in toward spawn to safety
+        let sp = rObj.findTopLeftSpawn();
+        if(!sp)
+            return creep.moveTo(tgtPos);
+        return creep.moveTo(sp);
+    }
+    else {
+        let ret = PathFinder.search
+              (creep.pos
+              ,tgtPos
+              , { maxRooms: 1
+                , maxCost: 255
+                , roomCallback: function(roomName) 
+                    {
+                        return matrix;
+                    }
+                }
+              );
+        if(ret && ret.path && ret.path.length > 0)
+            return creep.move(creep.pos.getDirectionTo(ret.path[0]));
+        return ERR_NO_PATH;
+    }
 }
 
 

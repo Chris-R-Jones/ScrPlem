@@ -1,4 +1,3 @@
-
 var Creep           = require('Creep');
 var RoomHolder      = require('RoomHolder');
 
@@ -166,7 +165,7 @@ class Role_TstHeal extends Creep
                     if(!this.findLabForBoost(crObj,creep.body[bix].type)){
                         console.log('Missing boost for '+creep.body[bix].type);
                         crmem.state = 'moveReclaim';
-                        break;
+                        return;
                     }
                 }
                 crmem.state = 'applyBoosts';
@@ -181,7 +180,7 @@ class Role_TstHeal extends Creep
                     let lab = this.findLabForBoost(crObj,creep.body[bix].type);
                     if(!lab){
                         console.log('Missing boost for '+creep.body[bix].type+' in apply!!');
-                        break;
+                        return;
                     }
                     if(creep.pos.getRangeTo(lab)>1)
                         this.actMoveTo(lab);

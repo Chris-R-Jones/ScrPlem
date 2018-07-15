@@ -14,6 +14,7 @@ var Role_ClaimController= require('Role_ClaimController');
 var Role_CtrlMover      = require('Role_CtrlMover');
 var Role_CtrlUpgrade    = require('Role_CtrlUpgrade');
 var Role_DediHarv       = require('Role_DediHarv');
+var Role_DefGrunt       = require('Role_DefGrunt');
 var Role_Distributor    = require('Role_Distributor');
 var Role_FRBootstrap    = require('Role_FRBootstrap');
 var Role_Linker         = require('Role_Linker');
@@ -59,6 +60,7 @@ class CreepMon {
                        , claim: 0
                        , ctrlmov: 0
                        , ctrlupg: 0
+                       , defgrunt: 0
                        , dharv: 0
                        , distrib: 0
                        , frboot: 0
@@ -132,6 +134,9 @@ class CreepMon {
                     case 'ctrlupg':
                         creepObj = new Role_CtrlUpgrade(creep,crmem);
                         break;
+                    case 'defgrunt':
+                        creepObj = new Role_DefGrunt(creep,crmem);
+                        break;                        
                     case 'dharv':
                         creepObj = new Role_DediHarv(creep,crmem);
                         break;

@@ -1,5 +1,3 @@
-//var Role                = require('Role');
-
 var Preference          = require('Preference');
 
 var Generalissimo       = require('Generalissimo');
@@ -20,6 +18,7 @@ var Role_Chemist        = require('Role_Chemist');
 var Role_ClaimController = require('Role_ClaimController');
 var Role_CtrlMover      = require('Role_CtrlMover');
 var Role_CtrlUpgrade    = require('Role_CtrlUpgrade');
+var Role_DefGrunt       = require('Role_DefGrunt');
 var Role_DediHarv       = require('Role_DediHarv');
 var Role_Distributor    = require('Role_Distributor');
 var Role_FRBootstrap    = require('Role_FRBootstrap');
@@ -40,7 +39,7 @@ var Role_Test           = require('Role_Test');
 var Role_TowerFill      = require('Role_TowerFill');
 
 var Role_TstHeal        = require('Role_TstHeal');
-var Role_TstDecon        = require('Role_TstDecon');
+var Role_TstDecon       = require('Role_TstDecon');
 var Role_TstGrunt       = require('Role_TstGrunt');
 var TowerController     = require('TowerController');
 
@@ -695,7 +694,8 @@ RoomObj.prototype.getHostiles = function()
         this.m_rmem.hostileCt    = 0;
         this.m_rmem.hostileOwner = m_hostiles[0].owner.username;
         this.m_rmem.hostileLastT = Game.time;
-            
+        this.m_rmem.uniqueBoostedCreeps = 0;
+
         if(m_hostiles[0].owner.username != 'Invader'){
             this.m_rmem.assaultOwner = m_hostiles[0].owner.username;
             this.m_rmem.assaultLastT = Game.time;
@@ -706,6 +706,7 @@ RoomObj.prototype.getHostiles = function()
         for(let hi=0; hi<m_hostiles.length; hi++){
             let host = m_hostiles[hi];
             let hBodCt = {}
+            let isCreepBoosted = false;
             for(let bi=0; bi<host.body.length; bi++){
                 let bodEl = host.body[bi];
                 let btype = bodEl.type;
@@ -719,18 +720,21 @@ RoomObj.prototype.getHostiles = function()
                 else
                     hBodCt[btype]++;
                 if(boost) {
+                    isCreepBoosted = true;
                     if(!boostCt[btype])
                         boostCt[btype]=1;
                     else
                         boostCt[btype]++;
                 }
             }
-            
+            if(isCreepBoosted)
+                this.m_rmem.uniqueBoostedCreeps++;
+
             // Note that getHostiles() will always return all hostile creeps.  But 
             // rmem.hostileCt only shows creeps that can do damage.  This is used by the Creep.commonDefence
             // to not over-react to probes, for example.
             if(hBodCt[ATTACK]>0 || hBodCt[RANGED_ATTACK]>0 || hBodCt[HEAL] > 0 || hBodCt[WORK] > 0)
-                this.m_rmem.hostileCt++;            
+                this.m_rmem.hostileCt++;
         }
 
         this.m_rmem.hostileBodCt = bodCt;
@@ -1270,6 +1274,12 @@ RoomObj.prototype.getDefenceMatrix = function( )
         }
     })
 
+    // Visit all friendly creeps and room and set those squares occupied
+    let friend = this.getFriendlies();
+    for(let fri=0; fri<friend.length; fri++){
+        costs.set(friend[fri].pos.x, friend[fri].pos.y, 254);
+    }
+
     // 8) Walk through all of the matrix.  For any 0-value entries
     //    set value to 0xFF.
     for(let x=1; x<=48; x++){
@@ -1279,6 +1289,7 @@ RoomObj.prototype.getDefenceMatrix = function( )
         }
     }
     this.m_defenceMatrix = costs;
+    return this.m_defenceMatrix;
 }
 
 //-------------------------------------------------------------
@@ -1495,8 +1506,6 @@ RoomObj.prototype.spawnLogic = function( roomObj )
             return;
     }
 
-    //console.log(spawn.room.name+' ECap = '+spawn.room.energyCapacityAvailable);
-
     // We will now invoke multiple spawn routines in a rough priority order
     // according to the needs of the room.   Each of these routines is
     // expected to routine "true" if it either successfully spawned a creep,
@@ -1512,6 +1521,10 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     //if(Role_MiniAttack.spawn( spawn, roomObj))
     //    return;
 
+    // Test bot
+    //if(room.name == 'E4N47' && Role_Test.spawn(spawn, roomObj))
+    //    return;
+
     // Spawn home room energy distribution
     if(Role_Distributor.spawn( spawn, roomObj))
         return;
@@ -1520,14 +1533,17 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     if( roomObj.getHostiles().length > 1
         && roomObj.m_rmem.hostileOwner != 'Invader'
       ){
-
-        if(Role_TstGrunt.spawn( spawn, roomObj, roomObj.m_room.name, 2))
-            return;
-        if(Role_TstHeal.spawn( spawn, roomObj, roomObj.m_room.name, 2))
-            return;
-
+        if(roomObj.m_rmem.uniqueBoostedCreeps > 0){
+            if(Role_DefGrunt.spawn( spawn, roomObj, roomObj.m_room.name, true, (roomObj.m_rmem.uniqueBoostedCreeps/2)+1))
+                return;
+            if(Role_TstHeal.spawn ( spawn, roomObj, roomObj.m_room.name, (roomObj.m_rmem.uniqueBoostedCreeps/3)+1))
+                return;
+        }
+        else {
+            if(Role_DefGrunt.spawn( spawn, roomObj, roomObj.m_room.name, false, (roomObj.m_rmem.uniqueBoostedCreeps/2)+1))
+                return;
+        }
     }
-
 
     // Manually attacking Tst bots..
     let tstBotFromRm = 'E4N47';
@@ -1557,7 +1573,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
         if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 3))
             return;
         if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 3))
-            return;            
+            return;
         //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
         //    return;
     }
@@ -1633,8 +1649,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
         //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
         //    return;
     }
-                
-    
+
     // Spawn home room dedicated harvesters.
     if(Role_DediHarv.spawn( spawn, roomObj, room.name, roomObj))
         return;
@@ -1654,27 +1669,24 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     // Spawn storage/terminal/linker.
     if(Role_Linker.spawn( spawn, roomObj))
         return;
-        
+
     // It's debatable if chemist should go before military.  But don't forgot
     // warPrep ... and it's just one creep ;)  If it doesn't it does tend
     // to get starved out in a large war effort.
     if(Role_Chemist.spawn(spawn, roomObj))
         return;
 
-    // TBD.. I've gone back and forth on where to put this.
+    // Main military spawning.   Moving this requires careful though.
     // Earlier is better because:
     //    -- related creeps tend to spawn closer together.
     //    -- it's more immediately reactive to new threats.
-    // But... it has potential to starve out neighbors and
+    // And worse - it has potential to starve out neighbors and
     //     cause the rooms to die from lack of repair.
     //
     // For short term defensive responses, this is the right thing to do.
     // For small scale assaults, it's maybe ok.
-    // For large scale assaults, it's definitely not (and starved my economy to
-    //    near death at one point).
-    //
-    // I probably need a sort of multi-phase military spawning.  But for now,
-    // favor defence.
+    // For large scale assaults, it can starve economy to death.  But
+    //   then again -- terminals should support an extended assault.
     if(Generalissimo.doSpawn(spawn, roomObj))
         return;
 
@@ -1688,16 +1700,14 @@ RoomObj.prototype.spawnLogic = function( roomObj )
         return;
     if(Role_CtrlMover.spawn( spawn, roomObj))
         return;
-
-
+    
+    // Mining 
     if(Role_Miner.spawn( spawn, roomObj, room.name ))
         return;
-
     if(Role_Minecart.spawn( spawn, roomObj, room.name ))
         return;
 
-
-
+    // Neighbor management
     let nNeigh = 0;
     exits = Game.map.describeExits(room.name);
     for( dir in exits ){
@@ -1866,16 +1876,6 @@ RoomObj.prototype.spawnLogic = function( roomObj )
         if(Role_OptMover.spawn( spawn, roomObj, neighRoomName))
             return;
     }
-    //if(roomObj.m_room.name == 'E2S13'){
-        // Special case diagonal room for repairing paths only..
-    //    let neighRoomName = 'E3S12';
-    //    let nObj = RoomHolder.get(neighRoomName);
-    //    if(nObj && nObj.m_room) {
-    //        nObj.m_rmem.hostRoom = 'E2S13';
-    //        if(Role_Repair.spawn ( spawn, roomObj, neighRoomName ))
-    //           return;
-    //    }
-
 
     // Center SK neighbor handling.  This needs some work, very hardcoded so far.
     // Especially in that we need RoomPlanner work.
