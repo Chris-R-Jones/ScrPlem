@@ -121,8 +121,17 @@ class Generalissimo
 
             // See if there is an attack order.
             let attackOrder;
-            if(g_attackOrders[rName] == true)
-                attackOrder = true;
+            if(g_attackOrders[rName] == true){
+                if(rmem.owner == 'me' || rmem.hostRoom){
+                    // Failsafe - as I once typed attack order for my own room instead of the 'attackFrom' list.
+                    // Resulting in Mil_Decon fiasco.  Let's not do that again...
+                    console.log("IDIOT!!! Don't attack your own rooms.  Ignoring attack order.");
+                    attackOrder = false;
+                }
+                else {
+                    attackOrder = true;
+                }
+            }
             else
                 attackOrder = false;
 

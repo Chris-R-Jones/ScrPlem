@@ -2,9 +2,6 @@ var RoomHolder          = require('RoomHolder');
 var TerminalController  = require('TerminalController');
 var Preference          = require('Preference');
 
-// Flag if we're in war mode (else production mode)
-var g_warPrep;
-
 // Product and reagents we've selected for production, globally.
 var g_product;
 var g_reagents = [];
@@ -52,15 +49,6 @@ class LabGroup
 
     static turnReset()
     {
-        // If we're in war prep mode, we don't do much here. There's not really
-        // much to plan that isn't straightforward in the move order routines.
-        // They just need to load boosts if avail.
-        if(Preference.warPrep)
-        {
-            g_warPrep = true;
-            g_product = null;
-            return;
-        }
 
         // Otherwise we need to figure out what to produce.
         // Avoid switching production too often.  Once we've chosen a best
@@ -432,6 +420,26 @@ class LabGroup
             if(!sites || sites.length == 0)
                 console.log('WARN! '+roomObj.m_room.name+' labs fail checks reagLabs='+this.m_reagentLabs.length+' workLabs='+this.m_workerLabs.length);
             return;
+        }
+
+        // We'll run reactions next.  But before we do, check if our load list
+        // is fully loaded.  If not, reactions will populate the labs with
+        // the wrong mineral and we need to leave them free.
+        let loadList = Preference.loadList;
+        let rmem = this.m_roomObj.m_rmem;
+        if(   Preference.warPrep 
+           || ( rmem.assaultLastT && (Game.time - rmem.assaultLastT) <= 200000 )
+           ){
+            for(let li=0; li<loadList.length; li++){
+                let wi;
+                for(wi=0; wi<this.m_workerLabs.length; wi++){
+                    let lab = this.m_workerLabs[wi];
+                    if(lab.mineralAmount && lab.mineralAmount > 0 && lab.mineralType == loadList[li])
+                        break;
+                }
+                if(wi == this.m_workerLabs.length)
+                    return;
+            }
         }
 
         // Now that we've got the topology established, run reactions.

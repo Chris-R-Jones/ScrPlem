@@ -113,6 +113,9 @@ class Role_TstHeal extends Creep
         let frCr = null;
 	    //tRoomName = division.m_tgtRoomName;
 
+
+
+	    //crmem.tRoomName = 'E3N51';
 	    //crmem.tRoomName = 'W1S11';
 	    //crmem.prevRoom = 'W1NS12';
 
@@ -406,23 +409,30 @@ class Role_TstHeal extends Creep
                     creep.move(TOP);
                 else if(fCreep && creep.pos.getRangeTo(fCreep)>1)
                     this.actMoveTo(fCreep);
-
-                // If we got here, we're just idling, try to find a friendly
-                // tstGrunt to guard.
-                friendlies = crObj.getFriendlies();
-                frCr = null;
-
-                frCr = creep.pos.findClosestByPath(friendlies
-                            , { filter: function (cr)
-                                {
-                                    return ( cr.memory.role == 'tstGrunt'
-                                            || cr.memory.role == 'tstDecon'
-                                           );
+                else {
+                    // If we got here, we're just idling, try to find a friendly
+                    // tstGrunt to guard.
+                    friendlies = crObj.getFriendlies();
+                    frCr = null;
+    
+                    frCr = creep.pos.findClosestByPath(friendlies
+                                , { filter: function (cr)
+                                    {
+                                        return ( cr.memory.role == 'tstGrunt'
+                                                || cr.memory.role == 'tstDecon'
+                                               );
+                                    }
                                 }
-                            }
-                            );
-                if(frCr)
-                    this.actMoveTo(frCr);
+                                );
+                    let rrc=Math.floor(Math.random()*25);
+                    
+                    if(frCr)
+                        this.actMoveTo(frCr);
+                    else if(rrc == 0){
+                        crmem.state = 'MoveStaging';
+                        break;
+                    }
+                }
 
                 return;
 

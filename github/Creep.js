@@ -202,7 +202,6 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
 {
     // Return false if no need to defend
     if(creep.hits == creep.hitsMax
-       && rObj.getHostiles().length == 0
        && (!trObj.m_rmem.hostileCt || trObj.m_rmem.hostileCt == 0)
        && !trObj.m_rmem.keeperRoom)
         return false;

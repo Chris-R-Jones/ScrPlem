@@ -28,12 +28,12 @@ var PlemPref = {
     // Whether to balance energy/minerals between terminals.
     balanceEnergy: true,
     balanceMinerals: true,
-    debugTransfers: true, // 'verbose', // true/false
+    debugTransfers: false, // 'verbose', // true/false
     prioritizedRoomName: null, //'E4N47', // 'W2N31', //'E4N43', //'E3N42',
 
     // Are we in preparing for war? If so we'll load labs with boosts rather
     // than production.
-    warPrep: false,
+    warPrep: true, 
     loadList: [ 'XLHO2'   // HEAL boost
               , 'XZHO2'   // MOVE boost
               , 'XGHO2'   // TOUGH boost
@@ -71,9 +71,9 @@ var PlemPref = {
     areaSignText: "[Ypsilon Pact] Reserved for YP",
 
     // Generalissimo attack orders.
-    debugMilitary: true,                 // true (basic division/squad reporting) , false, 'verbose', or roomName
-    attackOrders: { 'W14N21': false, 'W14N20':false, 'W16N20':false ,'W15N20':false, 'E9N48':false, 'E9N49':false, 'E8N48':false, 'E9N47':false, 'E8N49':false, 'E7N49': false, 'E7N48': false },
-    attackFromRooms: [ 'W13N25','W12N26','W8N22', 'W9N19','W11N22', 'W11N23' ], // [ 'W8N22', 'W6N22' ],
+    debugMilitary: true, // 'E5N44',                 // true (basic division/squad reporting) , false, 'verbose', or roomName
+    attackOrders: { 'E3N50': true, 'E4N49': true, 'E7N44':false},
+    attackFromRooms: [ 'E4N43', 'E4N47', 'E3N42' ], 
     attackBoosted: false,
     boostAttackRooms: { 'E1N24': false },
 };

@@ -116,7 +116,7 @@ class Role_TstDecon extends Creep
 	    let tRoomName;
 	    let bix;
 
-	    //crmem.tRoomName = 'W3N39';
+	    //crmem.tRoomName = 'E3N51';
 	    //crmem.prevRoom = 'W3N40';
 
 	    tRoomName = crmem.tRoomName;
@@ -352,7 +352,12 @@ class Role_TstDecon extends Creep
                         frCr = friendlies[fi];
                     }
                 }
-                if(frCr && creep.hits < creep.hitsMax && minDist >= 2){
+                
+                if(!frCr || creep.hits < ((3*creep.hitsMax)/5)){
+                    crmem.state = 'moveStaging';
+                    return;
+                }
+                else if(frCr && creep.hits < creep.hitsMax && minDist >= 2){
                     this.actMoveTo(frCr);
                     return;
                 }
@@ -360,60 +365,64 @@ class Role_TstDecon extends Creep
                     this.actMoveTo(frCr);
                     return;
                 }
-                else if(!frCr){
-                    if(creep.hits < creep.hitsMax){
-                        crmem.state = 'moveStaging';
-                    }
-                    return;
-                }
 
                 // Otherwise, pick highest priority decon target and move on it.
                 let best;
                 let bestVal;
                 let si;
-                for(si=0; si<structs.length; si++){
-                    let struct = structs[si];
-                    let priority;
-                    let range = struct.pos.getRangeTo(creep.pos);
-
-                    switch(struct.structureType){
-                        case STRUCTURE_TOWER:
-                            priority = 100;
-                            break;
-                        case STRUCTURE_LAB:
-                            priority = 95;
-                            break;
-                        case STRUCTURE_SPAWN:
-                            priority = 90;
-                            break;
-                        case STRUCTURE_EXTENSION:
-                            priority = 80;
-                            break;
-                        case STRUCTURE_WALL:
-                            priority = 2;
-                            break;
-                        case STRUCTURE_ROAD:
-                            priority = 3;
-                            break;
-                        case STRUCTURE_RAMPART:
-                            priority = 1;
-                            break;
-                        case STRUCTURE_CONTAINER:
-                            priority = 1;
-                            break;
-                        case STRUCTURE_STORAGE:
-                            /*priority = 89;
-                            break;*/
-                            continue;
-                        case STRUCTURE_TERMINAL:
-                            priority = 88;
-                            break;
-
-                            continue;
-                        case STRUCTURE_CONTROLLER:
-                            continue;
-                        default:
-                            priority = 10;
+                
+                best = Game.getObjectById('5b33adc124fa395a7f088103');
+                if(!best) best = Game.getObjectById('5b33adafd98bcc05a75e371a');
+                if(!best) best = Game.getObjectById('5b33adafd98bcc05a75e371a');
+                
+                if(!best) best = Game.getObjectById('5a4179248e4f37363d356899');
+                if(!best) best = Game.getObjectById('5a1d7a34e15dde2fafc7464d');
+                if(!best) best = Game.getObjectById('5a41624ffb6fcf651dfb9b5d');
+                    
+                if(!best){
+                    
+                    for(si=0; si<structs.length; si++){
+                        let struct = structs[si];
+                        let priority;
+                        let range = struct.pos.getRangeTo(creep.pos);
+    
+                        switch(struct.structureType){
+                            case STRUCTURE_TOWER:
+                                priority = 100;
+                                break;
+                            case STRUCTURE_LAB:
+                                priority = 95;
+                                break;
+                            case STRUCTURE_SPAWN:
+                                priority = 90;
+                                break;
+                            case STRUCTURE_EXTENSION:
+                                priority = 80;
+                                break;
+                            case STRUCTURE_WALL:
+                                priority = 2;
+                                break;
+                            case STRUCTURE_ROAD:
+                                priority = 3;
+                                break;
+                            case STRUCTURE_RAMPART:
+                                priority = 1;
+                                break;
+                            case STRUCTURE_CONTAINER:
+                                priority = 1;
+                                break;
+                            case STRUCTURE_STORAGE:
+                                /*priority = 89;
+                                break;*/
+                                continue;
+                            case STRUCTURE_TERMINAL:
+                                //priority = 88;
+                                continue;
+                            case STRUCTURE_CONTROLLER:
+                                continue;
+                            default:
+                                priority = 10;
+                        }
                     }
 
                     let score = (priority * 10000000) + (100-range)*10000 + (100000-struct.hits);

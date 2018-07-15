@@ -18,17 +18,18 @@ class Role_Chemist extends Creep
 
     static spawn( spawn, hrObj ) {
         let room        = spawn.room;
+        let rmem        = room.memory;
         let controller  = room.controller;
         let body;
         let cost;
         let max;
         let altTime;
+        let isWar = (Preference.warPrep || rmem.assaultT || (Game.time - rmem.assaultLastT)<= 200000);
 
         // We only need chemists if we have active lab groups and orders
         let labGroup = hrObj.getLabGroup();
-        if(!labGroup || labGroup.getChemistOrder() == null){
+        if((!labGroup || labGroup.getChemistOrder() == null) && !isWar)
             return false;
-        }
 
         // This is excessive, but for initial testing, TBD to balance this.
         // Also TBD to assume roads... it's 1-1 move right now not 1/2
@@ -36,6 +37,12 @@ class Role_Chemist extends Creep
         cost = 600;
         max  = 1;
         altTime = (body.length*3)+10;
+
+        if(isWar){
+            body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+            cost = 2400;
+            max = 1;
+        }
 
         // Wait for it, if not yet available
         if(room.energyAvailable < cost)

@@ -126,12 +126,30 @@ class Mil_Healer extends Creep
             || creep.hits < .80*creep.hitsMax){
             creep.heal(creep);
         }
-        else if(fCreep && fRange == 1)
+        else if(fCreep && fRange == 1){
             creep.heal(fCreep);
-        else if(fCreep && fRange <= 3)
+            crmem.lastHealTgt = fCreep.id;
+        }
+        else if(fCreep && fRange <= 3){
             creep.rangedHeal(fCreep);
+            crmem.lastHealTgt = fCreep.id;
+        }
 
+        let hostiles = crObj.getHostiles();
+        let hCreep = creep.pos.findClosestByRange
+                    (hostiles
+                            ,   { filter: function (cr)
+                                    {
+                                        return (creep.owner.name != 'Source Keeper');
+                                    }
+                                }
+                    );
 
+        let hRange;
+        if(hCreep)
+            hRange = creep.pos.getRangeTo(hCreep);
+            
+            
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
@@ -217,7 +235,12 @@ class Mil_Healer extends Creep
                     crmem.state = 'moveStaging';
                     break;
                 }
-
+                // More rarely, move back to staging regardless, if there are no heal targets.
+                if(!fCreep && Math.floor((Math.random()*150)) == 0 && creep.hits == creep.hitsMax){
+                    crmem.state = 'moveStaging';
+                    break;
+                }
+                
                 // If there are wounded, start getting to work.
                 if(fCreep){
                     crmem.state = 'engageTargets';
@@ -255,6 +278,42 @@ class Mil_Healer extends Creep
                 }
                 else if(creep.pos.y==48)
                     creep.move(TOP);
+                    
+                // We're idling in the room.  If there's a creep in the
+                // room we recently healed, stay near to it.
+                if(crmem.lastHealTgt){
+                    let fCreep = Game.getObjectById(crmem.lastHealTgt);
+                    if(fCreep
+                        && fCreep.pos.roomName == creep.pos.roomName
+                        && fCreep.pos.getRangeTo(creep.pos)>1
+                        ){
+                        this.actMoveTo(fCreep)
+                    }
+                    if(!fCreep)
+                        delete crmem.lastHealTgt;
+                }
+                else {
+                    // If we got here, we're just idling, try to find a friendly
+                    // creep to guard.
+                    friendlies = crObj.getFriendlies();
+                    let frCr = null;
+                    for(let fi=0; fi<friendlies.length; fi++){
+                        if(!friendlies[fi] || !friendlies[fi].memory){
+                            continue;
+                        }
+                        if(friendlies[fi].id == creep.id)
+                            continue;
+                        if(friendlies[fi].memory.role == 'milOmni'
+                           || friendlies[fi].memory.role == 'milDecon'
+                           ){
+                            frCr = friendlies[fi];
+                            break;
+                        }
+                    }
+                    if(frCr)
+                        this.actMoveTo(frCr);
+                }
+                    
                 return;
 
             case 'engageTargets':
@@ -313,6 +372,8 @@ class Mil_Healer extends Creep
                     creep.move(TOP);
                 else if(fCreep && creep.pos.getRangeTo(fCreep)>1)
                     this.actMoveTo(fCreep);
+                else if(hCreep && hRange <= 2)
+                    this.actionMoveToRoomRouted(crmem.prevRoom);
                 return;
 
             case 'moveReclaim':

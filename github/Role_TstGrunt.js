@@ -109,6 +109,9 @@ class Role_TstGrunt extends Creep
         let friendlies;
         let frCr;
 
+
+
+	    //crmem.tRoomName = 'E3N51';
 	    //if(creep.name == 'tstGrunt_W4N31_W2N42_0_alt'){
     	//    crmem.tRoomName = 'W3N39';
     	//    crmem.prevRoom = 'W3N40';
@@ -150,18 +153,22 @@ class Role_TstGrunt extends Creep
                  || ( crObj.m_rmem.owner == "nouser" && !(crObj.m_rmem.hostRoom))
                )
              ){
-
+            let hStRange;
             hStruct = creep.pos.findClosestByRange
                         (allStruct
                         , {  filter: function(st)
-                            { return st.structureType != STRUCTURE_CONTROLLER;
+                            {
+                              return ( ( st.structureType != STRUCTURE_STORAGE || _.sum(st.store) == 0)
+                                       && ( st.structureType != STRUCTURE_CONTAINER || _.sum(st.store) == 0)
+                                       && st.structureType != STRUCTURE_CONTROLLER
+                                     );
                             }
                           }
                         );
             let rc1, rc2;
             if(hStruct)
-                hRange = creep.pos.getRangeTo(hStruct);
-            if(hStruct && hRange <= 1){
+                hStRange = creep.pos.getRangeTo(hStruct);
+            if(hStruct && hStRange <= 1){
                 rc2 = creep.attack(hStruct);
                 //console.log('Attack hcreep rc='+rc+' creep='+hCreep);
             }
@@ -415,18 +422,16 @@ class Role_TstGrunt extends Creep
                             frCr = friendlies[fi];
                         }
                     }
-                    if(frCr && creep.hits < creep.hitsMax && minDist >= 2){
+                    if(!frCr || creep.hits < ((3*creep.hitsMax)/5)){
+                        crmem.state = 'moveStaging';
+                        return;
+                    }
+                    else if(frCr && creep.hits < creep.hitsMax && minDist >= 2){
                         this.actMoveTo(frCr);
                         return;
                     }
                     else if(frCr && minDist >= 3){
                         this.actMoveTo(frCr);
-                        return;
-                    }
-                    else if(!frCr){
-                        if(creep.hits < creep.hitsMax){
-                            crmem.state = 'moveStaging';
-                        }
                         return;
                     }
                 }

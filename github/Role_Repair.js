@@ -513,8 +513,10 @@ class Role_Repair extends Creep
                 break;
             }
 	    }
-	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
+	    if(exceed == maxLoop){
+	        console.log('BUG! '+creep.name+' exceeded max loops, pos='+creep.pos+'\n'+debug);
+	        creep.suicide();
+	    }
 	}
 }
 

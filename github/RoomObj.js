@@ -725,8 +725,10 @@ RoomObj.prototype.getHostiles = function()
                         boostCt[btype]++;
                 }
             }
-            // TBD.. Why am I excluding certain creeps from this, should document it... I
-            // guess just not to overreact when some probe walks in?? hmm...
+            
+            // Note that getHostiles() will always return all hostile creeps.  But 
+            // rmem.hostileCt only shows creeps that can do damage.  This is used by the Creep.commonDefence
+            // to not over-react to probes, for example.
             if(hBodCt[ATTACK]>0 || hBodCt[RANGED_ATTACK]>0 || hBodCt[HEAL] > 0 || hBodCt[WORK] > 0)
                 this.m_rmem.hostileCt++;            
         }
@@ -1528,8 +1530,15 @@ RoomObj.prototype.spawnLogic = function( roomObj )
 
 
     // Manually attacking Tst bots..
-    let tstBotFromRm = 'W13N25';
-    let tstBotToRm   = 'W14N21';
+    let tstBotFromRm = 'E4N47';
+    let tstBotToRm   = 'E3N51';
+    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
+
+        if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 5))
+            return;
+    }
+    tstBotFromRm = 'E4N47';
+    tstBotToRm   = 'E3N51';
     if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
         if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
             return;
@@ -1543,10 +1552,89 @@ RoomObj.prototype.spawnLogic = function( roomObj )
             return;
         if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
             return;
-        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 5))
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 3))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 3))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 3))
+            return;            
+        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
         //    return;
     }
-
+    tstBotFromRm = 'E7N49';
+    tstBotToRm   = 'E3N51';
+    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
+        //    return;
+    }
+    tstBotFromRm = 'E4N43';
+    tstBotToRm   = 'E3N51';
+    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
+        //    return;
+    }
+    tstBotFromRm = 'E3N42';
+    tstBotToRm   = 'E3N51';
+    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
+        //    return;
+    }
+    tstBotFromRm = 'E1N39';
+    tstBotToRm   = 'E3N51';
+    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
+            return;
+        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
+            return;
+        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
+        //    return;
+    }
+                
+    
     // Spawn home room dedicated harvesters.
     if(Role_DediHarv.spawn( spawn, roomObj, room.name, roomObj))
         return;
@@ -1566,7 +1654,12 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     // Spawn storage/terminal/linker.
     if(Role_Linker.spawn( spawn, roomObj))
         return;
-
+        
+    // It's debatable if chemist should go before military.  But don't forgot
+    // warPrep ... and it's just one creep ;)  If it doesn't it does tend
+    // to get starved out in a large war effort.
+    if(Role_Chemist.spawn(spawn, roomObj))
+        return;
 
     // TBD.. I've gone back and forth on where to put this.
     // Earlier is better because:
@@ -1603,8 +1696,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     if(Role_Minecart.spawn( spawn, roomObj, room.name ))
         return;
 
-    if(Role_Chemist.spawn(spawn, roomObj))
-        return;
+
 
     let nNeigh = 0;
     exits = Game.map.describeExits(room.name);

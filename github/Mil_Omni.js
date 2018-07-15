@@ -71,6 +71,14 @@ class Mil_Omni extends Creep
             tCt = (hBCt[TOUGH] ? hBCt[TOUGH] : 0) + (hOCt[TOUGH] ? hOCt[TOUGH] : 0)+1;  
             rCt = (hBCt[RANGED_ATTACK] ? hBCt[RANGED_ATTACK] : 0) + (hOCt[RANGED_ATTACK] ? hOCt[RANGED_ATTACK] : 0)+1;
             aCt = (hBCt[ATTACK] ? hBCt[ATTACK] : 0) + (hOCt[ATTACK] ? hOCt[ATTACK] : 0)+1;  
+            
+            // If we exceed 25 parts, we'll halve and let military spawn more.
+            while(tCt+rCt+aCt > 25){
+                tCt /= 2;
+                rCt /= 2;
+                aCt /= 2;
+            }
+            
             mCt = (tCt+rCt+aCt);
             for(ni=0; ni<tCt; ni++){
                 body.push(TOUGH);
@@ -213,13 +221,46 @@ class Mil_Omni extends Creep
 
         let hRange;
         if(hCreep)
-            hRange = hCreep.pos.getRangeTo(creep.pos);
+            hRange = creep.pos.getRangeTo(hCreep);
         //console.log('Selected hCreep='+hCreep+' range='+hRange);
         if(hCreep && hRange <= 3)
             creep.rangedAttack(hCreep);
         if(hCreep && hRange <= 1){
             creep.attack(hCreep);
             //console.log('Attack hcreep rc='+rc+' creep='+hCreep);
+        }
+
+
+        let hBodCt = {};
+        if(hCreep){
+            for(let bi=0; bi<hCreep.body.length; bi++){
+                let bodEl = hCreep.body[bi];
+                let btype = bodEl.type;
+                let boost = bodEl.boost;
+                if(!bodEl.hits || bodEl.hits == 0)
+                    continue;
+                if(!hBodCt[btype])
+                    hBodCt[btype]=1;
+                else
+                    hBodCt[btype]++;
+                if(boost) {
+                    // Over simplification - TBD to figure out boost type/multiplier
+                    hBodCt[btype]+=2;
+                }
+            }
+        }
+
+        let fBodCt = {};
+        for(let bi=0; bi<creep.body.length; bi++){
+            let bodEl = creep.body[bi];
+            let btype = bodEl.type;
+            let boost = bodEl.boost;
+            if(!bodEl.hits || bodEl.hits == 0)
+                continue;
+            if(!fBodCt[btype])
+                fBodCt[btype]=1;
+            else
+                fBodCt[btype]++;
         }
 
         let allStruct = crObj.getAllStructures();
@@ -232,7 +273,7 @@ class Mil_Omni extends Creep
             && division.m_primaryOrder == 3 /* ORDER_ATTACK */
           ){
 
-
+            let hStRange;
             hStruct = creep.pos.findClosestByRange
                         (allStruct
                         , {  filter: function(st)
@@ -245,10 +286,10 @@ class Mil_Omni extends Creep
                         );
             let rc1, rc2;
             if(hStruct)
-                hRange = creep.pos.getRangeTo(hStruct);
-            if(hStruct && hRange <= 3)
+                hStRange = creep.pos.getRangeTo(hStruct);
+            if(hStruct && hStRange <= 3)
                 rc1 = creep.rangedAttack(hStruct);
-            if(hStruct && hRange <= 1){
+            if(hStruct && hStRange <= 1){
                 rc2 = creep.attack(hStruct);
                 //console.log('Attack hcreep rc='+rc+' creep='+hCreep);
             }
@@ -365,9 +406,13 @@ class Mil_Omni extends Creep
                 return;
 
             case 'moveStaging':
+                if(creep.hits == creep.hitsMax){
+                    crmem.state = 'hostileArrival';
+                    break;
+                }
                 if(!crmem.prevRoom)
                     crmem.prevRoom = crmem.homeName;
-                rc = this.actionMoveToRoom(crmem.prevRoom);
+                rc = this.actionMoveToRoom(crmem.prevRoom, { ignoreDestructibleStructures: false, maxRooms: 1 });
                 if(rc == OK)
                     crmem.state = 'stagingRoom';
                 return;
@@ -445,9 +490,17 @@ class Mil_Omni extends Creep
                     && Math.abs(hCreep.pos.y) != 0
                     && Math.abs(hCreep.pos.y) != 49
                     ){
-
-                    // (This is pretty brute force, major TBD :)
-                    rc = this.actMoveTo(hCreep, { ignoreDestructibleStructures: false, maxRooms: 1 });
+                        // TBD - consider healing..
+                        if(hRange > 3 || !hBodCt[ATTACK] || hBodCt[ATTACK] < fBodCt[ATTACK])
+                            rc = this.actMoveTo(hCreep, { ignoreDestructibleStructures: false, maxRooms: 1 });
+                        else if( hRange <= 2){
+                            // Try to range ping.  Unless we can make a quick exit.
+                            if(creep.pos.x != 1 && creep.pos.y != 1 && creep.pos.x != 48 && creep.pos.y != 48)
+                                this.actionMoveToRoom(crmem.prevRoom, { ignoreDestructibleStructures: false, maxRooms: 1 });
+                        }
+                        else if (hRange == 3){
+                            // stay put
+                        }
                 }
                 else if( creep.room.name == tRoomName && division
                          && division.m_primaryOrder == 3 /* ORDER_ATTACK */){

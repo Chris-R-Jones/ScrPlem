@@ -125,9 +125,15 @@ class Mil_Decon extends Creep
         if(squad && division)
 	        tRoomName = division.m_tgtRoomName;
 
-
 	    // Always dismantle any adjacent structure if in target room.
 	    if(creep.room.name == tRoomName){
+	        if( (creep.room.controller && creep.room.controller.my)
+                || crObj.m_rmem.hostRoom
+              )
+            {
+                console.log(creep.name+'BUG ! BUG ! Destryoying own room at '+creep.pos);
+                return;
+            }
 	        structs = crObj.getAllStructures();
 	        closest = creep.pos.findClosestByPath
 	                    (structs
@@ -346,7 +352,7 @@ class Mil_Decon extends Creep
                             continue;
                         default:
                             priority = 10;
-                    }
+                    } 
 
                     let score = (priority * 10000000) + (100-range)*10000 + (100000-struct.hits);
                     if(!bestVal || score > bestVal){
@@ -398,7 +404,7 @@ class Mil_Decon extends Creep
             }
 	    }
 	    if(exceed == maxLoop)
-	        console.log('BUG! '+creep.name+' exceeded max loops\n'+debug);
+	        console.log('BUG! '+creep.name+' exceeded max loops pos='+creep.pos+'\n'+debug);
 	}
 }
 

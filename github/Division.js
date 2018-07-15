@@ -259,9 +259,9 @@ class Division
         let nHeal;
         let nWork;
 
-        nAttack = hAttack+5;
-        nRanged = hRanged+5
-        nHeal   = hHeal+5;
+        nAttack = 2*hAttack+5;
+        nRanged = 2*hRanged+5
+        nHeal   = 2*hHeal+5;
         nHeal = Math.max(nHeal, (nAttack+nRanged)/2);
         nWork = 0;
 
@@ -387,7 +387,7 @@ class Division
         let spCoord = new RoomCoord(spawnRoomName);
         let tgtCoord = new RoomCoord(this.m_tgtRoomName);
         let linearDist = (spCoord.xDist(tgtCoord) + spCoord.yDist(tgtCoord));
-        if(rmem && rmem.hostileCt && rmem.hostileCt <= 3 && rmem.hostileOwner == 'Invader'
+        if(rmem && rmem.hostileCt && rmem.hostileOwner == 'Invader'
            && (rmem.hostRoom != spawnRoomName && this.m_tgtRoomName != spawnRoomName)
            && (Game.time-rmem.hostileStartT) <= (linearDist * 30)
            ) {
@@ -395,6 +395,13 @@ class Division
             if(hostObj && hostObj.m_room.controller.level >= 5)
                 return null;
         }
+        
+        // If it's the host room spawning - give it 35 turns before spawning.  Turrets will likely end the invasion.
+        if(spawnRoomName == this.m_tgtRoomName
+           && (Game.time - rmem.hostileStartT) <= 35
+           && rmem.hostileOwner == 'Invader'
+           )
+            return null;
 
         if(false && rmem.hostileCt && spawnRoomName != rmem.hostRoom && spawnRoomName != this.m_tgtRoomName){
             console.log('DBG SPAWN ALLOWING HELP elapsed='+(Game.time-rmem.hostileStartT)+' dist='+linearDist
@@ -502,7 +509,7 @@ class Division
     {
         let debugFlag = false;
         if(Preference.debugMilitary == 'verbose' || Preference.debugMilitary == this.m_tgtRoomName)
-            debugFlags = true;
+            debugFlag = true;
 
         if(debugFlag)
             console.log('Division::assignNewCreep called for creep '+crObj.m_creep.name);
