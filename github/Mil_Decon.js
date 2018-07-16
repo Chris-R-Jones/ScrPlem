@@ -139,10 +139,12 @@ class Mil_Decon extends Creep
 	                    (structs
                         ,   { filter: function (st)
                                 {
-                                    return ( ( st.structureType != STRUCTURE_STORAGE || _.sum(st.store) == 0)
+                                    return (   ( st.structureType != STRUCTURE_STORAGE   || _.sum(st.store) == 0)
                                             && ( st.structureType != STRUCTURE_CONTAINER || _.sum(st.store) == 0)
+                                            && ( st.structureType != STRUCTURE_TERMINAL  || _.sum(st.store) == 0)
                                             && st.structureType != STRUCTURE_CONTROLLER
-                                            );
+                                            && st.structureType != STRUCTURE_POWER_BANK
+                                           );
                                 }
                             }
 	                    );
@@ -318,11 +320,20 @@ class Mil_Decon extends Creep
                         case STRUCTURE_TOWER:
                             priority = 100;
                             break;
+                        case STRUCTURE_LAB:
+                            priority = 95;
+                            break;
                         case STRUCTURE_SPAWN:
                             priority = 90;
                             break;
                         case STRUCTURE_EXTENSION:
                             priority = 80;
+                            break;
+                        case STRUCTURE_NUKER:
+                            priority = 75;
+                            break;
+                        case STRUCTURE_LINK:
+                            priority = 81;
                             break;
                         case STRUCTURE_WALL:
                             priority = 2;
@@ -337,22 +348,16 @@ class Mil_Decon extends Creep
                             priority = 1;
                             break;
                         case STRUCTURE_POWER_BANK:
-                            break;
+                            continue;
                         case STRUCTURE_STORAGE:
-                            /*priority = 1;
-                            break;
-                            */
                             continue;
                         case STRUCTURE_TERMINAL:
-                            /*priority = 1;
-                            break;
-                            */
                             continue;
                         case STRUCTURE_CONTROLLER:
                             continue;
                         default:
                             priority = 10;
-                    } 
+                    }
 
                     let score = (priority * 10000000) + (100-range)*10000 + (100000-struct.hits);
                     if(!bestVal || score > bestVal){

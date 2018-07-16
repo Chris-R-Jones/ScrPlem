@@ -128,10 +128,12 @@ class Role_TstDecon extends Creep
 	                    (structs
                         ,   { filter: function (st)
                                 {
-                                    return ( ( st.structureType != STRUCTURE_STORAGE || _.sum(st.store) == 0)
+                                    return (   ( st.structureType != STRUCTURE_STORAGE   || _.sum(st.store) == 0)
                                             && ( st.structureType != STRUCTURE_CONTAINER || _.sum(st.store) == 0)
+                                            && ( st.structureType != STRUCTURE_TERMINAL  || _.sum(st.store) == 0)
                                             && st.structureType != STRUCTURE_CONTROLLER
-                                            );
+                                            && st.structureType != STRUCTURE_POWER_BANK
+                                           );
                                 }
                             }
 	                    );
@@ -333,37 +335,42 @@ class Role_TstDecon extends Creep
                 // They 'should' bubble along side us in a mass chaos fashion.
                 // Make sure we're reasonably close to a friendly healer.
                 // They 'should' bubble along side us in a mass chaos fashion.
-                let friendlies = crObj.getFriendlies();
-                let frCr = null;
-                let minDist = 99;
-                for(let fi=0; fi<friendlies.length; fi++){
-                    if(!friendlies[fi] || !friendlies[fi].memory){
-                        continue;
-                    }
-                    if(friendlies[fi].id == creep.id){
-                        continue;
-                    }
-                    if(friendlies[fi].memory.role == 'tstHeal'){
-                        let dist = friendlies[fi].pos.getRangeTo(creep);
-                        if(dist < minDist){
-                            frCr = friendlies[fi];
-                            minDist = dist;
+                let hostiles = crObj.getHostiles();
+                let towers = crObj.getTowers();
+                if( (hostiles && hostiles.length > 0)
+                    || (towers && towers.length > 0)) {
+                    let friendlies = crObj.getFriendlies();
+                    let frCr = null;
+                    let minDist = 99;
+                    for(let fi=0; fi<friendlies.length; fi++){
+                        if(!friendlies[fi] || !friendlies[fi].memory){
+                            continue;
                         }
-                        frCr = friendlies[fi];
+                        if(friendlies[fi].id == creep.id){
+                            continue;
+                        }
+                        if(friendlies[fi].memory.role == 'tstHeal'){
+                            let dist = friendlies[fi].pos.getRangeTo(creep);
+                            if(dist < minDist){
+                                frCr = friendlies[fi];
+                                minDist = dist;
+                            }
+                            frCr = friendlies[fi];
+                        }
                     }
-                }
-                
-                if(!frCr || creep.hits < ((3*creep.hitsMax)/5)){
-                    crmem.state = 'moveStaging';
-                    return;
-                }
-                else if(frCr && creep.hits < creep.hitsMax && minDist >= 2){
-                    this.actMoveTo(frCr);
-                    return;
-                }
-                else if(frCr && minDist >= 3){
-                    this.actMoveTo(frCr);
-                    return;
+                    
+                    if(!frCr || creep.hits < ((3*creep.hitsMax)/5)){
+                        crmem.state = 'moveStaging';
+                        return;
+                    }
+                    else if(frCr && creep.hits < creep.hitsMax && minDist >= 2){
+                        this.actMoveTo(frCr);
+                        return;
+                    }
+                    else if(frCr && minDist >= 3){
+                        this.actMoveTo(frCr);
+                        return;
+                    }
                 }
 
                 // Otherwise, pick highest priority decon target and move on it.
@@ -399,6 +406,12 @@ class Role_TstDecon extends Creep
                             case STRUCTURE_EXTENSION:
                                 priority = 80;
                                 break;
+                            case STRUCTURE_NUKER:
+                                priority = 75;
+                                break;
+                            case STRUCTURE_LINK:
+                                priority = 81;
+                                break;
                             case STRUCTURE_WALL:
                                 priority = 2;
                                 break;
@@ -411,24 +424,22 @@ class Role_TstDecon extends Creep
                             case STRUCTURE_CONTAINER:
                                 priority = 1;
                                 break;
+                            case STRUCTURE_POWER_BANK:
+                                continue;
                             case STRUCTURE_STORAGE:
-                                /*priority = 89;
-                                break;*/
                                 continue;
                             case STRUCTURE_TERMINAL:
-                                //priority = 88;
                                 continue;
                             case STRUCTURE_CONTROLLER:
                                 continue;
                             default:
                                 priority = 10;
                         }
-                    }
-
-                    let score = (priority * 10000000) + (100-range)*10000 + (100000-struct.hits);
-                    if(!bestVal || score > bestVal){
-                        bestVal = score;
-                        best = struct;
+                        let score = (priority * 10000000) + (100-range)*10000 + (100000-struct.hits);
+                        if(!bestVal || score > bestVal){
+                            bestVal = score;
+                            best = struct;
+                        }
                     }
                 }
 
