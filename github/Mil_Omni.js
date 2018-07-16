@@ -279,7 +279,8 @@ class Mil_Omni extends Creep
                         , {  filter: function(st)
                             { return (st.structureType != STRUCTURE_CONTROLLER
                                      && st.structureType != STRUCTURE_TERMINAL
-                                     && st.structureType != STRUCTURE_STORAGE)
+                                     && st.structureType != STRUCTURE_STORAGE
+                                     && st.structureType != STRUCTURE_POWER_BANK)
 
                             }
                           }

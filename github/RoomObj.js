@@ -1540,114 +1540,41 @@ RoomObj.prototype.spawnLogic = function( roomObj )
                 return;
         }
         else {
-            if(Role_DefGrunt.spawn( spawn, roomObj, roomObj.m_room.name, false, (roomObj.m_rmem.uniqueBoostedCreeps/2)+1))
+            if(Role_DefGrunt.spawn( spawn, roomObj, roomObj.m_room.name, false, roomObj.m_rmem.hostileCt))
                 return;
         }
     }
 
     // Manually attacking Tst bots..
-    let tstBotFromRm = 'E4N47';
-    let tstBotToRm   = 'E3N51';
-    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
-
-        if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 5))
-            return;
-    }
+    let tstBotFromRm;
+    let tstBotToRm;
     tstBotFromRm = 'E4N47';
     tstBotToRm   = 'E3N51';
     if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
+        if(false){
+            if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
+                return;
+            if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
+                return;
+            if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
+                return;
+            if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
+                return;
+            if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
+                return;
+            if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
+                return;
+            if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 3))
+                return;
+            if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 3))
+                return;
+            if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 3))
+                return;
+        }
+        if(false){
+            if(Mil_Looter.spawn(spawn, roomObj, tstBotToRm, 10))
             return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 3))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 3))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 3))
-            return;
-        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
-        //    return;
-    }
-    tstBotFromRm = 'E7N49';
-    tstBotToRm   = 'E3N51';
-    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
-        //    return;
-    }
-    tstBotFromRm = 'E4N43';
-    tstBotToRm   = 'E3N51';
-    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
-        //    return;
-    }
-    tstBotFromRm = 'E3N42';
-    tstBotToRm   = 'E3N51';
-    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
-        //    return;
-    }
-    tstBotFromRm = 'E1N39';
-    tstBotToRm   = 'E3N51';
-    if ( false && roomObj && (roomObj.m_room.name == tstBotFromRm) ) {
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 1))
-            return;
-        if(Role_TstHeal.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstGrunt.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        if(Role_TstDecon.spawn( spawn, roomObj, tstBotToRm, 2))
-            return;
-        //if(Mil_Looter.spawn(spawn, roomObj, 'E2S13', 10))
-        //    return;
+        }
     }
 
     // Spawn home room dedicated harvesters.
