@@ -51,13 +51,26 @@ class LabGroup
         // Avoid switching production too often.  Once we've chosen a best
         // product stick with it at least 1000 turns to avoid a lot of chem
         // swapping as levels increase/decrease.  Also to save CPU in the search
-        if(Memory.chemistry
-           && (Game.time - Memory.chemistry.lastSwitchT)<1000)
-        {
+        //   If we found nothing to produce - check again in 100 turns.
+        // many production stalls are due to terminal imbalance that is
+        // quickly resolved.   If, however, after 100 turns things haven't
+        // resolved, then wait a full 1000 for a new scan.  Because, at that
+        // point - it's clearly going to take a while for mineral production.
+        let timeSinceSwitch = 0;
+        if(Memory.chemistry) {
+            timeSinceSwitch = (Game.time - Memory.chemistry.lastSwitchT);
             g_product = Memory.chemistry.product;
             g_reagents[0] = Memory.chemistry.r1;
             g_reagents[1] = Memory.chemistry.r2;
+            if(g_product)
+                delete Memory.chemistry.noProductAfterBreather;
+        }
+        if( timeSinceSwitch < 1000 && (g_product || Memory.chemistry.noProductAfterBreather) )
             return;
+        else if(timeSinceSwitch < 100)
+            return;
+        else {
+            Memory.chemistry.noProductAfterBreather = true;
         }
 
         // Figure out what, globally, we should be producing, based on
@@ -424,7 +437,7 @@ class LabGroup
         // the wrong mineral and we need to leave them free.
         let loadList = Preference.loadList;
         let rmem = this.m_roomObj.m_rmem;
-        if(   Preference.warPrep 
+        if(   Preference.warPrep
            || ( rmem.assaultLastT && (Game.time - rmem.assaultLastT) <= 200000 )
            ){
             for(let li=0; li<loadList.length; li++){
@@ -668,7 +681,7 @@ class LabGroup
             // for production.
             if(lab.mineralType == g_product){
                 if(    (onList && (lab.mineralAmount >= (lab.mineralCapacity-100)) )
-                   ||  (!onList && lab.mineralAmount >= 100)
+                   ||  (!onList && (!allPresent || lab.mineralAmount >= 100))
                    )
                     return { src: lab.id, good: lab.mineralType, tgt: 'terminal' };
 

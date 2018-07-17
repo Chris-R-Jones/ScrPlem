@@ -28,12 +28,12 @@ var PlemPref = {
     // Whether to balance energy/minerals between terminals.
     balanceEnergy: true,
     balanceMinerals: true,
-    debugTransfers: false,  // 'verbose', // true/false
+    debugTransfers: true,  // 'verbose', // true/false
     prioritizedRoomName: null, //'E4N47', // 'W2N31', //'E4N43', //'E3N42',
 
     // Are we in preparing for war? If so we'll load labs with boosts rather
     // than production.
-    warPrep: true,
+    warPrep: false,
     loadList: [ 'XLHO2'   // HEAL boost
               , 'XZHO2'   // MOVE boost
               , 'XGHO2'   // TOUGH boost
