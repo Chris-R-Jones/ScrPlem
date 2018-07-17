@@ -1476,7 +1476,10 @@ RoomObj.roomSummaryReport = function ()
         if(breached)
             wrn = wrn + " BREACHED";
 
-        console.log(roomObj.m_room.name +' L'+ctrl.level+' '+wrn);
+        console.log(roomObj.m_room.name +' L'+ctrl.level+' walls='+roomObj.m_minRampartsWallsHits/1000000+'M'
+                   +' lastHostile='+roomObj.m_rmem.hostileOwner
+                   +'('+(Game.time - roomObj.m_rmem.hostileStartT)+')'
+                   +wrn);
     }
 
 };
