@@ -136,7 +136,7 @@ class CreepMon {
                         break;
                     case 'defgrunt':
                         creepObj = new Role_DefGrunt(creep,crmem);
-                        break;                        
+                        break;
                     case 'dharv':
                         creepObj = new Role_DediHarv(creep,crmem);
                         break;

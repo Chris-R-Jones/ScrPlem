@@ -6,10 +6,8 @@ var Preference          = require('Preference');
 var g_product;
 var g_reagents = [];
 
-
 class LabGroup
 {
-
     static productLevel( good)
     {
         if(good == 'G')
@@ -49,7 +47,6 @@ class LabGroup
 
     static turnReset()
     {
-
         // Otherwise we need to figure out what to produce.
         // Avoid switching production too often.  Once we've chosen a best
         // product stick with it at least 1000 turns to avoid a lot of chem
@@ -637,6 +634,23 @@ class LabGroup
             loadList = [];
         }
 
+        // Check to see if all chems on load list are present.  If not, we need
+        // to be more proactive about making space, moving out chemicals that
+        // were in production to make room for load list.
+        let allPresent = true;
+        for(let li=0; li<loadList.length; li++){
+            let wi;
+            for(wi=0; wi<this.m_workerLabs.length; wi++){
+                let lab = this.m_workerLabs[wi];
+                if(lab.mineralAmount && lab.mineralAmount > 0 && lab.mineralType == loadList[li])
+                    break;
+            }
+            if(wi == this.m_workerLabs.length) {
+                allPresent = false;
+                break;
+            }
+        }
+
         for(let wi=0; wi<this.m_workerLabs.length; wi++){
             let lab = this.m_workerLabs[wi];
             let onList = false;
@@ -661,7 +675,7 @@ class LabGroup
                 // We want to leave one lab full for loading, but also move goods back
                 // from the others.  If this lab isn't the one with the most of the
                 // good, then move content back to storage.
-                if(onList && lab.mineralAmount >= 300){
+                if(onList && (!allPresent || lab.mineralAmount >= 300)){
                     let maxj=0;
 
                     for(let wj=0; wj<this.m_workerLabs.length; wj++){
