@@ -65,12 +65,14 @@ class LabGroup
             if(g_product)
                 delete Memory.chemistry.noProductAfterBreather;
         }
-        if( timeSinceSwitch < 1000 && (g_product || Memory.chemistry.noProductAfterBreather) )
-            return;
-        else if(timeSinceSwitch < 100)
-            return;
-        else {
-            Memory.chemistry.noProductAfterBreather = true;
+        if(Memory.chemistry){
+            if( timeSinceSwitch < 1000 && (g_product || Memory.chemistry.noProductAfterBreather) )
+                return;
+            else if(timeSinceSwitch < 100)
+                return;
+            else {
+                Memory.chemistry.noProductAfterBreather = true;
+            }
         }
 
         // Figure out what, globally, we should be producing, based on
