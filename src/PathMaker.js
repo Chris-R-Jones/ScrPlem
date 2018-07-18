@@ -1,7 +1,4 @@
-
-
 var RoomHolder          = require('RoomHolder');
-
 
 class PathMaker
 {
@@ -115,6 +112,20 @@ class PathMaker
         let route;
         let m_this = this;
 
+        let key = fromRoomName+'_'+toRoomName;
+        if(!Memory.safeCache)
+            Memory.safeCache = {}
+        if(!Memory.safeCache.hits){
+            Memory.safeCache.hits = 1;
+            Memory.safeCache.misses = 1;
+        }
+        if(Memory.safeCache[key]){
+            Memory.safeCache[key].refTime = Game.time;
+            Memory.safeCache.hits++;
+            return JSON.parse(Memory.safeCache[key].route);
+        }
+        Memory.safeCache.misses++;
+
         route = Game.map.findRoute
                 ( fromRoomName
                 , toRoomName
@@ -127,7 +138,33 @@ class PathMaker
         safeRoute.push(fromRoomName);
         for(let ri=0; ri<route.length; ri++)
             safeRoute.push(route[ri].room);
+        Memory.safeCache[key] = { route: JSON.stringify(safeRoute), refTime: Game.time };
         return safeRoute;
+    }
+
+    static flushStaleRoutes()
+    {
+        let flushed = 0;
+        let preserved = 0;
+
+        if(Math.floor(Math.random()*10) == 0){
+            console.log('Before.. '+Object.keys(Memory.safeCache).length);
+            for(let key in Memory.safeCache){
+                if(!Memory.safeCache[key].refTime)
+                    continue;
+                if((Game.time - Memory.safeCache[key].refTime) > 100){
+                    flushed++;
+                    delete Memory.safeCache[key];
+                }
+                else
+                    preserved++;
+            }
+        }
+        if(flushed > 0){
+            console.log('T='+Game.time+' Flushed '+flushed+' safeRoute cache entries');
+            console.log('... preserved '+preserved);
+            console.log('... left = '+Object.keys(Memory.safeCache).length);
+        }
     }
 
     // Returns the cost of the most 'expensive/dangerous' room on a route
@@ -143,7 +180,6 @@ class PathMaker
                 max = score;
         }
         return max;
-
     }
 
 };

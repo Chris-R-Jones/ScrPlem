@@ -28,12 +28,6 @@ class Role_SectorProbe extends Creep
         let cost;
         let max;
 
-
-        //----- DISABLED DISABLED DISABLED!!!!
-        //--   See the notes in the run routine.
-        //------
-        return false;
-
         // Choose the body we want and will wait for energy for.
         if(room.energyCapacityAvailable >= BODY_M1_COST){
             body = BODY_M1;
@@ -55,6 +49,10 @@ class Role_SectorProbe extends Creep
         let sd = parsed[3];
         let sv = 10 * ( Math.floor(parsed[4] / 10) ) + 5;
         let centerRoomName = ""+fd+fv+sd+sv;
+
+        // Skip this room - we don't have a very significant presence.
+        if(centerRoomName == 'E5N35')
+            return false;
 
         // Find a free name and spawn the bot.
         // No alt need, not time sensitive.
@@ -120,7 +118,46 @@ class Role_SectorProbe extends Creep
 
             crmem.nextRoomName = nextRoomName;
 
-            // Check to see if a route to this is safe.  If score is over 5,
+            // Avoid plotting routes to any rooms til we are sure we want to
+            // go there.  First check if we care about visiting.
+            // Get it's memory and determine if we should visit it.
+            let rmem = Memory.rooms[nextRoomName];
+            let interest = false;
+
+            // If there's no memory at all, clearly yes.
+            if(!rmem)
+                interest = true;
+
+            // If we haven't recorded vision time, or it has been 100000 ticks
+            // since last visit, then yes.
+            else if(!rmem.lastVisionT || (Game.time - rmem.lastVisionT)>100000)
+                interest = true;
+
+            // If the last visit (possibly an observer) found a sign mismatch
+            // then yes.
+            else if(rmem.needSign){
+                // .. unless it's a hostile room.
+                if(rmem.owner == 'none'
+                   || rmem.owner == 'nouser'
+                   || rmem.owner == 'me'
+                   ){
+                    interest = true;
+                }
+            }
+
+            // If it's a source keeper room, or the center, generally no.
+            // (unless we've just never been there)
+            if(    (nxfv % 10 >= 4 && nxfv % 10 <= 6)
+                && (nxsv % 10 >= 4 && nxsv % 10 <= 6)
+                ){
+                interest = false;
+            }
+
+            // Still interested? If not, continue.
+            if(!interest)
+                continue;
+
+            // Else check to see if a route to this is safe.  If score is over 5,
             // then skip it as we'd have to travel through an unsafe room that
             // would surely kill this creep.
             let route = PathMaker.getSafeRoute(croom.name,nextRoomName,false);
@@ -132,7 +169,6 @@ class Role_SectorProbe extends Creep
                 danger = PathMaker.getSafeRouteDanger(route);
             else if(route && route.length <= 2)
                 danger = 1;
-
             if(danger > 5) {
                 //console.log('Sector probe skipping dangerous route to '+nextRoomName+' danger='+danger);
                 //console.log('.. pos: '+creep.pos);
@@ -144,37 +180,6 @@ class Role_SectorProbe extends Creep
             //    console.log('.. route: '+JSON.stringify(route));
             //}
 
-            // Get it's memory and determine if we should visit it.
-            let rmem = Memory.rooms[nextRoomName];
-
-            // If there's no memory at all, clearly yes.
-            if(!rmem)
-                return true;
-
-            // If we haven't recorded vision time, or it has been 100000 ticks
-            // since last visit, then yes.
-            if(!rmem.lastVisionT || (Game.time - rmem.lastVisionT)>100000)
-                return true;
-
-            // If the last visit (possibly an observer) found a sign mismatch
-            // then yes.
-            if(rmem.needSign){
-                // .. unless it's a hostile room.
-                if(rmem.owner == 'none'
-                   || rmem.owner == 'nouser'
-                   || rmem.owner == 'me'
-                   ){
-                    return true;
-                }
-            }
-
-            // If it's a source keeper room, or the center, generally no.
-            // (unless we've just never been there)
-            if(    (nxfv % 10 >= 4 && nxfv % 10 <= 6)
-                && (nxsv % 10 >= 4 && nxsv % 10 <= 6)
-                ){
-                    continue;
-            }
         } while(nxfv != crfv || nxsv != crsv);
         return false;
     }
@@ -193,15 +198,6 @@ class Role_SectorProbe extends Creep
 	    let exceed;
 	    let si;
 	    let debug="";
-
-	    // TBD wow - disabling sector probe halved my CPU... some bug in the longer distance move routines that is causing
-	    // it to thrash.. perhaps not finding a route but keeps trying.  It seems like it was in safe route planning because
-	    // I saw some CPU timeouts specifically in that routine (even when we have bucket failsafe to save cycles, so that one
-	    // routine is really hogging CPU)
-	    //   May need to spend some time studying how to cache/reduce that planning.)
-	    // But for now... these guys are going to just idle...
-	    /// ---- Note, this is also diabled in the spawn routine... once fixed, update there too..
-	    return;
 
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';

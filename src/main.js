@@ -64,15 +64,22 @@ module.exports.loop = function () {
     CreepMon.testCreepLoop();
     Grafana.logMajorCPU('testCreepLoop');
 
+    // Periodically clean old entries in the pathmaker safe route cache
+    PathMaker.flushStaleRoutes();
+
+    // Launch nukes if needed (TBD to move to better place than Util)
+    Util.testNuker();
+
     // Final stats
 	Grafana.logFinal();
 
+    // If a manual room summary report was requested, generate it.
     if(Memory.roomReportFlag){
         RoomObj.roomSummaryReport();
         Memory.roomReportFlag = false;
     }
 
-    Util.testNuker();
+    // New/test routines go here last (in case they barf)
     //Util.testPathFinder();
     //console.log('safeRoute: '+ JSON.stringify(PathMaker.getSafeRoute('W5N8','W7N6',true)));
 
