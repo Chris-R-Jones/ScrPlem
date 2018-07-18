@@ -692,16 +692,20 @@ class LabGroup
                 // good, then move content back to storage.
                 if(onList && (!allPresent || lab.mineralAmount >= 300)){
                     let maxj=0;
+                    let maxjidx=-1;
 
                     for(let wj=0; wj<this.m_workerLabs.length; wj++){
                         let labj = this.m_workerLabs[wj];
 
                         if(labj.mineralType != g_product)
                             continue;
-                        if(labj.mineralAmount > maxj)
+                        if(labj.mineralAmount > maxj){
                             maxj = labj.mineralAmount;
+                            maxjidx = wj;
+                        }
                     }
-                    if(lab.mineralAmount < maxj)
+
+                    if(lab.mineralAmount < maxj || wi != maxjidx)
                         return { src: lab.id, good: lab.mineralType, tgt: 'terminal' };
                 }
             }
