@@ -10,16 +10,15 @@ const ORDER_ATTACK   = 3;
 
 class Division
 {
+    // Invoked whenever the general sees a hostile room without a division.
+    // This routine evaluates if the room needs a division spawned and instantiates if so.
     static considerNewDivision(roomName, rmem, attackOrder)
     {
-        // Invoked whenever the general sees a hostile room without a division
-        // -- evaluates if the room needs a division spawned and instantiates
-        // if so.
         let needDiv = false;
 
-        // If no rmem, we probably got an attack order on unvisisted, just return true.
+        // If no rmem, we probably got an attack order on unvisisted room.  So yes, we need one
         if(!rmem)
-            return true;
+            needDiv = true;
 
         // Figure out if this is a center hosted room.
         let isCenter = false;
@@ -36,8 +35,10 @@ class Division
             needDiv = true;
         else if(rmem.owner == 'none' && (rmem.keeperRoom || isCenter) && rmem.hostRoom ){
             let rObj = RoomHolder.get(roomName);
-            if(!rObj || !(rObj.m_room))
-                needDiv =false;
+            if(!rObj || !(rObj.m_room)) {
+                // This is a keeper room - we'll be sending skclear soon enough
+                needDiv = false;
+            }
             else {
                 let hostiles = rObj.getHostiles();
                 let hi;
@@ -57,9 +58,8 @@ class Division
         else if(rmem.hostRoom)
             needDiv = true;
 
-        if(needDiv){
+        if(needDiv)
             return new Division(roomName, attackOrder);
-        }
         else
             return null;
     }
@@ -103,12 +103,10 @@ class Division
                 // Check if this is adjacent to one of our rooms.  If so,
                 // defend, else just observe (for now, though later we may want
                 // to start spawning forces to prepare defence of our rooms).
-                if(rmem.hostRoom) {
+                if(rmem.hostRoom)
                     this.m_primaryOrder = ORDER_DEFENCE;
-                }
                 else
                     this.m_primaryOrder = ORDER_OBSERVE;
-
                 break;
 
             case 'me':
@@ -123,9 +121,8 @@ class Division
                 if(rmem.safeMode && (rmem.safeMode-(Game.time-rmem.hostileLastT))> 1800 )
                     this.m_primaryOrder = ORDER_OBSERVE;
                 else{
-                    if(rmem.hostileCt){
+                    if(rmem.hostileCt)
                         this.m_primaryOrder = ORDER_ATTACK;
-                    }
                     else if(trObj){
                         let astruct = trObj.getAllStructures();
                         if(astruct && astruct.length > 0)
@@ -148,6 +145,16 @@ class Division
         this.m_squads = [];
         this.m_bodCt = {};
     };
+
+    getOrderString()
+    {
+        switch(this.m_primaryOrder){
+        case ORDER_ATTACK: return "ATTACK";
+        case ORDER_DEFENCE: return "DEFENCE";
+        case ORDER_OBSERVE: return "OBSERVE";
+        default: return "UNDEFINED!"
+        }
+    }
 
     setAttackOrder( flag )
     {
@@ -173,21 +180,23 @@ class Division
         this.calculateNeeds();
 
         // If room is no longer under attack, give squads back to reserves
-        // for reassignment, and stand down division
+        // for reassignment, and stand down division.
+        //    If attacked by a user, keep a guard posted for at least 50000 turns.
         if(this.m_primaryOrder != ORDER_ATTACK
-            && trmem
-            && (
-                       ( ! trmem.hostileCt || trmem.hostileCt == 0)
-                    || ( trmem.owner != "me" && !trmem.hostRoom)
-                )
-            && ( trmem.hostileOwner == 'Invader' || trmem.hostileOwner == 'Screeps' || (Game.time - trmem.hostileLastT ) > 1300 )
+           && trmem
+           &&  ( ( ! trmem.hostileCt || trmem.hostileCt == 0)
+                 || ( trmem.owner != "me" && !trmem.hostRoom)
+               )
+           && ( trmem.hostileOwner == 'Invader' || trmem.hostileOwner == 'Screeps' || (Game.time - trmem.hostileLastT ) > 50000 )
           ) {
             while( (squad = squads.shift()) )
                 squad.setOrderStandDown();
             delete Memory.divisions[this.m_tgtRoomName];
 
-            if(Preference.debugMilitary)
+            if(Preference.debugMilitary){
                 console.log('T='+Game.time+' Division '+ this.m_tgtRoomName +' standing down');
+                console.log('.... DBG owner='+trmem.hostileOwner+' elap='+(Game.time - trmem.hostileLastt));
+            }
             return;
         }
 
@@ -216,13 +225,12 @@ class Division
             }
         }
 
-        // Give orders (currently only for attack division)
+        // Give orders to squads (currently only for attack division)
         if(this.m_primaryOrder == ORDER_ATTACK){
             for(let si=0; si<this.m_squads.length; si++){
                 this.m_squads[si].giveOrders();
             }
         }
-
     }
 
     calculateNeeds()
@@ -237,8 +245,21 @@ class Division
 
         if( this.m_primaryOrder != ORDER_ATTACK
             && (!rmem.hostileCt || rmem.hostileCt == 0)
-          )
+          ) {
+            // For defensive orders, we have no needs if there is no presence and the attacker was 
+            // invaders/screeps.
+            if( rmem.hostileOwner == 'Invader' || rmem.hostileOwner == 'Screeps' || (Game.time - rmem.hostileLastT ) > 50000 )
+                return;
+
+            // But for users attacks we need a sentry posted.  They may be bouncing the room, and even if not
+            // we'd like to intercept creeps moving through our rooms.
+            //... we really need a memory of the peak attack level and to slowly back off..
+            // This is 'almost' already covered at present because we don't re-assign creeps unless the division
+            // fully stands down (anything we spawned will still stay there).
+            // But the following should address the longer term sentry til we have a more complete solution.
+            this.m_needs = { attack: 10, ranged_attack: 10, heal: 0, work: 0 };
             return;
+        }
 
         // If we have no memory at all, we need to something small at least to expore.
         // (TBD is this even possible?)
@@ -269,7 +290,6 @@ class Division
         // will do it- they can always retreat to home healing.  Further we'll try to tune to '1 more than'.  See 
         // similar code in omni.
         if((rmem.hostileCt && rmem.hostileCt <= 3) && ( rmem.hostileOwner == 'Invader' || rmem.hostileOwner == 'Screeps')){
-            
             if(!rmem.hostileBodCt[HEAL]){
                 nHeal = 0;
                 if(_.sum(rmem.hostileBoostCt)==0){
@@ -395,7 +415,7 @@ class Division
             if(hostObj && hostObj.m_room.controller.level >= 5)
                 return null;
         }
-        
+
         // If it's the host room spawning - give it 35 turns before spawning.  Turrets will likely end the invasion.
         if(spawnRoomName == this.m_tgtRoomName
            && (Game.time - rmem.hostileStartT) <= 35

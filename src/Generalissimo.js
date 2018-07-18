@@ -1,4 +1,3 @@
-
 var Preference = require('Preference');
 var Division   = require('Division');
 var Squad      = require('Squad');
@@ -204,8 +203,12 @@ class Generalissimo
         if(Memory.debugReqMilitary){
             console.log('------------- DIVISION REPORT ---------------');
             for(let divName in g_divisions) {
+                if(Memory.debugReqMilitary != true && Memory.debugReqMilitary != divName)
+                    continue;
                 let div = g_divisions[divName];
                 console.log('Division '+divName);
+                console.log('   ORDER: '+div.getOrderString());
+                console.log('   Needs: '+JSON.stringify(div.m_needs));
 
                 for( let sqName in div.m_squads ){
                     let sq = div.m_squads[sqName];
