@@ -33,7 +33,7 @@ var PlemPref = {
 
     // Are we in preparing for war? If so we'll load labs with boosts rather
     // than production.
-    warPrep: false,
+    warPrep: true,
     loadList: [ 'XLHO2'   // HEAL boost
               , 'XZHO2'   // MOVE boost
               , 'XGHO2'   // TOUGH boost

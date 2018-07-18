@@ -683,7 +683,7 @@ class LabGroup
             // for production.
             if(lab.mineralType == g_product){
                 if(    (onList && (lab.mineralAmount >= (lab.mineralCapacity-100)) )
-                   ||  (!onList && (!allPresent || lab.mineralAmount >= 100))
+                   ||  (!onList && ((!allPresent && lab.mineralAmount>0) || lab.mineralAmount >= 100))
                    )
                     return { src: lab.id, good: lab.mineralType, tgt: 'terminal' };
 

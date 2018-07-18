@@ -215,6 +215,8 @@ class Role_Chemist extends Creep
 
                 // Get order to move goods lab -> terminal
                 order = labGroup.getChemistOrderLabToTerminal();
+                debug=debug+'.. order='+JSON.stringify(order)+'\n';
+                
                 if(!order){
                     // If we already are carrying goods from earlier lab order
                     // move it to terminal.
