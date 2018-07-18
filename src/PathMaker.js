@@ -148,7 +148,7 @@ class PathMaker
         let preserved = 0;
 
         if(Math.floor(Math.random()*10) == 0){
-            console.log('Before.. '+Object.keys(Memory.safeCache).length);
+            //console.log('Before.. '+Object.keys(Memory.safeCache).length);
             for(let key in Memory.safeCache){
                 if(!Memory.safeCache[key].refTime)
                     continue;
@@ -160,7 +160,7 @@ class PathMaker
                     preserved++;
             }
         }
-        if(flushed > 0){
+        if(false && flushed > 0){
             console.log('T='+Game.time+' Flushed '+flushed+' safeRoute cache entries');
             console.log('... preserved '+preserved);
             console.log('... left = '+Object.keys(Memory.safeCache).length);
