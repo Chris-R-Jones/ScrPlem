@@ -1,3 +1,4 @@
+var Preference = require('Preference');
 var RoomHolder          = require('RoomHolder');
 
 class PathMaker
@@ -68,13 +69,13 @@ class PathMaker
         else
             score = 5;
 
-        // Avoid hostile rooms, unless it's our origin or destination.
+        // Avoid hostile rooms, unless it's our origin or destination, or is attacked.
         // Again, if it's our only choice, well.. maybe ok..
-        if(rmem.keeperRoom)
+        if(rmem.keeperRoom && Preference.attackOrders[cbRoomName] == false)
             score+=550;
-        if(rmem.hostileCt && rmem.hostileCt > 0)
+        if(rmem.hostileCt && rmem.hostileCt > 0 && Preference.attackOrders[cbRoomName]==false)
             score+=50;
-        if(rmem.owner == 'reserved' && rmem.hostileCt && rmem.hostileCt > 0)
+        if(rmem.owner == 'reserved' && rmem.hostileCt && rmem.hostileCt > 0 && Preference.attackOrders[cbRoomName]==false)
             score+=500;
         if(rmem.hostileTowerCt && rmem.hostileTowerCt > 0)
             score+=5000;

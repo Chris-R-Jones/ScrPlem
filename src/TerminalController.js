@@ -86,8 +86,11 @@ class TerminalController
                      * if the room average is >= 500.  That leaves a pretty big gap if a room is below
                      * 500 (terminals should be balanced
                      */
-                    if(trmAmt + stoAmt < 300)
+                    if( (trmAmt + stoAmt) < 250){
+                        if(good == 'GHO2')
+                            console.log('STARVED '+roomObj.m_room.name+' for good GHO2');
                         starvedRooms[good] += 1;
+                    }
                 }
             }
         }
@@ -330,7 +333,7 @@ class TerminalController
                         bestCost=cost;
                         bestPrice=o.price;
                         bestAmount=oAmount;
-                        console.log('New best rsc='+bestRsc+' price='+o.price+' cost='+cost+' costRatio='+costRatio+ ' rsc='+rsc+' amount='+oAmount);
+                        //console.log('New best rsc='+bestRsc+' price='+o.price+' cost='+cost+' costRatio='+costRatio+ ' rsc='+rsc+' amount='+oAmount);
                     }
                 }
             }

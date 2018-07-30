@@ -567,7 +567,7 @@ class LabGroup
                     return { src: 'terminal', good: RESOURCE_ENERGY, tgt: lab.id };
 
                 if(lab.mineralType == loadGood){
-                    if(    (lab.mineralType == g_product && lab.mineralAmount < (lab.mineralCapacity-600))
+                    if(    (lab.mineralType == g_product && lab.mineralAmount < (lab.mineralCapacity-500))
                         || (lab.mineralType != g_product && lab.mineralAmount < lab.mineralCapacity)
                        ){
 
