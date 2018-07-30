@@ -200,6 +200,8 @@ Creep.prototype.clearTarget = function ()
 
 Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
 {
+    let rmem = rObj.m_rmem;
+
     // Return false if no need to defend
     if(creep.hits == creep.hitsMax
        && (!trObj.m_rmem.hostileCt || trObj.m_rmem.hostileCt == 0)
@@ -217,21 +219,11 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
 
     // We act differently depend on whether the room is full only of source keepers.
     // Determine if that's the case.
-    let skOnly = true;
-    if(rObj.m_room){
-        for(let ti=0; ti<hostiles.length; ti++){
-            let hCreep = hostiles[ti];
-            if(hCreep.owner.username == "Source Keeper")
-                continue;
-            skOnly = false;
-            break;
-        }
-    }
-    else {
-        let rmem = rObj.m_rmem;
-        if(!rmem.keeperRoom || rmem.hostileOwner != 'Source Keeper')
-            skOnly = false;
-    }
+    let skOnly;
+    if(rmem.keeperRoom && rmem.hostileCt == rmem.hostileScreepsCt)
+        skOnly = true;
+    else
+        skOnly = false;
 
     // If these aren't only source keepers, then retreat to home.
     if(!skOnly){

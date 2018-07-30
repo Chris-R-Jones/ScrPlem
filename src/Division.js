@@ -4,12 +4,112 @@ var RoomHolder = require('RoomHolder');
 var Preference = require('Preference');
 var RoomCoord  = require('RoomCoord');
 
-const ORDER_OBSERVE = 1;
-const ORDER_DEFENCE = 2;
-const ORDER_ATTACK   = 3;
+const ORDER_STAND_DOWN = 0;
+const ORDER_DEFENCE    = 1;
+const ORDER_ATTACK     = 2;
+const ORDER_DEFEND     = 3;
 
 class Division
 {
+
+    // evaluateDivision
+    //
+    // This static helper evaluates a room and determines the overall division orders
+    // that should be applied to that room.   
+    //   It is invoked
+    //       - By the general to instantiate a division (if one is necessary)
+    //       - By a pre-existing division to re-evaluate if it is still required.
+    //
+    //  Arguments:
+    //     roomName           - the room to evaluate
+    //     rmem               - Memory.rooms[roomName]
+    //     div                - either null, or pre-existing division if already instantiated.
+    //     manualAttackOrder  - true if user preference requested an attack on this room.
+    //
+    //  Returns:
+    //     div object, or null if no division required (either didn't exist or should stand down)
+    static evaluateDivision(roomName, rmem, div, manualAttackOrder)
+    {
+        // First - decide if this is a room of military interest.
+        //   * One of our spawn rooms
+        //   * One of our hosted (remote mining) rooms
+        //   * A manually attacked room
+        //   * To be added later: a pathing room (between one of the above)
+        if(    !manualAttackOrder
+            && ( !rmem || rmem.owner != me)
+            && ( rmem && !rmem.hostRoom)
+          ) {
+            decision = ORDER_STAND_DOWN;
+        }
+
+        // Is the room safe moded?  Even if ours, we don't need a division.
+        else if( rmem && rmem.safeMode && (rmem.safeMode-(Game.time-rmem.hostileLastT)) >= 100 )
+            decision = ORDER_STAND_DOWN;
+
+        // Has the room never been visited?  Attack (this must be a manual attack order or
+        // else general would have no visibility and never initiate this)
+        else if(!rmem)
+            decision = ORDER_ATTACK;
+
+        // Does the room actively have either invaders or enemy user creeps? Then attack.
+        // Note -- we don't necessarily attack for SK -- nor for "Screeps" caravans.
+        else if (  ( rmem.activeEnemyCt && rmem.activeEnemyCt > 0 ) ||
+                || ( rmem.activeInvaderCt && rmem.activeInvaderCt > 0 )
+                ) {
+            decision = ORDER_ATTACK;
+        }
+
+        // Did the room have enemy users in recent history?  If so, defend -- slowly
+        // backing off on force levels.
+        else if ( rmem.lastEnemyT && (Game.time - rmem.lastEnemyT) <= 50000 )
+            decision = ORDER_DEFEND;
+
+        else {
+            // Shouldn't get here -- debug
+            console.log('DEBUG - evalutateDivision unhandled case!'+roomName+' json='+JSON.stringify(rmem));
+            decision = ORDER_STAND_DOWN;
+        }
+
+        // Save evaluation results
+
+        /// TBD REFACTOR
+        ///  Way too much complexity in figuring out if attacked or not and how to react.
+        ///  It needs to be more centralized and better documented.
+        ///---
+        // First, need to collect summary of the conditions & basic flow
+        // 
+        //   Is not a room of interest? STAND_DOWN    (Home room, hosted room, or manual attacked room)  Later: pathing rooms too, however we decide that
+        //   Is room safe moded?    STAND DOWN        (even if mine) 
+        //   Is room never visited? ATTACK            (this must mean it's a manual order or General would never instantiate)
+        //   Does room have User hostiles?   ATTACK   (if a room of interest)
+        //   Does room have Invaders?        ATTACK   (if a room of interest)
+        //   If none of the above (or hostiles are Source Keeper only)
+        //       If room *HAD* user hostiles recently:   DEFEND up to 50000 turns, perhaps with a slow backoff.
+        //
+        // ---
+        // And requirements
+        //    - Need something invoked by General to decide whether to instantiate, given room & Preferences only
+        //         division doesn't yet exist.  And should be crated.
+        //    - Need something invoked by Division in order to determine Division orders or if it should stnand down
+        //    - Need to have result of earlier steps determined for handing off orders.
+        //         
+        //    - Should probably store summary & rationalle in division (for reports and giveOrders)
+        //
+        // --- 
+        //   Does it need to be given 'orders' and what does this mean
+        //   We had something like ATTACK, DEFEND, and informally STAND_DOWN.
+        //   But:
+        //       - Is there a real difference between ATTACK and DEFEND?
+        //       - Is there value to a STAND_DOWN? (squads just get orphaneed)
+        //   Need to think this through..
+        //     there may be cases we want to have a 'DEFEND' that means there's no immediate need
+        //     but we want to maintain a presence in the room because it was recently hostile...
+        //     At least above, that's the only really difference -- but it is 'useful' in the 
+        //     form of documenting in military summaries...
+        //   Current code only treats the orders as 'attack or dont' and so we need to be careful...
+    }
+
+
     // Invoked whenever the general sees a hostile room without a division.
     // This routine evaluates if the room needs a division spawned and instantiates if so.
     static considerNewDivision(roomName, rmem, attackOrder)
@@ -212,13 +312,13 @@ class Division
 
         // If room is no longer under attack, give squads back to reserves
         // for reassignment, and stand down division.
-        //    If attacked by a user, keep a guard posted for at least 50000 turns.
+        // But if recently attacked by a user, keep a guard posted for at least 50000 turns.
         if(this.m_primaryOrder != ORDER_ATTACK
            && trmem
            &&  ( ( ! trmem.hostileCt || trmem.hostileCt == 0)
                  || ( trmem.owner != "me" && !trmem.hostRoom)
                )
-           && ( trmem.hostileOwner == 'Invader' || trmem.hostileOwner == 'Screeps' || (Game.time - trmem.hostileLastT ) > 50000 )
+           && ( !trmem.assaultLastT || (Game.time - trmem.hostileLastT ) > 50000 )
           ) {
             while( (squad = squads.shift()) )
                 squad.setOrderStandDown();
@@ -277,7 +377,7 @@ class Division
           ) {
             // For defensive orders, we have no needs if there is no presence and the attacker was 
             // invaders/screeps.
-            if( rmem.hostileOwner == 'Invader' || rmem.hostileOwner == 'Screeps' || (Game.time - rmem.hostileLastT ) > 50000 )
+            if( !rmem.assaultLastT || (Game.time - rmem.hostileLastT ) > 50000 )
                 return;
 
             // But for users attacks we need a sentry posted.  They may be bouncing the room, and even if not
@@ -318,7 +418,7 @@ class Division
         // On invader attacks, we generally don't need heal, attack/ranged
         // will do it- they can always retreat to home healing.  Further we'll try to tune to '1 more than'.  See 
         // similar code in omni.
-        if((rmem.hostileCt && rmem.hostileCt <= 3) && ( rmem.hostileOwner == 'Invader' || rmem.hostileOwner == 'Screeps')){
+        if((rmem.hostileCt && rmem.hostileCt <= 3) && rmem.hostileUserOwnedCt == 0){
             if(!rmem.hostileBodCt[HEAL]){
                 nHeal = 0;
                 if(_.sum(rmem.hostileBoostCt)==0){
@@ -332,12 +432,6 @@ class Division
                     nRanged = rmem.hostileBodCt[RANGED_ATTACK]*2 + 1;
                 }
             }
-        }
-
-        // On bigger attacks especially nonuser, boost our numbers
-        else if (rmem.hostileOwner != 'Invader' && rmem.hostileOwner != 'Screeps' && rmem.owner != "none" && rmem.owner != "nouser"){
-            nAttack += 20;
-            nRanged += 20;
         }
 
         // On attacks, stimulate spawning of military accompaniment (ranged)
@@ -469,7 +563,7 @@ class Division
         let spCoord = new RoomCoord(spawnRoomName);
         let tgtCoord = new RoomCoord(this.m_tgtRoomName);
         let linearDist = (spCoord.xDist(tgtCoord) + spCoord.yDist(tgtCoord));
-        if(rmem && rmem.hostileCt && rmem.hostileOwner == 'Invader'
+        if(rmem && rmem.hostileCt && !rmem.hostileUserOwnedCt
            && (rmem.hostRoom != spawnRoomName && this.m_tgtRoomName != spawnRoomName)
            && (Game.time-rmem.hostileStartT) <= (linearDist * 30)
            ) {
@@ -481,7 +575,7 @@ class Division
         // If it's the host room spawning - give it 35 turns before spawning.  Turrets will likely end the invasion.
         if(spawnRoomName == this.m_tgtRoomName
            && (Game.time - rmem.hostileStartT) <= 35
-           && rmem.hostileOwner == 'Invader'
+           && (rmem.hostileInvaderCt == rmem.hostileCt)
            )
             return null;
 
@@ -489,7 +583,9 @@ class Division
             console.log('DBG SPAWN ALLOWING HELP elapsed='+(Game.time-rmem.hostileStartT)+' dist='+linearDist
                        +'\n\t tgt='+this.m_tgtRoomName+'\n\thelper='+spawnRoomName
                        +'\n\t rmem.hostileCt='+rmem.hostileCt
-                       +'\n\t rmem.hostileOwner='+rmem.hostileOwner
+                       +'\n\t rmem.hostileInvaderCt='+rmem.hostileInvaderCt
+                       +'\n\t rmem.hostileScreepsCt='+rmem.hostileScreepsCt
+                       +'\n\t rmem.hostileUserOwnedCt='+rmem.hostileUserOwnedCt
                        +'\n\t rmem.hostRoom='+rmem.hostRoom
                        );
         }

@@ -660,6 +660,7 @@ RoomObj.prototype.getTombstones = function()
 // Does a find only on demand but saves result.
 RoomObj.prototype.getHostiles = function()
 {
+    let rmem = this.m_rmem;
     if(this.m_hostiles)
         return this.m_hostiles;
     fullHostiles = this.m_room.find
@@ -688,18 +689,28 @@ RoomObj.prototype.getHostiles = function()
     }
 
     // Gather info/counts on the remaining...
-    // TBD - maybe merge the previous loop with this one so there aren't
-    // two passes...
+    // This loop generates a number of summary counters.  Here's an overview of
+    // what we count and their meanings:
+    //     hostileCt           -- Total number of (last known) enemies in the room of any type.
+    //     hostileStartT       -- Time at which current round of hostiles appeared.
+    //     hostileUserOwnedCt  -- Total number of enemies that are user-owned.
+    //     hostileInvaderCt    -- Total number of enemies that are AI owned Invaders
+    //     hostileScreepsCt    -- Total number of enemies that are Source Keepers or Screeps caravans
+    //     hostileBodCt        -- Summary counts, per body type, of all hostiles in room
+    //     hostileBoostCt      -- Summary counts, per boosted body type, of all hostiles in room (we don't differentiate boost strength)
+    //     uniqueBoostedCreeps -- Total number of creeps that have boosts.
+    //
+    //     assaultOwner        -- Last owner of user-owned hostiles seen in room
+    //     assaultLastT        -- Time user-owned hostiles were last seen
+    //     assaultPeakBoostCt  -- Peak boost counts seen in the room
+    //
     if(m_hostiles.length){
-        this.m_rmem.hostileCt    = 0;
-        this.m_rmem.hostileOwner = m_hostiles[0].owner.username;
-        this.m_rmem.hostileLastT = Game.time;
-        this.m_rmem.uniqueBoostedCreeps = 0;
-
-        if(m_hostiles[0].owner.username != 'Invader'){
-            this.m_rmem.assaultOwner = m_hostiles[0].owner.username;
-            this.m_rmem.assaultLastT = Game.time;
-        }
+        rmem.hostileCt          = 0;
+        rmem.hostileUserOwnedCt = 0;
+        rmem.hostileInvaderCt   = 0;
+        rmem.hostileScreepsCt   = 0;
+        rmem.hostileLastT       = Game.time;
+        rmem.uniqueBoostedCreeps = 0;
 
         let bodCt = {};
         let boostCt = {};
@@ -707,6 +718,7 @@ RoomObj.prototype.getHostiles = function()
             let host = m_hostiles[hi];
             let hBodCt = {}
             let isCreepBoosted = false;
+
             for(let bi=0; bi<host.body.length; bi++){
                 let bodEl = host.body[bi];
                 let btype = bodEl.type;
@@ -728,37 +740,53 @@ RoomObj.prototype.getHostiles = function()
                 }
             }
             if(isCreepBoosted)
-                this.m_rmem.uniqueBoostedCreeps++;
+                rmem.uniqueBoostedCreeps++;
 
             // Note that getHostiles() will always return all hostile creeps.  But 
             // rmem.hostileCt only shows creeps that can do damage.  This is used by the Creep.commonDefence
             // to not over-react to probes, for example.
-            if(hBodCt[ATTACK]>0 || hBodCt[RANGED_ATTACK]>0 || hBodCt[HEAL] > 0 || hBodCt[WORK] > 0)
-                this.m_rmem.hostileCt++;
+            if(hBodCt[ATTACK]>0 || hBodCt[RANGED_ATTACK]>0 || hBodCt[HEAL] > 0 || hBodCt[WORK] > 0) {
+                rmem.hostileCt++;
+
+                if(host.owner.username == 'Invader')
+                    rmem.hostileInvaderCt++;
+                else if (host.owner.username == 'Source Keeper')
+                    rmem.hostileScreepsCt++;
+                else if (host.owner.username == 'Screeps')
+                    rmem.hostileScreepsCt++;
+                else {
+                    rmem.hostileUserOwnedCt ++;
+                    rmem.assaultOwner = m_hostiles[0].owner.username;
+                    rmem.assaultLastT = Game.time;
+                }
+            }
         }
 
-        this.m_rmem.hostileBodCt = bodCt;
-        this.m_rmem.hostileBoostCt = boostCt;
+        rmem.hostileBodCt = bodCt;
+        rmem.hostileBoostCt = boostCt;
 
-        if(!this.m_rmem.hostileStartT){
-            this.m_rmem.hostileStartT = Game.time;
-            if(Preference.debugMilitary && this.m_rmem.hostileOwner != 'Source Keeper' && (this.m_rmem.owner == 'me' || this.m_rmem.hostRoom))
-                console.log('T='+Game.time+' Room '+this.m_room.name+' hostilities begin! '+this.m_rmem.hostileCt+' attackers ('+m_hostiles[0].owner.username+')');
+        if(!rmem.hostileStartT){
+            rmem.hostileStartT = Game.time;
+            if(Preference.debugMilitary && (rmem.hostileScreepsCt != rmem.hostileCt) && (rmem.owner == 'me' || rmem.hostRoom)){
+                rmem.loggedBegin = true;
+                console.log('T='+Game.time+' Room '+this.m_room.name+' hostilities begin! '+rmem.hostileCt+' attackers ('+m_hostiles[0].owner.username+')');
+            }
         }
     }
     else{
-        if(this.m_rmem.hostileStartT && this.m_rmem.hostileOwner != 'Source Keeper' && Preference.debugMilitary && (this.m_rmem.owner == 'me' || this.m_rmem.hostRoom))
-            console.log('T='+Game.time+' Room '+this.m_room.name+' hostilities ended after '+(Game.time - this.m_rmem.hostileStartT)+' ticks');
+        if(rmem.hostileStartT && rmem.loggedBegin && Preference.debugMilitary && (rmem.owner == 'me' || rmem.hostRoom)){
+            console.log('T='+Game.time+' Room '+this.m_room.name+' hostilities ended after '+(Game.time - rmem.hostileStartT)+' ticks');
+            delete rmem.loggedBegin;
+        }
 
-        delete this.m_rmem.hostileCt;
-        delete this.m_rmem.hostileStartT;
-        delete this.m_rmem.hostileBodCt;
-        delete this.m_rmem.hostileBoostCt;
+        delete rmem.hostileCt;
+        delete rmem.hostileStartT;
+        delete rmem.hostileBodCt;
+        delete rmem.hostileBoostCt;
+        delete rmem.hostileOwner;       // (Cleans up deprecated flag, remove later)
 
-        // Don't delete the following - they are used to decide whether to stand down and gives a history
-        // of what the recent attack was.
-        //delete this.m_rmem.hostileLastT;
-        //delete this.m_rmem.hostileOwner;
+        // Don't delete the following - used to decide whether to stand down
+        //delete rmem.hostileLastT;
     }
     return m_hostiles;
 }
@@ -1477,8 +1505,7 @@ RoomObj.roomSummaryReport = function ()
             wrn = wrn + " BREACHED";
 
         console.log(roomObj.m_room.name +' L'+ctrl.level+' walls='+roomObj.m_minRampartsWallsHits/1000000+'M'
-                   +' lastHostile='+roomObj.m_rmem.hostileOwner
-                   +'('+(Game.time - roomObj.m_rmem.hostileStartT)+')'
+                   +' invasionLength=('+(Game.time - roomObj.m_rmem.hostileStartT)+')'
                    +' lastAssault='+roomObj.m_rmem.assaultOwner
                    +'T='+roomObj.m_rmem.assaultLastT+'('+(Game.time - roomObj.m_rmem.assaultLastT)+')'
                    +wrn);
@@ -1536,7 +1563,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
 
     // Spawn boosted defenders if under user attack.
     if( roomObj.getHostiles().length > 1
-        && roomObj.m_rmem.hostileOwner != 'Invader'
+        && roomObj.m_rmem.hostileUserOwnedCt > 0
       ){
         if(roomObj.m_rmem.uniqueBoostedCreeps > 0){
             if(Role_DefGrunt.spawn( spawn, roomObj, roomObj.m_room.name, true, (roomObj.m_rmem.uniqueBoostedCreeps/2)+1))

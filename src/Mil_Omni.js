@@ -53,7 +53,7 @@ class Mil_Omni extends Creep
         // We can just match the attacking invader's body counts and exceed by 1.
         if(hRoom.controller.level >= 7
            && trObj.m_rmem.hostileCt == 1
-           && trObj.m_rmem.hostileOwner == 'Invader'
+           && trObj.m_rmem.hostileInvaderCt == 1
            && !trObj.m_rmem.hostileBodCt[HEAL]
            ) {
             let ni;
@@ -61,24 +61,24 @@ class Mil_Omni extends Creep
             let tCt,rCt,aCt,mCt;
             let hBCt = trObj.m_rmem.hostileBodCt;
             let hOCt = trObj.m_rmem.hostileBoostCt;
-            
+
             // The following assumes that invaders only boost with 2x boosts.  (I think that's true!?)
             // If they boost with acids or worst catalyzed acids, this needs revisit..
             // (I have seen catalyzed ones in the SK rooms... in groups -- not single invaders)
             body = [];
             cost = 0;
-            
+
             tCt = (hBCt[TOUGH] ? hBCt[TOUGH] : 0) + (hOCt[TOUGH] ? hOCt[TOUGH] : 0)+1;  
             rCt = (hBCt[RANGED_ATTACK] ? hBCt[RANGED_ATTACK] : 0) + (hOCt[RANGED_ATTACK] ? hOCt[RANGED_ATTACK] : 0)+1;
             aCt = (hBCt[ATTACK] ? hBCt[ATTACK] : 0) + (hOCt[ATTACK] ? hOCt[ATTACK] : 0)+1;  
-            
+
             // If we exceed 25 parts, we'll halve and let military spawn more.
             while(tCt+rCt+aCt > 25){
                 tCt /= 2;
                 rCt /= 2;
                 aCt /= 2;
             }
-            
+
             mCt = (tCt+rCt+aCt);
             for(ni=0; ni<tCt; ni++){
                 body.push(TOUGH);
@@ -398,7 +398,7 @@ class Mil_Omni extends Creep
                 if(    (cRoom.memory.owner == 'me' || cRoom.memory.owner == 'nouser')
                    && (Game.time - crmem.arrivalT) >= 15
                    && division && division.m_primaryOrder == 2/*ORDER_DEFENCE*/
-                   && crObj.m_rmem.hostileOwner == 'Invader'
+                   && crObj.m_rmem.hostileInvaderCt == crObj.m_rmem.hostileCt
                    )
                    {
                     crmem.state = 'moveReclaim';
