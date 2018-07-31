@@ -1626,9 +1626,11 @@ RoomObj.prototype.spawnLogic = function( roomObj )
     // The problem is they tend to starve bootstrapping... until we get to L7
     // spawns.  Which won't be a problem once we do.   Unfortunately I don't have
     // a great solution to that rather than just moving this logic around.
-    if(Role_CtrlUpgrade.spawn( spawn, roomObj))
+    if(Role_CtrlUpgrade.spawn( spawn, roomObj, null, 3))
         return;
     if(Role_CtrlMover.spawn( spawn, roomObj))
+        return;
+    if(Role_CtrlUpgrade.spawn( spawn, roomObj, null, 0))
         return;
     
     // Mining 

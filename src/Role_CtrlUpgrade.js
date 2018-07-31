@@ -38,7 +38,7 @@ class Role_CtrlUpgrade extends Creep
         return null;
     }
 
-    static spawn( spawn, hrObj, targetRoomName ) {
+    static spawn( spawn, hrObj, targetRoomName, spawnLimit ) {
         let hRoom        = spawn.room;
         let controller   = hRoom.controller;
 
@@ -125,6 +125,8 @@ class Role_CtrlUpgrade extends Creep
         if(Preference.bootEnabled && hRoom.name == Preference.hostRoomName){
             maxCreeps = 1;
         }
+        if(spawnLimit && maxCreeps > spawnLimit)
+            maxCreeps = spawnLimit;
 
         /*
         console.log('CTRL upgrade');

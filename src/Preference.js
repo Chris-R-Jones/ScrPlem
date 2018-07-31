@@ -20,7 +20,7 @@ var PlemPref = {
     // For selecting room to bootstrap, and primary room that drives it.
     hostRoomName: 'E4N43',
     bootRoomName: 'E6N43',
-    bootEnabled:  true  ,
+    bootEnabled:  false  ,
 
     // Whether to 'exodus' goods toward terminal for sale or transfer.
     storageExodus: false,
@@ -72,7 +72,7 @@ var PlemPref = {
 
     // Generalissimo attack orders.
     debugMilitary: true, // 'E5N44',                 // true (basic division/squad reporting) , false, 'verbose', or roomName
-    attackOrders: { 'E5N44':true, 'E6N44': true},
+    attackOrders: { 'E5N44':false, 'E6N44': false},
     attackFromRooms: [ 'E4N47','E7N49', 'E3N42' ], 
     attackBoosted: false,
     boostAttackRooms: { 'E1N24': false },
