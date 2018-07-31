@@ -73,7 +73,7 @@ var PlemPref = {
     // Generalissimo attack orders.
     debugMilitary: true, // 'E5N44',                 // true (basic division/squad reporting) , false, 'verbose', or roomName
     attackOrders: { 'E5N44':true, 'E6N44': true},
-    attackFromRooms: [ 'E7N49', 'E3N42' ], 
+    attackFromRooms: [ 'E4N47','E7N49', 'E3N42' ], 
     attackBoosted: false,
     boostAttackRooms: { 'E1N24': false },
 };

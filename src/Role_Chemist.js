@@ -28,7 +28,7 @@ class Role_Chemist extends Creep
 
         // We only need chemists if we have active lab groups and orders
         let labGroup = hrObj.getLabGroup();
-        if((!labGroup || labGroup.getChemistOrder() == null) && !isWar)
+        if(!labGroup || (labGroup.getChemistOrder() == null && !isWar))
             return false;
 
         // This is excessive, but for initial testing, TBD to balance this.

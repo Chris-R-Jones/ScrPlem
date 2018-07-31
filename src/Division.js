@@ -125,8 +125,38 @@ class Division
                         this.m_primaryOrder = ORDER_ATTACK;
                     else if(trObj){
                         let astruct = trObj.getAllStructures();
-                        if(astruct && astruct.length > 0)
-                            this.m_primaryOrder = ORDER_ATTACK;
+                        if(astruct && astruct.length > 0) {
+                            for (let sti=0; sti<astruct.length; sti++){
+                                switch(astruct[sti].structureType){
+                                case STRUCTURE_POWER_BANK:
+                                case STRUCTURE_POWER_SPAWN:
+                                case STRUCTURE_KEEPER_LAIR:
+                                case STRUCTURE_PORTAL:
+                                case STRUCTURE_CONTROLLER:
+                                    continue;
+                                case STRUCTURE_SPAWN:
+                                case STRUCTURE_EXTENSION:
+                                case STRUCTURE_ROAD:
+                                case STRUCTURE_WALL:
+                                case STRUCTURE_RAMPART:
+                                case STRUCTURE_LINK:
+                                case STRUCTURE_STORAGE:
+                                case STRUCTURE_TOWER:
+                                case STRUCTURE_OBSERVER:
+                                case STRUCTURE_EXTRACTOR:
+                                case STRUCTURE_LAB:
+                                case STRUCTURE_TERMINAL:
+                                case STRUCTURE_CONTAINER:
+                                case STRUCTURE_NUKER:
+                                    this.m_primaryOrder = ORDER_ATTACK;
+                                    break;
+                                default:
+                                    continue;
+                                }
+                            }
+                            if(sti == astruct.length)
+                                this.m_primaryOrder = ORDER_OBSERVE;
+                        }
                         else
                             this.m_primaryOrder = ORDER_OBSERVE;
                     }
@@ -193,10 +223,8 @@ class Division
                 squad.setOrderStandDown();
             delete Memory.divisions[this.m_tgtRoomName];
 
-            if(Preference.debugMilitary){
+            if(Preference.debugMilitary)
                 console.log('T='+Game.time+' Division '+ this.m_tgtRoomName +' standing down');
-                console.log('.... DBG owner='+trmem.hostileOwner+' elap='+(Game.time - trmem.hostileLastt));
-            }
             return;
         }
 
@@ -360,8 +388,40 @@ class Division
                ){
                 if(rmem.hostileTowerCt > 0)
                     nWork = 500;
-                else
-                    nWork = 25;
+                else {
+                    for (let sti=0; sti<allStruct.length; sti++){
+                        switch(allStruct[sti].structureType){
+                        case STRUCTURE_POWER_BANK:
+                        case STRUCTURE_POWER_SPAWN:
+                        case STRUCTURE_KEEPER_LAIR:
+                        case STRUCTURE_PORTAL:
+                        case STRUCTURE_CONTROLLER:
+                            continue;
+                        case STRUCTURE_SPAWN:
+                        case STRUCTURE_EXTENSION:
+                        case STRUCTURE_ROAD:
+                        case STRUCTURE_WALL:
+                        case STRUCTURE_RAMPART:
+                        case STRUCTURE_LINK:
+                        case STRUCTURE_STORAGE:
+                        case STRUCTURE_TOWER:
+                        case STRUCTURE_OBSERVER:
+                        case STRUCTURE_EXTRACTOR:
+                        case STRUCTURE_LAB:
+                        case STRUCTURE_TERMINAL:
+                        case STRUCTURE_CONTAINER:
+                        case STRUCTURE_NUKER:
+                            nWork += 5;
+                            break;
+                        default:
+                            continue;
+                        }
+                    }
+                    if(nWork >0 && nWork < 25)
+                        nWork = 25;
+                    if(nWork > 500)
+                        nWork = 500;
+                }
             }
             else if (!rObj || (rObj && ! rObj.m_room)){
                 // We're likely to need something, but wait til we have a presence
