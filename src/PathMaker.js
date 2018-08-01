@@ -71,7 +71,7 @@ class PathMaker
 
         // Avoid hostile rooms, unless it's our origin or destination, or is attacked.
         // Again, if it's our only choice, well.. maybe ok..
-        if(rmem.keeperRoom && Preference.attackOrders[cbRoomName] == false)
+        if(rmem.keeperRoom && !Preference.attackOrders[cbRoomName])
             score+=550;
         if(rmem.hostileCt && rmem.hostileCt > 0 && Preference.attackOrders[cbRoomName]==false)
             score+=50;

@@ -81,7 +81,8 @@ module.exports.loop = function () {
 
     // New/test routines go here last (in case they barf)
     //Util.testPathFinder();
-    //console.log('safeRoute: '+ JSON.stringify(PathMaker.getSafeRoute('W5N8','W7N6',true)));
+    //delete Memory.safeCache['E7N44_E6N43'];
+    //console.log('safeRoute: '+ JSON.stringify(PathMaker.getSafeRoute('E7N44','E6N43',true)));
 
 }
 

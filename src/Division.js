@@ -397,6 +397,8 @@ class Division
                         case STRUCTURE_KEEPER_LAIR:
                         case STRUCTURE_PORTAL:
                         case STRUCTURE_CONTROLLER:
+                        case STRUCTURE_STORAGE:
+                        case STRUCTURE_TERMINAL:
                             continue;
                         case STRUCTURE_SPAWN:
                         case STRUCTURE_EXTENSION:
@@ -404,12 +406,11 @@ class Division
                         case STRUCTURE_WALL:
                         case STRUCTURE_RAMPART:
                         case STRUCTURE_LINK:
-                        case STRUCTURE_STORAGE:
+
                         case STRUCTURE_TOWER:
                         case STRUCTURE_OBSERVER:
                         case STRUCTURE_EXTRACTOR:
                         case STRUCTURE_LAB:
-                        case STRUCTURE_TERMINAL:
                         case STRUCTURE_CONTAINER:
                         case STRUCTURE_NUKER:
                             nWork += 5;
