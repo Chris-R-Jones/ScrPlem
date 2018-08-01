@@ -87,8 +87,6 @@ class TerminalController
                      * 500 (terminals should be balanced
                      */
                     if( (trmAmt + stoAmt) < 250){
-                        if(good == 'GHO2')
-                            console.log('STARVED '+roomObj.m_room.name+' for good GHO2');
                         starvedRooms[good] += 1;
                     }
                 }
