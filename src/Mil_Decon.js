@@ -128,7 +128,7 @@ class Mil_Decon extends Creep
 	    // Always dismantle any adjacent structure if in target room.
 	    if(creep.room.name == tRoomName){
 	        if( (creep.room.controller && creep.room.controller.my)
-                || crObj.m_rmem.hostRoom
+                || (crObj.m_rmem.hostRoom && (crObj.m_rmem.owner == "me" || crObj.m_rmem.owner == "none") )
               )
             {
                 console.log(creep.name+'BUG ! BUG ! Destryoying own room at '+creep.pos);
@@ -163,7 +163,7 @@ class Mil_Decon extends Creep
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
-            //if(creep.name == 'milDecon_E75S97_E72S97_0')
+            //if(creep.name == 'milDecon_E4N47_E7N43_0')
             //    console.log(creep.name+' loop'+exceed+' state='+crmem.state);
 
             switch(crmem.state){

@@ -126,7 +126,8 @@ class Division
                     else if(trObj){
                         let astruct = trObj.getAllStructures();
                         if(astruct && astruct.length > 0) {
-                            for (let sti=0; sti<astruct.length; sti++){
+                            let sti;
+                            for (sti=0; sti<astruct.length; sti++){
                                 switch(astruct[sti].structureType){
                                 case STRUCTURE_POWER_BANK:
                                 case STRUCTURE_POWER_SPAWN:
