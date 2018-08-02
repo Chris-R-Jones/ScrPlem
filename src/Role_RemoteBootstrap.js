@@ -42,16 +42,11 @@ class Role_RemoteBootstrap extends Creep
         super(creep, crmem);
     };
 
-    static spawn( spawn, spObj, hostRoomName, targetRoomName, maxCreep ) {
+    static spawn( spawn, spObj, targetRoomName, maxCreep ) {
         let room        = spawn.room;
         let controller  = room.controller;
         let body;
         let cost;
-
-        // Filter if we want to control what rooms host the new room, else
-        // just past null.
-        if(hostRoomName && spawn.room.name != hostRoomName)
-            return false;
 
         // Choose the body we want and will wait for energy for.
 

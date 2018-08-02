@@ -122,7 +122,7 @@ class Role_CtrlUpgrade extends Creep
         }
 
         // If we're bootstrapping someone save our efforts for that room.
-        if(Preference.bootEnabled && hRoom.name == Preference.hostRoomName){
+        if(Preference.bootEnabled && (Preference.hostRooms.indexOf(hRoom.name) > -1)){
             maxCreeps = 1;
         }
         if(spawnLimit && maxCreeps > spawnLimit)

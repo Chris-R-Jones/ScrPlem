@@ -14,17 +14,12 @@ class Role_BootMover extends Creep
         super(creep, crmem);
     };
 
-    static spawn( spawn, hrObj, hostRoomName, targetRoomName, maxCreeps ) {
+    static spawn( spawn, hrObj, targetRoomName, maxCreeps ) {
         let hRoom        = spawn.room;
         let tRoom        = Game.rooms[targetRoomName];
         let trObj        = RoomHolder.get(targetRoomName);
         let controller   = hRoom.controller;
         let si;
-
-        // Filter if we want to control what rooms host the new room, else
-        // just past null.
-        if(hostRoomName && spawn.room.name != hostRoomName)
-            return false;
 
         // Don't bootstrap from the room we're bootstrapping ;-)
         if(controller.level < 5)

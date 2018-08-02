@@ -225,7 +225,7 @@ class Mil_Healer extends Creep
 
             case 'lingerTgtRoom':
                 if(creep.room.name != tRoomName){
-                    console.log('BUG!! not in target room but lingerTgtRoom');
+                    console.log('T='+Game.time+' '+creep.name+' pos='+creep.pos+' BUG!! not in target room but lingerTgtRoom');
                     crmem.state = 'moveTgtRoom';
                 }
 
@@ -235,12 +235,13 @@ class Mil_Healer extends Creep
                     crmem.state = 'moveStaging';
                     break;
                 }
+
                 // More rarely, move back to staging regardless, if there are no heal targets.
                 if(!fCreep && Math.floor((Math.random()*150)) == 0 && creep.hits == creep.hitsMax){
                     crmem.state = 'moveStaging';
                     break;
                 }
-                
+
                 // If there are wounded, start getting to work.
                 if(fCreep){
                     crmem.state = 'engageTargets';

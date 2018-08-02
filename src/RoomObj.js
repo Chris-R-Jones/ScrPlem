@@ -1682,8 +1682,9 @@ RoomObj.prototype.spawnLogic = function( roomObj )
 
         // Don't host more than 3 neighbors if we haven't reached L7 and
         // are trying to boot someone - we'll never get to the bootstrap.
-        if(Preference.bootEnabled && roomObj.m_room.name == Preference.hostRoomName
-             && ++nNeigh >= 4 && roomObj.m_room.controller.level < 7)
+        if(Preference.bootEnabled 
+           && (Preference.hostRooms.indexOf(roomObj.m_room.name) > -1)
+           && ++nNeigh >= 4 && roomObj.m_room.controller.level < 7)
             continue;
 
         if(Role_Reserve.spawn ( spawn, roomObj, neighRoomName ))
@@ -1701,36 +1702,38 @@ RoomObj.prototype.spawnLogic = function( roomObj )
 
     //--------------------------------------------------
     // Boostrapping -
-    let hostRoomName = Preference.hostRoomName;
     let bootRoomName = Preference.bootRoomName;
     let bootEnabled  = Preference.bootEnabled;
+    let amHostRoom = (Preference.hostRooms.indexOf(roomObj.m_room.name) > -1);
+    let brObj;
 
     if( (!Preference.bootEnabled) || Preference.bootRoomName != roomObj.m_room.name)
         roomObj.m_rmem.selfBooting = true;
 
-    if(Role_NewRoomProbe.spawn(spawn, roomObj, hostRoomName, bootRoomName))
-        return;
-
-    let brObj;
-    if(bootEnabled)
+    if(bootEnabled){
         brObj = RoomHolder.get(bootRoomName);
-    if(brObj){
-        if(Role_ClaimController.spawn(spawn, roomObj, hostRoomName, bootRoomName))
+
+        if( amHostRoom && (!brObj || !(brObj.m_room)) ){
+            if(Role_NewRoomProbe.spawn(spawn, roomObj, bootRoomName))
+                return;
+        }
+    }
+    if(brObj && amHostRoom) {
+
+        if(Role_ClaimController.spawn(spawn, roomObj, bootRoomName))
             return;
 
-        if(roomObj.m_room.name == hostRoomName){
-            if(roomObj.m_room.controller.level <= 6){
-                // Tell the room to self boot with FR bootstraps.  We aren't
-                // at a level to fully support it yet.  We just need enough
-                // to get the spawn up.
-                brObj.m_rmem.selfBooting = true;
-            }
-            else {
-                brObj.m_rmem.selfBooting = false;
-            }
+        if(roomObj.m_room.controller.level <= 6){
+            // Tell the room to self boot with FR bootstraps.  We aren't
+            // at a level to fully support it yet.  We just need enough
+            // to get the spawn up.
+            brObj.m_rmem.selfBooting = true;
+        }
+        else {
+            brObj.m_rmem.selfBooting = false;
         }
 
-        if(spawn.room.name != bootRoomName && brObj.m_room && brObj.m_room.controller.my){
+        if(brObj.m_room && brObj.m_room.controller.my){
             let brExtenList = brObj.getExtensions();
             let haveAllExtens = (brExtenList.length >= CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][brObj.m_room.controller.level]);
 
@@ -1745,19 +1748,18 @@ RoomObj.prototype.spawnLogic = function( roomObj )
                 if(!brIsStorage || !haveAllExtens){
                     let src = brObj.getSources();
                     let nSrc=src.length;
-                    if(Role_RemoteBootstrap.spawn( spawn, roomObj, hostRoomName, bootRoomName, 3*nSrc))
+                    if(Role_RemoteBootstrap.spawn( spawn, roomObj, bootRoomName, 3*nSrc))
                         return;
                 }
 
                 // We'll keep moving energy until terminal exists -- unless its self booting
                 // (host is too new to afford supporting it)
                 if(!brObj.m_rmem.selfBooting && !(brObj.getTerminal())){
-                    if(Role_BootMover.spawn(spawn, roomObj, hostRoomName, bootRoomName, 5))
+                    if(Role_BootMover.spawn(spawn, roomObj, bootRoomName, 5))
                         return;
                 }
                 else {
-                    if(roomObj.m_room.name == hostRoomName)
-                        console.log('T='+Game.time+' Skipping spawns to boot room - is complete (time to disable boot) self='+brObj.m_rmem.selfBooting);
+                    console.log('T='+Game.time+' Skipping spawns to boot room - is complete (time to disable boot) self='+brObj.m_rmem.selfBooting);
                 }
             }
         }

@@ -17,7 +17,7 @@ class Role_ClaimController extends Creep
         super(creep, crmem);
     };
 
-    static spawn( spawn, hrObj, hostRoomName, targetRoomName ) {
+    static spawn( spawn, hrObj, targetRoomName ) {
         let hRoom        = spawn.room;
         let trObj        = RoomHolder.get(targetRoomName);
         let tRoom        = trObj?trObj.m_room:null;
@@ -49,11 +49,6 @@ class Role_ClaimController extends Creep
 
         // Check if we still need this.
         if(controller.owner && controller.my)
-            return false;
-
-        // Filter if we want to control what rooms host the new room, else
-        // just past null.
-        if(hostRoomName && spawn.room.name != hostRoomName)
             return false;
 
         // Choose the body we want and will wait for energy for.
