@@ -115,6 +115,9 @@ class Role_AttackController extends Creep
                     break;
                 }
                 rc = this.actionAttackController(cRoom.controller);
+                if(rc){
+                    this.setTarget(cRoom.controller);
+                }
                 return;
 
             default:
