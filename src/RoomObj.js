@@ -1632,7 +1632,7 @@ RoomObj.prototype.spawnLogic = function( roomObj )
         return;
     if(Role_CtrlUpgrade.spawn( spawn, roomObj, null, 0))
         return;
-    
+
     // Mining 
     if(Role_Miner.spawn( spawn, roomObj, room.name ))
         return;

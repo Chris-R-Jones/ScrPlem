@@ -8,9 +8,13 @@ const TERMINAL_MIN_TRANSFER_ENERGY=5000;
 const TERMINAL_MIN_TRANSFER_OTHER=100;
 
 var g_terminalTotals = null;
-var g_allTotals = null;
-var g_starvedRooms = null;
-var g_nTerminals = 0;
+var g_allTotals      = null;
+var g_goodMin        = null;
+var g_goodMinRoom    = null;
+var g_goodMax        = null;
+var g_goodMaxRoom    = null;
+var g_starvedRooms   = null;
+var g_nTerminals     = 0;
 
 class TerminalController
 {
@@ -24,6 +28,10 @@ class TerminalController
     {
         let allTotals = {};
         let trmTotals = {};
+        let goodMin = {};
+        let goodMinRoom = {};
+        let goodMax = {};
+        let goodMaxRoom = {};
         let starvedRooms = {};
         let good;
         let sri;
@@ -82,6 +90,20 @@ class TerminalController
                     trmTotals[good] += trmAmt;
                     allTotals[good] += (trmAmt + stoAmt);
 
+                    if(!goodMin[good] || (goodMin[good] && (trmAmt+stoAmt)<goodMin[good])){
+                        goodMin[good] = (trmAmt+stoAmt);
+                        goodMinRoom[good] = roomObj.m_room.name;
+                    }
+                    if(!goodMax[good] || (goodMax[good] && (trmAmt+stoAmt)>goodMax[good])){
+                        goodMax[good] = (trmAmt+stoAmt);
+                        goodMaxRoom[good] = roomObj.m_room.name;                        
+                    }
+
+                    if(Preference.debugTransfers == 'verbose' && good == 'ZHO2'){
+                        console.log('Add room '+roomObj.m_room.name+' rtot='+(trmAmt+stoAmt)+' alltot='+allTotals[good] + ' nterm now='+nTerminal+' avgnow='+allTotals[good]/nTerminal);
+                        console.log('... minRoom='+goodMinRoom[good]+'='+goodMin[good]+', maxRoom='+goodMaxRoom[good]+'='+goodMax[good]);
+                    }
+
                     /* Choosing 300 as the threshold here, because we will start lab transactions
                      * if the room average is >= 500.  That leaves a pretty big gap if a room is below
                      * 500 (terminals should be balanced
@@ -93,8 +115,12 @@ class TerminalController
             }
         }
         g_terminalTotals = trmTotals;
-        g_allTotals  = allTotals;
-        g_nTerminals = nTerminal;
+        g_allTotals    = allTotals;
+        g_goodMin      = goodMin;
+        g_goodMinRoom  = goodMinRoom;
+        g_goodMax      = goodMax;
+        g_goodMaxRoom  = goodMaxRoom;
+        g_nTerminals   = nTerminal;
         g_starvedRooms = starvedRooms;
 
         // Each tick pick a single terminal to compare to the other terminals.
@@ -365,8 +391,8 @@ class TerminalController
             let bestGood;
             let bestAvg;
 
-            //if(Preference.debugTransfers == 'verbose')
-            //    console.log('Finding best good for room '+srObj.m_room.name);
+            if(Preference.debugTransfers == 'verbose')
+                console.log('Finding best good for room '+srObj.m_room.name);
 
             for(let good in srTrm.store){
                 // Don't balance chemicals in production - too much churn.
@@ -399,26 +425,53 @@ class TerminalController
                 let sStoAmt = (srSto.store[good]);
                 let sTrmAmt = (srTrm.store[good]);
 
+                let labs = srObj.getLabs();
+                let labAmt = 0;
+                for(let li=0; li<labs.length; li++){
+                    let lab = labs[li];
+                    if(lab.mineralType && lab.mineralAmount){
+                        if(lab.mineralType != good)
+                            continue;
+                        labAmt += lab.mineralAmount;
+                    }
+                }
+
                 if(!sStoAmt)
                     sStoAmt = 0;
                 if(!sTrmAmt)
                     sTrmAmt = 0;
-                sAmt = (sStoAmt + sTrmAmt);
+                sAmt = (sStoAmt + sTrmAmt + labAmt);
 
                 let avgAmt = allTotals[good]/nTerminal;
 
-                //if(Preference.debugTransfers == 'verbose')
-                //    console.log('.... good='+good+' roomAmount='+sAmt+' average='+avgAmt);
+                if(Preference.debugTransfers == 'verbose')
+                    console.log('.... good='+good+' roomAmount='+sAmt+' average='+avgAmt);
 
 
                 // Don't transfer energy out of the prioritized room - we want it to get glutted.
                 if(good == RESOURCE_ENERGY && srObj.m_room.name == Preference.prioritizedRoomName)
                     continue;
 
-                if(sAmt && sAmt > avgAmt){
-                    let sDiff = (sAmt - avgAmt);
+                let sDiff = 0;
+                if(sAmt > avgAmt)
+                    sDiff = (sAmt - avgAmt);
+                if (good != RESOURCE_ENERGY && sDiff > 0 && sDiff < 100 && (avgAmt - goodMin[good]) >= 200){
+                    // Comparing a room to the average alone isn't enough, because a 'new' room will be far below the
+                    // average and with many rooms won't influence the average significantly.  So we need to 
+                    // have rooms above average volunteer to bring themselves below average to satisfy the need and
+                    // bring down the average as a whole.
+                    sDiff = 100;
+                }
+                
+                if(Preference.debugTransfers == 'verbose')
+                    console.log('Consider '+good+' sDiff='+sDiff+' amt='+sAmt+' avg='+avgAmt+' goodMin='+goodMin[good]);
+                
+                if(sDiff >= 100){
                     if(!bestDiff || sDiff > bestDiff){
                         if(good != RESOURCE_ENERGY || sDiff >= 2500){
+                            if(Preference.debugTransfers == 'verbose')
+                                console.log('.... newBest good='+good+' diff='+sDiff+' amt='+avgAmt);
+
                             bestGood = good;
                             bestDiff = sDiff;
                             bestAvg  = avgAmt;
