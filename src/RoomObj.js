@@ -13,6 +13,7 @@ var RoomPlanner         = require('RoomPlanner');
 
 var RoomCoord           = require('RoomCoord');
 
+var Role_AttackController = require('Role_AttackController');
 var Role_BootMover      = require('Role_BootMover');
 var Role_Chemist        = require('Role_Chemist');
 var Role_ClaimController = require('Role_ClaimController');

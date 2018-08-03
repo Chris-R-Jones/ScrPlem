@@ -8,6 +8,7 @@ const ORDER_STAND_DOWN = 0;
 const ORDER_DEFENCE    = 1;
 const ORDER_ATTACK     = 2;
 const ORDER_DEFEND     = 3;
+const ORDER_OBSERVE    = 4; // TBD - will go away
 
 class Division
 {
@@ -53,7 +54,7 @@ class Division
 
         // Does the room actively have either invaders or enemy user creeps? Then attack.
         // Note -- we don't necessarily attack for SK -- nor for "Screeps" caravans.
-        else if (  ( rmem.activeEnemyCt && rmem.activeEnemyCt > 0 ) ||
+        else if (  ( rmem.activeEnemyCt && rmem.activeEnemyCt > 0 )
                 || ( rmem.activeInvaderCt && rmem.activeInvaderCt > 0 )
                 ) {
             decision = ORDER_ATTACK;
@@ -534,6 +535,22 @@ class Division
         this.m_needs[RANGED_ATTACK]=nRanged;
         this.m_needs[HEAL]=nHeal;
         this.m_needs[WORK]=nWork;
+    }
+
+    needControllerAttack(spawnRoomName)
+    {
+        let rmem = this.m_tgtRoomMem;
+        let trObj = this.m_trObj;
+        if(this.m_primaryOrder != ORDER_ATTACK || Preference.attackFromRooms.indexOf(spawnRoomName) < 0)
+            return false;
+
+        // We only want to attack controller in rooms that are pretty much wiped.
+        // controller attack creeps are expensive and die easy.
+        // There are additional sanity checks in the actual spawn logic, this is just a basic check
+        if(!rmem || rmem.hostileCt > 0 || rmem.hostileTowerCt > 0)
+            return false;
+
+        return true;
     }
 
     needSpawn(spawnRoomName)

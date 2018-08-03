@@ -11,6 +11,8 @@ var Mil_Omni            = require('Mil_Omni');
 var Mil_AtkBoostDecon   = require('Mil_AtkBoostDecon');
 var Mil_AtkBoostHeal    = require('Mil_AtkBoostHeal');
 
+var Role_AttackController = require('Role_AttackController');
+
 // The Generalissimo class coordinates all military activities.
 // It contains only static members and isn't instantiated but is responsible
 // for instantiating divisions and squads to give orders to individual creeps.
@@ -275,6 +277,14 @@ class Generalissimo
         // TBD to have them return deficit counts..
         for ( let divName in g_divisions ){
             let div   = g_divisions[divName];
+            let res;
+
+            if(div.needControllerAttack(spawn.room.name)){
+                if(Role_AttackController.spawn(spawn, roomObj, div.m_tgtRoomName)) {
+                    g_spawnThisTurn = true;
+                    return true;
+                }
+            }
 
             let request = div.needSpawn(spawn.room.name);
             if(request){

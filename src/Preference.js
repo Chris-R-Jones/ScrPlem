@@ -20,7 +20,7 @@ var PlemPref = {
     // For selecting room to bootstrap, and primary room that drives it.
     hostRooms: [ 'E7N49', 'E4N47' ],
     bootRoomName: 'E6N43',
-    bootEnabled:  true  ,
+    bootEnabled:  false  ,
 
     // Whether to 'exodus' goods toward terminal for sale or transfer.
     storageExodus: false,
@@ -28,7 +28,7 @@ var PlemPref = {
     // Whether to balance energy/minerals between terminals.
     balanceEnergy: true,
     balanceMinerals: true,
-    debugTransfers: true, //'verbose',  // 'verbose', // true/false
+    debugTransfers: false,  // 'verbose', // true/false
     prioritizedRoomName: null, //'E4N47', // 'W2N31', //'E4N43', //'E3N42',
 
     // Are we in preparing for war? If so we'll load labs with boosts rather
@@ -58,7 +58,7 @@ var PlemPref = {
     npcOnly: false,
 
     // Debug flags.  Set to true/false for all, or a room name for selective debug
-    debugSpawns: 'E4N47',
+    debugSpawns: 'E7N49',
 
     // Test creep visit rooms
     testR1: 'W2N42',

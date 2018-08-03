@@ -8,6 +8,7 @@ var Mil_Omni            = require('Mil_Omni');
 var Mil_AtkBoostDecon   = require('Mil_AtkBoostDecon');
 var Mil_AtkBoostHeal    = require('Mil_AtkBoostHeal');
 
+var Role_AttackController= require('Role_AttackController');
 var Role_BootMover      = require('Role_BootMover');
 var Role_Chemist        = require('Role_Chemist');
 var Role_ClaimController= require('Role_ClaimController');
@@ -55,7 +56,8 @@ class CreepMon {
         if(!Memory.creeps)
             Memory.creeps = {}
 
-        g_roleCounts = { bootmove: 0
+        g_roleCounts = { atkctrl: 0
+                       , bootmove: 0
                        , chemist: 0
                        , claim: 0
                        , ctrlmov: 0
@@ -124,6 +126,9 @@ class CreepMon {
                         break;
                     case 'chemist':
                         creepObj = new Role_Chemist(creep, crmem);
+                        break;
+                    case 'atkctrl':
+                        creepObj = new Role_AttackController(creep,crmem);
                         break;
                     case 'claim':
                         creepObj = new Role_ClaimController(creep,crmem);

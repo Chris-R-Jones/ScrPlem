@@ -643,6 +643,37 @@ Creep.prototype.actionClaimController = function( )
     return err;
 }
 
+// Moves to and attacks controller.
+// Returns:
+//   OK                        - if in progress
+//   ERR_INVALID_TARGET        - controller was never selected (generally shouldn't happen)
+Creep.prototype.actionAttackController = function( )
+{
+    let crmem = this.m_crmem;
+    let creep = this.m_creep;
+    let target;
+    let err = OK;
+    let rc;
+    let range;
+
+    if(!crmem.targetId || !(target = Game.getObjectById(crmem.targetId)))
+        err=ERR_INVALID_TARGET;
+    else if((range=target.pos.getRangeTo(creep)) >= 2){
+        this.actionMoveToPos(target.pos);
+        return OK;
+    }
+    if(!err){
+        err=creep.attackController(target);
+        if(!err)
+            return OK;
+    }
+    if(crmem.targetId)
+        delete crmem.targetId;
+    if(crmem.targetPath)
+        delete crmem.targetPath;
+    return err;
+}
+
 
 // Moves to and builds target site
 // Returns:
