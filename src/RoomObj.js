@@ -1479,6 +1479,8 @@ RoomObj.roomSummaryReport = function ()
         console.log(roomObj.m_room.name +' L'+ctrl.level+' walls='+roomObj.m_minRampartsWallsHits/1000000+'M'
                    +' lastHostile='+roomObj.m_rmem.hostileOwner
                    +'('+(Game.time - roomObj.m_rmem.hostileStartT)+')'
+                   +' lastAssault='+roomObj.m_rmem.assaultOwner
+                   +'T='+roomObj.m_rmem.assaultLastT+'('+(Game.time - roomObj.m_rmem.assaultLastT)+')'
                    +wrn);
     }
 
