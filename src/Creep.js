@@ -54,6 +54,9 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
 
     let needDebug = false;
 
+    if(false && spawn.room.name == 'W7N24')
+        needDebug = true;
+
     // Find a name for creep,
     for(ci=0; ci<maxInstance; ci++){
 
@@ -72,15 +75,6 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
                )
              + (multiSpec ? multiSpec : "")+ci;
         altname = name+'_alt';
-
-        if( false
-            && (   oname == 'dharv_W5N8_0' || altname == 'dharv_W5N8_0_alt'
-                || oname == 'dharv_W5N8_1' || altname == 'dharv_W5N8_1_alt'
-            )
-          ) {
-            needDebug = true;
-            s = 'DBG match name';
-        }
 
         creep = Game.creeps[name];
         altcreep = Game.creeps[altname];
@@ -119,7 +113,7 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
         // case that would be untrue - if the creep object exists it should have a life of be spawning.
         if(creep.spawning || creep.ticksToLive === undefined || creep.ticksToLive > altLife ) {
             if(needDebug)
-                s = s + '... Continue spawning='+creep.spawning+' ticks='+creep.ticksToLive+'\n';
+                s = s + '... Continue name='+creep.name+' pos='+creep.pos+' spawning='+creep.spawning+' ticks='+creep.ticksToLive+'\n';
             continue;
         }
 
@@ -139,6 +133,11 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
 
         break;
     }
+    
+    if(needDebug){
+        console.log('Out of loop s='+s);
+    }
+    
     if( ci == maxInstance )
         return null;
 
@@ -202,10 +201,13 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
 {
     let rmem = rObj.m_rmem;
 
-    // Return false if no need to defend
+    // Return false if no need to defend.
+    // (If a keeper room we still continue on because we need logic to move away
+    // from SK spawn a few ticks before it spawns)
     if(creep.hits == creep.hitsMax
        && (!trObj.m_rmem.hostileCt || trObj.m_rmem.hostileCt == 0)
-       && !trObj.m_rmem.keeperRoom)
+       && (!trObj.m_rmem.keeperRoom)
+       )
         return false;
 
     // If our current room isn't hostile we instead evaluate the target room, as we want
@@ -220,7 +222,7 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
     // We act differently depend on whether the room is full only of source keepers.
     // Determine if that's the case.
     let skOnly;
-    if(rmem.keeperRoom && rmem.hostileCt == rmem.hostileScreepsCt)
+    if(rmem.keeperRoom && !rmem.hostileCt || (rmem.hostileCt == rmem.hostileScreepsCt))
         skOnly = true;
     else
         skOnly = false;

@@ -781,6 +781,9 @@ RoomObj.prototype.getHostiles = function()
         }
 
         delete rmem.hostileCt;
+        delete rmem.hostileScreepsCt;
+        delete rmem.hostileUserOwnedCt;
+        delete rmem.hostileInvaderCt;
         delete rmem.hostileStartT;
         delete rmem.hostileBodCt;
         delete rmem.hostileBoostCt;
@@ -1825,7 +1828,6 @@ RoomObj.prototype.spawnLogic = function( roomObj )
             continue;
         if( !nObj || !nObj.m_rmem.keeperRoom )
             continue;
-
 
         if(Role_SK_Clear.spawn ( spawn, roomObj, nObj, neighRoomName ))
             return;

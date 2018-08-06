@@ -133,8 +133,8 @@ class Role_SK_Clear extends Creep
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
-            //if(creep.name == 'skclear_W4N27_W4N26_0_alt')
-            //    console.log(Game.time+' '+creep.name+' state='+crmem.state);
+            //if(creep.name == 'skclear_W5N33_W5N34_1')
+            //    console.log(Game.time+' '+creep.name+' state='+crmem.state+' loop='+exceed+' pos='+creep.pos+' tRoom='+crmem.tRoomName);
 
             switch(crmem.state){
             case 'init':
@@ -168,7 +168,6 @@ class Role_SK_Clear extends Creep
                                 }
                             );
                 }
-
                 // If there are friendlies that need healing, we'll
                 // tend to them but only if there isn't a hostile nearby,
                 // in which case we attack hostile first.
@@ -178,7 +177,7 @@ class Role_SK_Clear extends Creep
                     break;
                 }
                 if(wound){
-                    rc=this.actMoveTo(wound.pos);
+                    rc=this.actMoveTo(wound.pos, { maxRooms: 1});
                     if(creep.pos.getRangeTo(wound) > 4){
                         creep.heal(creep);
                     }
@@ -208,11 +207,11 @@ class Role_SK_Clear extends Creep
                 }
                 if(crmem.instance == 0){
                     if(nextLair && creep.pos.getRangeTo(nextLair) > 5)
-                        this.actMoveTo(nextLair);
+                        this.actMoveTo(nextLair,{ maxRooms: 1});
                 }
                 else {
                     if(prevLair && creep.pos.getRangeTo(prevLair) > 5)
-                        this.actMoveTo(prevLair);
+                        this.actMoveTo(prevLair,{ maxRooms: 1});
                 }
                 return;
 
@@ -242,9 +241,9 @@ class Role_SK_Clear extends Creep
                 if(range <= 3)
                     creep.rangedAttack(target);
                 creep.heal(creep);
-                if(range > 3 )
-                    this.actMoveTo(target);
-                else if(range <= 2 )
+                if( range > 3 )
+                    this.actMoveTo(target, { maxRooms: 1 } );
+                else if ( range <= 2 )
                     this.actMoveTo(crmem.safePosX, crmem.safePosY);
                 return;
 

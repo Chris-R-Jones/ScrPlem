@@ -30,7 +30,7 @@ class Role_AttackController extends Creep
         let owner = trObj.m_rmem.owner;
         if(owner == 'nouser' || owner == 'me' || owner == 'none')
             return false;
-        if(!controller || !controller.owner || controller.level <= 1)
+        if(!controller || !controller.owner || controller.level < 1)
             return false;
 
         // With CLAIM parts, we only get 600 ticks til death.

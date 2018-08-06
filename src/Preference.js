@@ -28,7 +28,7 @@ var PlemPref = {
     // Whether to balance energy/minerals between terminals.
     balanceEnergy: true,
     balanceMinerals: true,
-    debugTransfers: false,  // 'verbose', // true/false
+    debugTransfers: true,  // 'verbose', // true/false
     prioritizedRoomName: null, //'E4N47', // 'W2N31', //'E4N43', //'E3N42',
 
     // Are we in preparing for war? If so we'll load labs with boosts rather
@@ -58,7 +58,7 @@ var PlemPref = {
     npcOnly: false,
 
     // Debug flags.  Set to true/false for all, or a room name for selective debug
-    debugSpawns: 'E7N49',
+    debugSpawns: 'W7N24',
 
     // Test creep visit rooms
     testR1: 'W2N42',
@@ -72,7 +72,7 @@ var PlemPref = {
 
     // Generalissimo attack orders.
     debugMilitary: false, //'E7N43', //true, // 'E5N44',                 // true (basic division/squad reporting) , false, 'verbose', or roomName
-    attackOrders: { 'E7N43':true },
+    attackOrders: { 'E7N43':false },
     attackFromRooms: [ 'E4N47' ], 
     attackBoosted: false,
     boostAttackRooms: { 'E1N24': false },
