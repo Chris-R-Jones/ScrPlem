@@ -174,7 +174,7 @@ class Role_DediHarv extends Creep
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
-            //if(creep.name == 'dharv_W13N25_W14N25_2_alt')
+            //if(creep.name == 'dharv_W5N33_W5N34_2_alt')
             //    console.log('T='+Game.time+' '+creep.name+' state='+crmem.state);
 
             switch(crmem.state){
@@ -229,14 +229,36 @@ class Role_DediHarv extends Creep
                 // dropped.  Which is fine if we're standing on the container.
                 // Not as fine if we're building that container, or it is full.
                 // Find container and see what the situation is.
-                let st;
+                let st = null;
                 structs=crObj.getContainers();
                 for(si=0; si<structs.length; si++){
-                    st = structs[si];
-                    if(st.pos.x == crmem.ctrp.x && st.pos.y == crmem.ctrp.y){
+                    let fst = structs[si];
+                    if(fst.pos.x == crmem.ctrp.x && fst.pos.y == crmem.ctrp.y){
+                        st = fst;
                         break;
                     }
                 }
+
+                // SK rooms can easily get disrupted and fall behind on repair
+                // duties.  Rebuilding a container is very disruptive as the
+                // SK creep keeps walking over the site while being built.
+                // To prevent this - take any opportunities to repair if we're
+                // falling behind.   The SK DediHarv does contain a little
+                // CARRY to allow this.
+                if(st && crObj.m_rmem.keeperRoom && creep.carry[RESOURCE_ENERGY] > creep.carryCapacity/2){
+                    if(   st.hits < (st.hitsMax/2)
+                       || _.sum(st.store) == st.storeCapacity
+                      ) {
+                        let rc;
+                        this.clearTarget();
+                        this.setTarget(st);
+                        rc = this.repairStruct();
+                        this.clearTarget();
+                        crmem.state = 'pickSource';
+                        return;
+                    }
+                }
+
                 if(si == structs.length || st.pos.x != creep.pos.x || st.pos.y != creep.pos.y
                    || (_.sum(st.store) + 10) > st.storeCapacity )
                 {

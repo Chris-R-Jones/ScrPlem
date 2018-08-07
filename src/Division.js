@@ -319,7 +319,7 @@ class Division
            &&  ( ( ! trmem.hostileCt || trmem.hostileCt == 0)
                  || ( trmem.owner != "me" && !trmem.hostRoom)
                )
-           && ( !trmem.assaultLastT || (Game.time - trmem.hostileLastT ) > 50000 )
+           && ( !trmem.assaultLastT || (Game.time - trmem.assaultLastT ) > 50000 )
           ) {
             while( (squad = squads.shift()) )
                 squad.setOrderStandDown();
@@ -378,7 +378,7 @@ class Division
           ) {
             // For defensive orders, we have no needs if there is no presence and the attacker was 
             // invaders/screeps.
-            if( !rmem.assaultLastT || (Game.time - rmem.hostileLastT ) > 50000 )
+            if( !rmem.assaultLastT || (Game.time - rmem.assaultLastT ) > 50000 )
                 return;
 
             // But for users attacks we need a sentry posted.  They may be bouncing the room, and even if not
@@ -580,6 +580,10 @@ class Division
         let spCoord = new RoomCoord(spawnRoomName);
         let tgtCoord = new RoomCoord(this.m_tgtRoomName);
         let linearDist = (spCoord.xDist(tgtCoord) + spCoord.yDist(tgtCoord));
+        if(linearDist >= 7 && !rmem.hostileUserOwnedCt)
+            return null;
+        if(linearDist >= 15)
+            return null;
         if(rmem && rmem.hostileCt && !rmem.hostileUserOwnedCt
            && (rmem.hostRoom != spawnRoomName && this.m_tgtRoomName != spawnRoomName)
            && (Game.time-rmem.hostileStartT) <= (linearDist * 30)

@@ -212,8 +212,10 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
 
     // If our current room isn't hostile we instead evaluate the target room, as we want
     // to determine if it's safe to enter.
-    if(rObj.getHostiles().length == 0)
+    if(rObj.getHostiles().length == 0){
         rObj = trObj;
+        rmem = rObj.m_rmem;
+    }
 
     let hostiles;
     if(rObj.m_room)
@@ -270,7 +272,7 @@ Creep.prototype.commonDefence = function(creep, rObj, hrObj, trObj)
                 if(terminal && terminal.store.energy > creep.carryCapacity)
                     this.setTarget(terminal);
                 else if (spsto && spsto.store.energy > creep.carryCapacity)
-                    this.setTarget(hrObj.getSpawnStorage());
+                    this.setTarget(spsto);
                 else
                     return true;
                 this.withdrawStruct(RESOURCE_ENERGY);

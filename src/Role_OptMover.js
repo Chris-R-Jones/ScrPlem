@@ -45,7 +45,10 @@ class Role_OptMover extends Creep
         // to build roads.   While it's tempting, don't do this at home.  If we're
         // not getting bootstrapped any longer, then this results in dead room.
         // Distributors need their energy from spawn storage.
-        if(!trObj.m_rmem.lastPlanT && targetRoomName != spawn.room.name && ! trObj.isCenterRoom())
+        if(!trObj.m_rmem.lastPlanT && targetRoomName != spawn.room.name 
+           && !trObj.isCenterRoom()
+           && !trObj.m_rmem.keeperRoom
+           )
             return false;
 
         // Loop through sources, each one has its own distance and so
@@ -183,23 +186,20 @@ class Role_OptMover extends Creep
 	    let maxLoop = 5;
 	    let exceed;
 	    let si;
+        let tgt;
 	    let debug="";
 
 	    // Defence
 	    if(this.commonDefence(creep, rObj, hrObj, trObj)){
 	        crmem.state = 'moveHpos';
 	        this.clearTarget();
-
-            //if(creep.name == 'omover_W13N25_W14N25_5_420')
-            //    console.log('T='+Game.time+creep.name+' common defence');
-
 	        return;
 	    }
 
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
-            //if(creep.name == 'omover_W14N21_36_120')
+            //if(creep.name == 'omover_W5N33_W5N34_46_41')
             //    console.log('T='+Game.time+creep.name+' pos='+creep.pos+' loop='+exceed+' state='+crmem.state);
 
             switch(crmem.state){
@@ -273,7 +273,7 @@ class Role_OptMover extends Creep
                 break;
 
             case 'withdrawStruct':
-                let tgt = Game.getObjectById(crmem.targetId);
+                tgt = Game.getObjectById(crmem.targetId);
 
                 rc=this.withdrawStruct(RESOURCE_ENERGY);
                 debug = debug + " rc= "+rc+"\n";
@@ -340,6 +340,40 @@ class Role_OptMover extends Creep
 
             case 'pickFill':
 
+                // Ordinarily, we'll just go home and fill spawn containers/storage
+                // However... in SK rooms, we often have issues where we can't
+                // easily feed repair bots that have a long way to walk.  That
+                // can be an issue particularly in rebuilding the mining container
+                // (which doesn't have its own energy source) quickly enough that
+                // the SK doesn't spawn and destroy it.
+                //    Long story short - if there are building activities still
+                // ongoin, find a repair bot and keep filling it to speed up
+                // repair.
+                if(rObj.m_rmem.keeperRoom) {
+                    let sites = rObj.getSites();
+                    if(sites && sites.length > 0){
+                        let creeps=rObj.getFriendlies();
+                        let rep = creep.pos.findClosestByRange
+                                   (creeps
+                                   , { filter : function(cr)
+                                        {
+                                            let res = (cr.memory.role == 'repair'
+                                                       && cr.memory.tRoomName == crmem.tRoomName
+                                                      );
+                                            console.log('Consider role='+cr.memory.role+' tr='+cr.memory.tRoomName+' res='+res);
+                                            return res;
+                                        }
+                                     }
+                                   );
+                        if(rep) {
+                            this.setTarget(rep);
+                            crmem.state = 'fillRepair';
+                            break;
+                        }
+                    }
+                }
+
+                // Otherwise... walk home as usual.
                 let spStorage = hrObj.getSpawnContainer();
                 let trm;
 
@@ -395,6 +429,23 @@ class Role_OptMover extends Creep
                     crmem.state = 'pickFill';
                 }
                 break;
+
+            case 'fillRepair':
+                if(!creep.carry[RESOURCE_ENERGY]){
+                    crmem.state = 'pickEnergy';
+                    break;
+                }
+                tgt = Game.getObjectById(crmem.targetId);
+                if(!tgt){
+                    crmem.state = 'pickFill';
+                    break;
+                }
+                rc=this.fillTarget(RESOURCE_ENERGY);
+                debug = debug + " .. fillTarget rc="+rc+"\n";
+                if(rc == OK)
+                    return;
+                this.setTarget(tgt);
+                return;
 
             case 'recycle':
                 let spawns = hrObj.getSpawns();
