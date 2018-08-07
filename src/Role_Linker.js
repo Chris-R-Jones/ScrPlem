@@ -151,7 +151,7 @@ class Role_Linker extends Creep
 	    for(exceed=0; exceed<maxLoop; exceed++){
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
-            //if(creep.name == 'linker_W13N25_0')
+            //if(creep.name == 'linker_E6N43_0')
             //    console.log(Game.time+' '+creep.name+' loop='+exceed+' state='+crmem.state+' carry='+_.sum(creep.carry) +'tgt='+crmem.targetId);
 
             switch(crmem.state){
@@ -166,6 +166,9 @@ class Role_Linker extends Creep
                 return;
 
             case 'chooseGoods':
+
+                delete crmem.isPurge;
+
                 if(creep.pos.x != sto.pos.x+1 || creep.pos.y != sto.pos.y){
                     console.log(creep.name+' BUG! didnt get in position from moveLinkPos');
                     crmem.state = 'moveLnkPos';
@@ -266,6 +269,29 @@ class Role_Linker extends Creep
                     }
                     break;
                 }
+
+                // If there are goods on the product exclude list in storage, trash them.
+                let exl = Preference.prodExcludeList;
+                exl = [ 'KH', 'KH2O', 'XKH2O' ];  // For now, lets just start with these problematic ones
+                for( let exi in exl ){
+                    let exrsc = exl[exi];
+                    if(sto && sto.store[exrsc] && sto.store[exrsc] > 0) {
+                        this.setTarget(sto)
+                        crmem.rsc = exrsc;
+                        crmem.withdrawCount = sto.store[exrsc];
+                        crmem.state = 'withdrawStorage';
+                        crmem.isPurge = true;
+                        break;
+                    }
+                    else if(trm && trm.store[exrsc] && trm.store[exrsc] > 0) {
+                        this.setTarget(trm)
+                        crmem.rsc = exrsc;
+                        crmem.withdrawCount = trm.store[exrsc];
+                        crmem.state = 'withdrawTerminal';
+                        crmem.isPurge = true;
+                        break;
+                    }
+                }
                 return;
 
             case 'withdrawStorage':
@@ -276,9 +302,16 @@ class Role_Linker extends Creep
                     crmem.state = 'fillStructure';
                     break;
                 }
+                if(crmem.withdrawCount && crmem.withdrawCount > creep.carryCapacity)
+                    crmem.withdrawCount = creep.carryCapacity;
                 rc=this.withdrawStruct(crmem.rsc,crmem.withdrawCount);
                 if(rc == OK)
                     return;
+                else {
+                    console.log(creep.name+' pos='+creep.pos+'BUG! rc='+rc+' rsc='+crmem.rsc+' count='+crmem.withdrawCount );
+                    crmem.state = 'moveLinkPos';
+                    break;
+                }
                 return;
 
             case 'withdrawTerminal':
@@ -288,11 +321,17 @@ class Role_Linker extends Creep
                     crmem.state = 'fillStructure';
                     break;
                 }
+                if(crmem.withdrawCount && crmem.withdrawCount > creep.carryCapacity)
+                    crmem.withdrawCount = creep.carryCapacity;
                 rc=this.withdrawStruct(crmem.rsc,crmem.withdrawCount);
                 debug=debug+' ... witdhraw count='+crmem.withdrawCount+' crmemcarry='+crmem.carry+' rc='+rc;
-
                 if(rc == OK)
                     return;
+                else {
+                    console.log(creep.name+' pos='+creep.pos+'BUG! rc='+rc+' rsc='+crmem.rsc+' count='+crmem.withdrawCount );
+                    crmem.state = 'moveLinkPos';
+                    break;
+                }
                 return;
 
             case 'fillStructure':
@@ -303,11 +342,16 @@ class Role_Linker extends Creep
                 }
 
                 // If terminal is overcommitted and we're over limits, drop extra
+                // Similarly, we might be purging unwanted goods (isPurge is true)
                 for ( let good in creep.carry ) {
                     if (creep.carry[good] && creep.carry[good] != 0){
-                        if( (_.sum(trm.store) >= 290000 || trm.store.energy < 50000)
-                            && good.length == 1 && good != RESOURCE_ENERGY && trm.store[good]>=5000
-                            && sto.store[good] >= 15000 ){
+                        if( crmem.isPurge
+                            || ( ( _.sum(trm.store) >= 290000 || trm.store.energy < 50000)
+                                   && good.length == 1 && good != RESOURCE_ENERGY && trm.store[good]>=5000
+                                   && sto.store[good] >= 15000
+                               )
+                          ){
+                            console.log(creep.name,' Dropped excluded goods: '+creep.carry[good]+' '+good);
                             creep.drop(good,creep.carry[good]);
                             return;
                         }

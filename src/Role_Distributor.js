@@ -1,6 +1,7 @@
 
 var Creep           = require('Creep');
 var RoomHolder      = require('RoomHolder');
+var Preference      = require('Preference');
 
 // The distributor creep is dedicated to moving energy from spawn storage
 // out to objects close to spawn -- extensions, spawns, towers, etc.
@@ -131,6 +132,10 @@ class Role_Distributor extends Creep
                            && drop.resourceType.length == 1
                            && trm.store[drop.resourceType] > 5000
                            && sto.store[drop.resourceType] > 15000)
+                            continue;
+
+                        // Skip pickup if good is on the production exclude list
+                        if(Preference.prodExcludeList.indexOf(drop.resourceType) >= 0)
                             continue;
 
                         if(creep.pos.getRangeTo(drop.pos) <= 6 ){

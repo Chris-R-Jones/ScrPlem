@@ -96,7 +96,7 @@ class TerminalController
                     }
                     if(!goodMax[good] || (goodMax[good] && (trmAmt+stoAmt)>goodMax[good])){
                         goodMax[good] = (trmAmt+stoAmt);
-                        goodMaxRoom[good] = roomObj.m_room.name;                        
+                        goodMaxRoom[good] = roomObj.m_room.name;
                     }
 
                     if(Preference.debugTransfers == 'verbose' && good == 'ZHO2'){
@@ -462,10 +462,10 @@ class TerminalController
                     // bring down the average as a whole.
                     sDiff = 100;
                 }
-                
+
                 if(Preference.debugTransfers == 'verbose')
                     console.log('Consider '+good+' sDiff='+sDiff+' amt='+sAmt+' avg='+avgAmt+' goodMin='+goodMin[good]);
-                
+
                 if(sDiff >= 100){
                     if(!bestDiff || sDiff > bestDiff){
                         if(good != RESOURCE_ENERGY || sDiff >= 2500){

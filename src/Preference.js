@@ -22,12 +22,8 @@ var PlemPref = {
     bootRoomName: 'E6N43',
     bootEnabled:  false  ,
 
-    // Whether to 'exodus' goods toward terminal for sale or transfer.
+    // Terminal control variables
     storageExodus: false,
-
-    // Whether to balance energy/minerals between terminals.
-    balanceEnergy: true,
-    balanceMinerals: true,
     debugTransfers: false,  // 'verbose', // true/false
     prioritizedRoomName: null, //'E4N47', // 'W2N31', //'E4N43', //'E3N42',
 
@@ -90,12 +86,8 @@ var WartPref = {
     bootRoomName: 'W3N1',
     bootEnabled:  true,
 
-    // Whether to 'exodus' goods toward terminal for sale or transfer.
+    // Terminal control variables
     storageExodus: false,
-
-    // Whether to balance energy/minerals between terminals.
-    balanceEnergy: true,
-    balanceMinerals: true,
     debugTransfers: false, // 'verbose' or true
     prioritizedRoomName: 'W3N1',
 
