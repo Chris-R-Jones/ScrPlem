@@ -24,7 +24,7 @@ var PlemPref = {
 
     // Terminal control variables
     storageExodus: false,
-    debugTransfers: false,  // 'verbose', // true/false
+    debugTransfers: true,  // 'verbose', // true/false
     prioritizedRoomName: null, //'E4N47', // 'W2N31', //'E4N43', //'E3N42',
 
     // Are we in preparing for war? If so we'll load labs with boosts rather

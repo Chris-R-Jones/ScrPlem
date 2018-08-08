@@ -623,34 +623,6 @@ class TerminalController
             openOrders[o.resourceType] = o;
         }
 
-        // Next survey resources to see if any of them are above sell watermarks.
-        //for(let good in allTotals){
-        //
-            // Initially lets just work on selling basic goods. TBD to extend
-            // Sell anything over 20000 = 5000(terminal)+15000(storage)
-        //    if(allTotals[good] < 20000 || rsc.length > 1)
-        //        continue;
-        //
-        //
-        //}
-
-        //-------------------------------------------------------
-        // Before I actually do sales, I really need something to try to track sales price
-        // history for different resources to have some more intelligent price targetting.
-        // I'm going to try to experiment with algorithms til it 'feels' like it's getting the
-        // right (and safe) answer.
-
-        // Four times a day, find, and save, the min sell price for each good, and max buy price.
-        if(!Memory.marketHist)
-            Memory.marketHist={};
-        if(Game.time%127){
-            //let allOrders = Game.market.getAllOrders();
-
-
-        }
-
-
-
         ///----------------------------------------------
         // Not often, but occasionally, delete old dead orders, and lower
         // price on ones that aren't moving.

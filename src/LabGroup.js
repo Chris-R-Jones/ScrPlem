@@ -1,6 +1,7 @@
 var RoomHolder          = require('RoomHolder');
 var TerminalController  = require('TerminalController');
 var Preference          = require('Preference');
+var Const               = require('Constants');
 
 // Product and reagents we've selected for production, globally.
 var g_product;
@@ -49,13 +50,14 @@ class LabGroup
     {
         // Otherwise we need to figure out what to produce.
         // Avoid switching production too often.  Once we've chosen a best
-        // product stick with it at least 1000 turns to avoid a lot of chem
+        // product stick with it at least PRODUCTION_RUN_LENGTH turns to avoid 
         // swapping as levels increase/decrease.  Also to save CPU in the search
-        //   If we found nothing to produce - check again in 100 turns.
+        //   If we found nothing to produce - check again in PRODUCTION_BREATHER_LEN turns.
         // many production stalls are due to terminal imbalance that is
-        // quickly resolved.   If, however, after 100 turns things haven't
-        // resolved, then wait a full 1000 for a new scan.  Because, at that
-        // point - it's clearly going to take a while for mineral production.
+        // quickly resolved.   If, however, after the breather, things haven't resolved, 
+        // then wait a full production run length for a new scan.  
+        // Because, at that point - it's clearly going to take a while for mineral production,
+        // and we won't clutter our history.
         let timeSinceSwitch = 0;
         if(Memory.chemistry) {
             timeSinceSwitch = (Game.time - Memory.chemistry.lastSwitchT);
@@ -64,11 +66,9 @@ class LabGroup
             g_reagents[1] = Memory.chemistry.r2;
             if(g_product)
                 delete Memory.chemistry.noProductAfterBreather;
-        }
-        if(Memory.chemistry){
-            if( timeSinceSwitch < 1000 && (g_product || Memory.chemistry.noProductAfterBreather) )
+            if( timeSinceSwitch < Const.LABGROUP_RUN_LENGTH && (g_product || Memory.chemistry.noProductAfterBreather) )
                 return;
-            else if(timeSinceSwitch < 100)
+            else if(timeSinceSwitch < Const.LABGROUP_BREATHER_LEN)
                 return;
             else {
                 Memory.chemistry.noProductAfterBreather = true;
@@ -116,7 +116,10 @@ class LabGroup
                 levTot[level] += totals[good];
             levNG[level]++;
 
-            if(!totals[good] || (totals[good]/nTerminals) < 500 || (starvedRooms[good] && starvedRooms[good] > 0)){
+            if(!totals[good]
+               || (totals[good]/nTerminals) < Const.LABGROUP_REAGENT_MIN_LEVEL
+               || (starvedRooms[good] && starvedRooms[good] > 0)
+              ){
                 for(let li=level; li<7; li++){
                     missing[li] = good;
                     fullCapacity[li] = false;
@@ -160,7 +163,7 @@ class LabGroup
                 console.log('Consider r1='+r1+'... skip - level not at full capacity, missing'+missing[r1Lev]);
                 continue;
             }
-            if(!totals[r1] || (totals[r1]/nTerminals) < 500){
+            if(!totals[r1] || (totals[r1]/nTerminals) < Const.LABGROUP_REAGENT_MIN_LEVEL){
                 if(totals[r1] && totals[r1] != 0)
                     console.log('Consider r1='+r1+'... skip - totals='+totals[r1]/nTerminals);
                 else
@@ -175,7 +178,7 @@ class LabGroup
                     continue;
                 }
 
-                if(!totals[r2] || (totals[r2]/nTerminals) < 500){
+                if(!totals[r2] || (totals[r2]/nTerminals) < Const.LABGROUP_REAGENT_MIN_LEVEL){
                     if(totals[r2] && totals[r2] != 0)
                         console.log('Consider r1='+r1+', r2='+r2+'... skip - r2 totals='+totals[r2]/nTerminals);
                     else
@@ -193,8 +196,8 @@ class LabGroup
                 let deficit;
                 let tgtAvg = levAvg[lev]+500;
 
-                if(lev != 6 && (totals[prod]/nTerminals)>500){
-                    console.log('Consider r1='+r1+', r2='+r2+'... skip, product < final and over 500 avg');
+                if(lev != 6 && (totals[prod]/nTerminals) > Const.LABGROUP_REAGENT_MIN_LEVEL){
+                    console.log('Consider r1='+r1+', r2='+r2+'... skip, product over '+Const.LABGROUP_REAGENT_MIN_LEVEL+' avg');
                     continue;
                 }
 
@@ -219,7 +222,7 @@ class LabGroup
                 console.log('Consider r1='+r1+', r2='+r2+' product = '+prod+' deficit='+deficit);
 
                 if(    !bestLev
-                    || (lev > bestLev && (deficit > 0 || totals[prod] < 5000) )
+                    || (lev > bestLev && (deficit > 0 || totals[prod] < (Const.LABGROUP_REAGENT_MIN_LEVEL * nTerminals)) )
                     || (lev == bestLev && deficit > bestDeficit)
                     ) {
                     console.log('......'+r1+'+'+r2+'->'+prod+' lev='+lev+' totals[prod]='+totals[prod]+' levAvg[lev]='+levAvg[lev]+' tgtAvg='+tgtAvg
@@ -257,7 +260,7 @@ class LabGroup
         g_reagents[0] = bestR1;
         g_reagents[1] = bestR2;
 
-        /* Save history of last 40 production orders */
+        /* Save history of last LABGROUP_HISTORY_SIZE production orders */
         if(!Memory.chemHistory)
             Memory.chemHistory = [];
         let histStr = "skip. missing=[ "+missingSummary+" ]";
@@ -267,7 +270,7 @@ class LabGroup
                         +bestProduct+"("+(totals[bestProduct]/nTerminals);
         }
         Memory.chemHistory.push(histStr);
-        if(Memory.chemHistory.length > 40)
+        while(Memory.chemHistory.length > Const.LABGROUP_HISTORY_SIZE)
             Memory.chemHistory.shift();
 
         Memory.chemistry.lastSwitchT = Game.time;
@@ -440,7 +443,7 @@ class LabGroup
         let loadList = Preference.loadList;
         let rmem = this.m_roomObj.m_rmem;
         if(   Preference.warPrep
-           || ( rmem.assaultLastT && (Game.time - rmem.assaultLastT) <= 200000 )
+           || ( rmem.assaultLastT && (Game.time - rmem.assaultLastT) <= Const.GENERAL_ASSAULT_DEFENCE_DURATION )
            ){
             for(let li=0; li<loadList.length; li++){
                 let wi;
@@ -545,7 +548,7 @@ class LabGroup
 
         // Focus on production unless we have a war need to load.
         if(   !Preference.warPrep 
-           && ( !rmem.assaultLastT || (Game.time - rmem.assaultLastT) > 200000 )
+           && ( !rmem.assaultLastT || (Game.time - rmem.assaultLastT) > Const.GENERAL_ASSAULT_DEFENCE_DURATION )
            ){
             loadList = [];
         }
@@ -644,7 +647,7 @@ class LabGroup
 
         // Focus on production unless we have a war need to load.
         if(   !Preference.warPrep 
-           && ( !rmem.assaultLastT || (Game.time - rmem.assaultLastT) > 200000 )
+           && ( !rmem.assaultLastT || (Game.time - rmem.assaultLastT) > Const.GENERAL_ASSAULT_DEFENCE_DURATION )
            ){
             loadList = [];
         }
