@@ -54,7 +54,7 @@ var PlemPref = {
     npcOnly: false,
 
     // Debug flags.  Set to true/false for all, or a room name for selective debug
-    debugSpawns: 'W5N33',
+    debugSpawns: 'E4N47',
 
     // Test creep visit rooms
     testR1: 'W2N42',

@@ -31,15 +31,17 @@ class Role_Miner extends Creep
         if(!trObj.m_room)
             return false;
 
-        let trTrm = trObj.getTerminal();
-        let trSto = trObj.getSpawnStorage();
+        let hrTrm = hrObj.getTerminal();
+        let hrSto = hrObj.getSpawnStorage();
         let extract = trObj.getExtractor();
         let mineral = trObj.getMineral();
         let cont = trObj.getMineralHarvestContainer(hrObj);
-        if(!trTrm || ! trSto || !mineral || !extract || !cont)
+
+        if(!hrTrm || ! hrSto || !mineral || !extract || !cont)
             return false;
-        let stoVal = trSto.store[mineral.mineralType]?trSto.store[mineral.mineralType]:0;
-        let trmVal = trTrm.store[mineral.mineralType]?trTrm.store[mineral.mineralType]:0;
+
+        let stoVal = hrSto.store[mineral.mineralType]?hrSto.store[mineral.mineralType]:0;
+        let trmVal = hrTrm.store[mineral.mineralType]?hrTrm.store[mineral.mineralType]:0;
         if( !mineral.mineralAmount
             || mineral.mineralAmount == 0
             || (trmVal+stoVal) >= 20000
@@ -182,10 +184,10 @@ class Role_Miner extends Creep
 
 
                 // Avoid glutting terminal
-                let trTrm = trObj.getTerminal();
-                let trSto = trObj.getSpawnStorage();
-                let stoVal = trSto.store[mineral.mineralType]?trSto.store[mineral.mineralType]:0;
-                let trmVal = trTrm.store[mineral.mineralType]?trTrm.store[mineral.mineralType]:0;
+                let hrTrm = hrObj.getTerminal();
+                let hrSto = hrObj.getSpawnStorage();
+                let stoVal = hrSto.store[mineral.mineralType]?hrSto.store[mineral.mineralType]:0;
+                let trmVal = hrTrm.store[mineral.mineralType]?hrTrm.store[mineral.mineralType]:0;
                 if((stoVal+trmVal) >= 21000){
                     creep.suicide();
                     return;
