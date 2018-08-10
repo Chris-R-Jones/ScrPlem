@@ -70,9 +70,8 @@ class LabGroup
                 return;
             else if(timeSinceSwitch < Const.LABGROUP_BREATHER_LEN)
                 return;
-            else {
+            else if(!g_product)
                 Memory.chemistry.noProductAfterBreather = true;
-            }
         }
 
         // Figure out what, globally, we should be producing, based on
@@ -112,12 +111,14 @@ class LabGroup
                 continue;
 
             let level = this.productLevel(good);
+            let goodAvg;
             if(totals[good])
                 levTot[level] += totals[good];
             levNG[level]++;
+            goodAvg = totals[good]/nTerminals;
 
             if(!totals[good]
-               || (totals[good]/nTerminals) < Const.LABGROUP_REAGENT_MIN_LEVEL
+               || goodAvg < Const.LABGROUP_REAGENT_MIN_LEVEL
                || (starvedRooms[good] && starvedRooms[good] > 0)
               ){
                 for(let li=level; li<7; li++){
@@ -128,7 +129,7 @@ class LabGroup
                     if(missingSummary != "")
                         missingSummary = ", "+missingSummary;
                     let starvedStr;
-                    if(starvedRooms[good] && starvedRooms[good] > 0)
+                    if(goodAvg >= Const.LABGROUP_REAGENT_MIN_LEVEL && starvedRooms[good] && starvedRooms[good] > 0)
                         starvedStr = "[STARVED]";
                     else
                         starvedStr = "";
@@ -263,9 +264,9 @@ class LabGroup
         /* Save history of last LABGROUP_HISTORY_SIZE production orders */
         if(!Memory.chemHistory)
             Memory.chemHistory = [];
-        let histStr = "skip. missing=[ "+missingSummary+" ]";
+        let histStr = "T="+Game.time+" skip. missing=[ "+missingSummary+" ]";
         if(bestProduct) {
-            histStr = ""+bestR1+"("+(totals[bestR1]/nTerminals)+") + "
+            histStr = "T="+Game.time+' '+bestR1+"("+(totals[bestR1]/nTerminals)+") + "
                         +bestR2+"("+(totals[bestR2]/nTerminals)+") -> "
                         +bestProduct+"("+(totals[bestProduct]/nTerminals);
         }

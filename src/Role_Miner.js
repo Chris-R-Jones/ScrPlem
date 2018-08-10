@@ -176,7 +176,7 @@ class Role_Miner extends Creep
                 }
 
                 // And if we have to move back do that now.
-                mineral = Game.getObjectById(crmem.targetId);
+                mineral = this.getTarget();
                 if(creep.pos.getRangeTo(mineral) > 1){
                     this.actMoveTo(mineral);
                     return;

@@ -312,7 +312,7 @@ class Role_Distributor extends Creep
                     break;
                 }
                 else
-                    console.log(creep.name+' fillTarget rc='+rc+' target='+crmem.targetId);
+                    console.log(creep.name+' fillTarget rc='+rc+' target='+this.getTarget());
 
                 if(creep.carry.energy < 50){
                     crmem.state = 'pickEnergy';

@@ -233,7 +233,7 @@ class Role_BootMover extends Creep
                 rc=this.fillTarget(RESOURCE_ENERGY);
                 if(rc == OK){
                     // If we're filling a creep and it's at capacity, pick new target.
-                    let tgt = Game.getObjectById(crmem.targetId);
+                    let tgt = this.getTarget();
                     if(tgt && tgt.carry && _.sum(tgt.carry) >= (tgt.carryCapacity-15)){
                         this.clearTarget();
                         crmem.state = 'pickFill';
@@ -344,7 +344,7 @@ class Role_BootMover extends Creep
                 break;
 
             case 'longHaulRecycleMove':
-                let target = Game.getObjectById(crmem.targetId);
+                let target = this.getTarget();
                 let spawn = trObj.findTopLeftSpawn();
 
                 if(!spawn || !(spawn.my))

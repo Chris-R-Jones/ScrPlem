@@ -152,7 +152,7 @@ class Role_Linker extends Creep
             debug=debug + '\t loop'+exceed+' state='+crmem.state+'\n';
 
             //if(creep.name == 'linker_E6N43_0')
-            //    console.log(Game.time+' '+creep.name+' loop='+exceed+' state='+crmem.state+' carry='+_.sum(creep.carry) +'tgt='+crmem.targetId);
+            //    console.log(Game.time+' '+creep.name+' loop='+exceed+' state='+crmem.state+' carry='+_.sum(creep.carry) +'tgt='+this.getTarget());
 
             switch(crmem.state){
 

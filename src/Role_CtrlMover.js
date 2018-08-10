@@ -247,7 +247,7 @@ class Role_CtrlMover extends Creep
                 if(rc == OK)
                     return;
                 if(rc == ERR_NOT_ENOUGH_RESOURCES){
-                    // targetId is cleared so we do need to re-pick.
+                    // target is cleared so we do need to re-pick.
                     crmem.state = 'pickEnergy';
                     return;
                 }
@@ -321,7 +321,7 @@ class Role_CtrlMover extends Creep
                     // If our target is a creep, we're filling the ctrl upgrader.  If it's
                     // near capacity (minus what it used in one turn), then just move extras
                     // to the container.
-                    let tgt = Game.getObjectById(crmem.targetId);
+                    let tgt = this.getTarget();
                     if(tgt && tgt.carry && _.sum(tgt.carry) >= (tgt.carryCapacity-15)){
                         this.clearTarget();
                         crmem.state = 'pickFill';

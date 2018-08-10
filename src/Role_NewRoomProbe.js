@@ -120,7 +120,7 @@ class Role_NewRoomProbe extends Creep
                 return;
 
             case 'walkEnemySite':
-                let target = Game.getObjectById(crmem.targetId);
+                let target = this.getTarget();
                 if(!target){
                     this.clearTarget();
                     crmem.state = 'linger';

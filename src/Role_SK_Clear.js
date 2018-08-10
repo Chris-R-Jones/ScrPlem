@@ -216,7 +216,7 @@ class Role_SK_Clear extends Creep
                 return;
 
             case 'attackTarget':
-                target = Game.getObjectById(crmem.targetId);
+                target = this.getTarget();
                 if(!target){
                     this.clearTarget();
                     crmem.state = 'pickTarget';

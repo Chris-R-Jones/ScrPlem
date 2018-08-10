@@ -303,7 +303,7 @@ class Role_CtrlUpgrade extends Creep
                 if(rc == ERR_NOT_ENOUGH_RESOURCES){
                     // If we have at least some energy might as well
                     // upgrade while more arrives.  else
-                    // targetId is cleared so we do need to re-pick.
+                    // target is cleared so we do need to re-pick.
                     if(creep.carry.energy > 0){
                         this.setTarget(hRoom.controller);
                         crmem.state = 'upgradeController';

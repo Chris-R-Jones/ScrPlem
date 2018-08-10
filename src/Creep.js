@@ -133,11 +133,11 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
 
         break;
     }
-    
+
     if(needDebug){
         console.log('Out of loop s='+s);
     }
-    
+
     if( ci == maxInstance )
         return null;
 
@@ -167,6 +167,12 @@ Creep.spawnCommon = function( spawn, role, body, maxInstance, altLife, multiSpec
     // tick based on role, and since creep is spawning, there's otherwise no
     // immediate need.
     return name;
+}
+
+Creep.prototype.getTarget = function( )
+{
+    let crmem = this.m_crmem;
+    return crmem.targetId ? Game.getObjectById(crmem.targetId) : null;
 }
 
 // Selects a target room object and stores target id for move to target.
@@ -830,7 +836,7 @@ Creep.prototype.fillTarget = function( resource )
         delete crmem.targetPath;
     return err;
 }
-    
+
 // Moves only within 'safe' areas of defense matrix of current room.
 Creep.prototype.defenceMatMove = function( tgtPos )
 {
@@ -840,9 +846,9 @@ Creep.prototype.defenceMatMove = function( tgtPos )
     let matrix = rObj.getDefenceMatrix();
     let breached = rObj.getBreached();
     let rc;
-    if(!matrix || breached) 
+    if(!matrix || breached)
         return creep.moveTo(tgtPos);
-    
+
     let v = matrix.get(creep.pos.x, creep.pos.y);
     if(v == 0xFF){
         // We are already outside.  Move in toward spawn to safety

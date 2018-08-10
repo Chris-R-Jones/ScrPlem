@@ -243,7 +243,7 @@ class Role_SectorProbe extends Creep
                 return;
 
             case 'updateSign':
-                let ctrl = Game.getObjectById(crmem.targetId);
+                let ctrl = this.getTarget();
                 if(!ctrl){
                     this.clearTarget();
                     crmem.state = 'moveToRoom';

@@ -200,7 +200,7 @@ class Role_Chemist extends Creep
                 else {
                     this.setTarget(trm);
                     crmem.state = 'fillTerminal';
-                    console.log(creep.name+' fillTarget1 rc='+rc+' target='+crmem.targetId);
+                    console.log(creep.name+' fillTarget1 rc='+rc+' target='+this.getTarget());
                 }
                 return;
 
@@ -283,7 +283,7 @@ class Role_Chemist extends Creep
                 break;
 
             case 'withdrawLab':
-                debug=debug+'.. good='+crmem.order.good+' lab='+crmem.targetId+'\n';
+                debug=debug+'.. good='+crmem.order.good+' lab='+this.getTarget()+'\n';
                 rc=this.withdrawStruct(crmem.order.good);
                 debug=debug+'.. rc='+rc+'\n';
                 if(rc == OK)
@@ -334,7 +334,6 @@ class Role_Chemist extends Creep
                     break;
                 }
                 else {
-                    console.log(creep.name+' fillTarget2 rc='+rc+' target='+crmem.targetId);
                     this.setTarget(trm);
                     return;
                 }

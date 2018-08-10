@@ -273,7 +273,7 @@ class Role_OptMover extends Creep
                 break;
 
             case 'withdrawStruct':
-                tgt = Game.getObjectById(crmem.targetId);
+                tgt = this.getTarget();
 
                 rc=this.withdrawStruct(RESOURCE_ENERGY);
                 debug = debug + " rc= "+rc+"\n";
@@ -435,7 +435,7 @@ class Role_OptMover extends Creep
                     crmem.state = 'pickEnergy';
                     break;
                 }
-                tgt = Game.getObjectById(crmem.targetId);
+                tgt = this.getTarget();
                 if(!tgt){
                     crmem.state = 'pickFill';
                     break;

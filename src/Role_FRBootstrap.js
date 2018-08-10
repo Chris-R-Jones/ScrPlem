@@ -288,7 +288,7 @@ class Role_FRBootstrap extends Creep
                 if(rc == OK)
                     return;
                 if(rc == ERR_NOT_ENOUGH_RESOURCES){
-                    // targetId is cleared so we do need to re-pick.
+                    // target is cleared so we do need to re-pick.
                     crmem.state = 'pickEnergy';
                     return;
                 }
@@ -309,7 +309,7 @@ class Role_FRBootstrap extends Creep
                 if(rc == OK)
                     return;
                 if(rc == ERR_NOT_ENOUGH_RESOURCES){
-                    // targetId is cleared so we do need to re-pick.
+                    // target is cleared so we do need to re-pick.
                     crmem.state = 'pickEnergy';
                     return;
                 }

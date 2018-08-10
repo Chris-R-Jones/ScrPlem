@@ -410,7 +410,7 @@ class TerminalController
                         continue;
                     }
                     if(good == Memory.chemistry.r1 || good == Memory.chemistry.r2){
-                        if(allTotals[good]/nTerminal < 450){
+                        if(allTotals[good]/nTerminal < 150){
                             console.log('T='+Game.time+' Terminating production cycle.  Good '+good+' avgLevel='+allTotals[good]/nTerminal);
                             delete Memory.chemistry;
                         }
